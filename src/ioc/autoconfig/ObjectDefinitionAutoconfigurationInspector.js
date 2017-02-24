@@ -18,7 +18,7 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
           //   objectDefinition.setPropertyByTypeArray(key, val.substr(1));
           //   break;
           case '#':
-            // This is for config
+            objectDefinition.constructorParamByConfig(val.substr(1));
             break;
           default:
             // By Name
@@ -36,7 +36,7 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
           objectDefinition.setPropertyByTypeArray(key, val.substr(1));
           break;
         case '#':
-          // This is for config
+          objectDefinition.setPropertyByConfig(key, val.substr(1));
           break;
         default:
           // By Name
@@ -47,31 +47,3 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
 }
 
 module.exports = { ObjectDefinitionAutoconfigurationInspector };
-
-
-// Private methods:
-const ProtectedActions = {
-  createSingletonDefinition(clazz) {
-    const def = new SingletonDefinition(clazz);
-    if (clazz.dependencies) {
-      Object.keys(clazz.dependencies).forEach((key) => {
-        const val = clazz.dependencies[key];
-        switch (val.substr(0, 1)) {
-          case '~':
-            def.setPropertyByType(key, val.substr(1));
-            break;
-          case '*':
-            def.setPropertyByTypeArray(key, val.substr(1));
-            break;
-          case '#':
-            // This is for config
-            break;
-          default:
-            // By Name
-            def.setPropertyByRef(key, val.substr(1));
-        }
-      });
-    }
-    return def;
-  }
-};

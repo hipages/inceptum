@@ -1,6 +1,5 @@
 // Shutdown order
 // Factory beans
-// Environment
 // Profile support
 
 const { Lifecycle } = require('./Lifecycle');

@@ -1,6 +1,7 @@
 const { IoCException } = require('./../IoCException');
 const { ObjectDefinition } = require('./ObjectDefinition');
 const { Lifecycle } = require('./../Lifecycle');
+const config = require('config');
 
 // Means resolving the constructor arguments necessary to instantiate
 Lifecycle.registerState('INSTANTIATING', 100);
@@ -14,7 +15,8 @@ const ParamTypes = {
   Value: 'value',
   Reference: 'ref',
   Type: 'type',
-  TypeArray: 'typeArray'
+  TypeArray: 'typeArray',
+  Config: 'config'
 };
 
 class SingletonDefinition extends ObjectDefinition {
@@ -38,6 +40,11 @@ class SingletonDefinition extends ObjectDefinition {
   constructorParamByValue(value) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.Value, val: value });
+    return this;
+  }
+  constructorParamByConfig(key) {
+    this.assertState(Lifecycle.STATES.NOT_STARTED);
+    this.constructorArgDefinitions.push({ type: ParamTypes.Config, key });
     return this;
   }
   constructorParamByRef(name) {
@@ -74,6 +81,12 @@ class SingletonDefinition extends ObjectDefinition {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.propertiesToSetDefinitions.push({ paramName,
       args: [{ type: ParamTypes.Value, val: value }] });
+    return this;
+  }
+  setPropertyByConfig(paramName, key) {
+    this.assertState(Lifecycle.STATES.NOT_STARTED);
+    this.propertiesToSetDefinitions.push({ paramName,
+      args: [{ type: ParamTypes.Config, key }] });
     return this;
   }
   setPropertyByRef(paramName, name) {
@@ -201,6 +214,9 @@ class SingletonDefinition extends ObjectDefinition {
       switch (arg.type) {
         case ParamTypes.Value:
           args.push(arg.val);
+          break;
+        case ParamTypes.Config:
+          args.push(config.get(arg.key));
           break;
         case ParamTypes.Reference:
           {
