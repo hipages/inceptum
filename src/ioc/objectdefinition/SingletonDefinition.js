@@ -1,7 +1,6 @@
 const { IoCException } = require('./../IoCException');
 const { ObjectDefinition } = require('./ObjectDefinition');
 const { Lifecycle } = require('./../Lifecycle');
-const config = require('config');
 
 // Means resolving the constructor arguments necessary to instantiate
 Lifecycle.registerState('INSTANTIATING', 100);
@@ -55,6 +54,11 @@ class SingletonDefinition extends ObjectDefinition {
   constructorParamByType(clazz) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.Type, className: clazz });
+    return this;
+  }
+  constructorParamByTypeArray(clazz) {
+    this.assertState(Lifecycle.STATES.NOT_STARTED);
+    this.constructorArgDefinitions.push({ type: ParamTypes.TypeArray, className: clazz });
     return this;
   }
   startFunction(startFunctionName) {
@@ -117,7 +121,7 @@ class SingletonDefinition extends ObjectDefinition {
   // ************************************
 
   * getInstance() {
-    console.log(`Getting instance of ${this.getName()}`);
+    // console.log(`Getting instance of ${this.getName()}`);
     const postLoad = new Set();
     const instance = yield* this.getInstanceWithTrace([this.getName()], postLoad);
     for (const dd of postLoad) {
@@ -131,7 +135,7 @@ class SingletonDefinition extends ObjectDefinition {
   }
 
   * getInstanceAtState(minState, trace, postLoad) {
-    console.log(`Getting instance of ${this.getName()} at state ${Lifecycle.STATES.fromValue(minState)}`);
+    // console.log(`Getting instance of ${this.getName()} at state ${Lifecycle.STATES.fromValue(minState)}`);
     if (minState !== Lifecycle.STATES.INSTANTIATED && minState !== Lifecycle.STATES.STARTED) {
       throw new IoCException(`Doesn't make sense to request an object in states other than INSTANTIATED and STARTED: ${minState}`);
     }
@@ -196,14 +200,14 @@ class SingletonDefinition extends ObjectDefinition {
   }
 
   * getMaxStateInstance(def, trace, postLoad) {
-    console.log(`In ${this.getName()} getting max instance of ${def.getName()} - ${def.status} - ${Lifecycle.STATES.STARTED} / trace: [${trace}]`);
+    // console.log(`In ${this.getName()} getting max instance of ${def.getName()} - ${def.status} - ${Lifecycle.STATES.STARTED} / trace: [${trace}]`);
     if ((trace.indexOf(def.getName()) >= 0) || (def.status < Lifecycle.STATES.STARTED)) {
       // Circular reference, let's try to go for one that is just instantiated and finalise init afterwards
       postLoad.add(def);
-      console.log(`Getting ${def.getName()} as Instantiated`);
+      // console.log(`Getting ${def.getName()} as Instantiated`);
       return yield* def.getInstanceAtState(Lifecycle.STATES.INSTANTIATED, trace.concat([def.getName()]), postLoad);
     }
-    console.log(`Getting ${def.getName()} as ready`);
+    // console.log(`Getting ${def.getName()} as ready`);
     return yield* def.getInstanceWithTrace(trace.concat([def.getName()]), postLoad);
   }
 
@@ -216,7 +220,7 @@ class SingletonDefinition extends ObjectDefinition {
           args.push(arg.val);
           break;
         case ParamTypes.Config:
-          args.push(config.get(arg.key));
+          args.push(this.context.getConfig(arg.key));
           break;
         case ParamTypes.Reference:
           {

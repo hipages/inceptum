@@ -6,17 +6,20 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
     return (objectDefinition instanceof SingletonDefinition) && (objectDefinition.getProducedClass().autowire !== undefined);
   }
 
+  /**
+   * @param {SingletonDefinition} objectDefinition singleton definition
+   */
   doInspect(objectDefinition) {
     const autowire = objectDefinition.getProducedClass().autowire;
-    if (autowire.constructor) {
-      autowire.constructor.forEach((val) => {
+    if (autowire.constructorArgs) {
+      autowire.constructorArgs.forEach((val) => {
         switch (val.substr(0, 1)) {
           case '~':
             objectDefinition.constructorParamByType(val.substr(1));
             break;
-          // case '*':
-          //   objectDefinition.setPropertyByTypeArray(key, val.substr(1));
-          //   break;
+          case '*':
+            objectDefinition.constructorParamByTypeArray(val.substr(1));
+            break;
           case '#':
             objectDefinition.constructorParamByConfig(val.substr(1));
             break;

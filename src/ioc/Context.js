@@ -2,6 +2,7 @@
 // Factory beans
 // Profile support
 
+const config = require('config');
 const { Lifecycle } = require('./Lifecycle');
 const { IoCException } = require('./IoCException');
 const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
@@ -126,6 +127,22 @@ class Context extends Lifecycle {
           `Not sure how to convert input into SingletonDefinition: ${singleton}`);
       }
     });
+  }
+
+  // ************************************
+  // Config functions
+  // ************************************
+
+  getConfig(key) {
+    return config.get(key);
+  }
+
+  hasConfig(key) {
+    return config.has(key);
+  }
+
+  getConfigSources() {
+    return config.util.getConfigSources();
   }
 
   // ************************************

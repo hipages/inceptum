@@ -1,0 +1,15 @@
+Logging:
+  Streams:
+    Console:
+      Type: console
+  Loggers:
+    ROOT:
+      Streams:
+        - console
+      Level: info
+
+Context:
+  ActiveProfiles: development
+
+Application:
+  Parameter1: Value 1
