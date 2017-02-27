@@ -15,6 +15,7 @@ class Util {
   }
   mustBeInTransaction() {
     TransactionManager.getCurrentTransaction().must.not.be.undefined();
+    TransactionManager.transactionExists().must.be.true();
   }
   geTransaction() {
     return TransactionManager.getCurrentTransaction();
