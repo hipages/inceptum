@@ -6,7 +6,7 @@ const config = require('config');
 const { Lifecycle } = require('./Lifecycle');
 const { IoCException } = require('./IoCException');
 const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
-const { SingletonDefinition } = require('./objectdefinition/SingletonDefinition');
+const { BaseSingletonDefinition } = require('./objectdefinition/BaseSingletonDefinition');
 const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
 
 class Context extends Lifecycle {
@@ -121,7 +121,7 @@ class Context extends Lifecycle {
       if (singleton instanceof ObjectDefinition) {
         this.registerDefinition(singleton);
       } else if (singleton instanceof Function) {
-        this.registerDefinition(new SingletonDefinition(singleton));
+        this.registerDefinition(new BaseSingletonDefinition(singleton));
       } else {
         throw new IoCException(
           `Not sure how to convert input into SingletonDefinition: ${singleton}`);

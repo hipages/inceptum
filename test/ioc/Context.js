@@ -1,6 +1,6 @@
 // Test...
 const { Context } = require('../../src/ioc/Context');
-const { SingletonDefinition } = require('../../src/ioc/objectdefinition/SingletonDefinition');
+const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
 
 class A {
   constructor(val) {
@@ -48,7 +48,7 @@ describe('Context', () => {
   describe('beans with constructor args', () => {
     it('can use value constructor arguments', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByValue('the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       a.must.not.be.undefined();
@@ -57,8 +57,8 @@ describe('Context', () => {
     });
     it('can use reference constructor arguments', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByValue('the value'));
-      myContext.registerSingletons(new SingletonDefinition(B).constructorParamByRef('A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByRef('A'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       const b = yield* myContext.getObjectByName('B');
@@ -69,8 +69,8 @@ describe('Context', () => {
     });
     it('can use type constructor arguments', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByValue('the value'));
-      myContext.registerSingletons(new SingletonDefinition(B).constructorParamByType('A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByType('A'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       const b = yield* myContext.getObjectByName('B');
@@ -83,7 +83,7 @@ describe('Context', () => {
   describe('beans with parameters set', () => {
     it('can use value params', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).setPropertyByValue('val', 'the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).setPropertyByValue('val', 'the value'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       a.must.not.be.undefined();
@@ -92,8 +92,8 @@ describe('Context', () => {
     });
     it('can use reference params', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByValue('the value'));
-      myContext.registerSingletons(new SingletonDefinition(B).setPropertyByRef('a', 'A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       const b = yield* myContext.getObjectByName('B');
@@ -104,8 +104,8 @@ describe('Context', () => {
     });
     it('can use type params', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByValue('the value'));
-      myContext.registerSingletons(new SingletonDefinition(B).setPropertyByType('a', 'A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByType('a', 'A'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       const b = yield* myContext.getObjectByName('B');
@@ -118,8 +118,8 @@ describe('Context', () => {
   describe('wiring', () => {
     it('can manage circular dependencies', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByRef('B'));
-      myContext.registerSingletons(new SingletonDefinition(B).setPropertyByRef('a', 'A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByRef('B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
       yield myContext.lcStart();
       const a = yield* myContext.getObjectByName('A');
       const b = yield* myContext.getObjectByName('B');
@@ -131,8 +131,8 @@ describe('Context', () => {
     });
     it('throws an exception when the circular dependency is in the constructor', function* () {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new SingletonDefinition(A).constructorParamByRef('B'));
-      myContext.registerSingletons(new SingletonDefinition(B).constructorParamByRef('A'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByRef('B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByRef('A'));
       yield myContext.lcStart();
       try {
         yield* myContext.getObjectByName('A');
@@ -152,8 +152,8 @@ describe('Context', () => {
 // const myContext = new Context('testContext');
 //
 // myContext
-//   .register(new SingletonDefinitionDefinition(A).constructorParamByValue('the value'))
-//   .register(new SingletonDefinitionDefinition(B).constructorParamByRef('A').
+//   .register(new BaseSingletonDefinitionDefinition(A).constructorParamByValue('the value'))
+//   .register(new BaseSingletonDefinitionDefinition(B).constructorParamByRef('A').
 // shutdownFunction('shutdown'));
 //
 // try {

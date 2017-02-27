@@ -1,6 +1,6 @@
 // Test...
 const { AbstractObjectDefinitionInspector } = require('../../src/ioc/AbstractObjectDefinitionInspector');
-const { SingletonDefinition } = require('../../src/ioc/objectdefinition/SingletonDefinition');
+const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
 
 class A {
 }
@@ -13,8 +13,8 @@ class MyInspector extends AbstractObjectDefinitionInspector {
   }
 }
 
-const singletonDefinitionA = new SingletonDefinition(A);
-const singletonDefinitionB = new SingletonDefinition(B);
+const singletonDefinitionA = new BaseSingletonDefinition(A);
+const singletonDefinitionB = new BaseSingletonDefinition(B);
 
 describe('AbstractObjectDefinitionInspector', () => {
   describe('Is abstract', () => {

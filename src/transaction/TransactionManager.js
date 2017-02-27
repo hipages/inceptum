@@ -53,10 +53,13 @@ class Transaction extends EventEmitter {
   canDo(readonly) {
     return !this.readonly || readonly;
   }
+  isReadonly() {
+    return this.readonly;
+  }
 }
 
 class TransactionManager {
-  runInTransaction(readonly, callback, context, args) {
+  static runInTransaction(readonly, callback, context, args) {
     const existingTransaction = TransactionManager.getCurrentTransaction();
     if (existingTransaction) {
       if (!existingTransaction.canDo(readonly)) {
@@ -83,7 +86,7 @@ class TransactionManager {
   }
 
   static transactionExists() {
-    return TransactionManager.getCurrentTransaction() !== null;
+    return TransactionManager.getCurrentTransaction() !== undefined;
   }
   static getCurrentTransaction() {
     return transactionalNamespace.get('transaction');
