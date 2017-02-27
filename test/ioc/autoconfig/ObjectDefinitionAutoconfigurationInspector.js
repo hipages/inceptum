@@ -1,22 +1,22 @@
-const { ObjectDefinitionAutoconfigurationInspector } = require('../../../src/ioc/autoconfig/ObjectDefinitionAutoconfigurationInspector');
+const { ObjectDefinitionAutowiringInspector } = require('../../../src/ioc/autoconfig/ObjectDefinitionAutowiringInspector');
 const { SingletonDefinition } = require('../../../src/ioc/objectdefinition/SingletonDefinition');
 
 class TestClass {
 }
 
 TestClass.autowire = {
-  constructor: ['A', '~B'],
+  constructorArgs: ['A', '~B'],
   param2: 'B',
   param3: '*A',
   param4: '~A'
-}
+};
 
 class A {}
 
-const inspector = new ObjectDefinitionAutoconfigurationInspector();
+const inspector = new ObjectDefinitionAutowiringInspector();
 const singletonDefinition = new SingletonDefinition(TestClass);
 
-describe('ObjectDefinitionAutoconfigurationInspector tests', () => {
+describe('ObjectDefinitionAutowiringInspector tests', () => {
   describe('interest', () => {
     it('is not interested in non-singletons', () => {
       inspector.interestedIn(new A()).must.be.false();

@@ -1,9 +1,20 @@
 const { Context } = require('./ioc/Context');
-const { ObjectDefinitionAutoconfigurationInspector } = require('./ioc/autoconfig/ObjectDefinitionAutoconfigurationInspector');
+const { ObjectDefinitionAutowiringInspector } = require('./ioc/autoconfig/ObjectDefinitionAutowiringInspector');
+const { ObjectDefinitionStartStopMethodsInspector } = require('./ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');
 
 const BaseContext = new Context('BaseContext');
-BaseContext.addObjectDefinitionInspector(new ObjectDefinitionAutoconfigurationInspector());
+BaseContext.addObjectDefinitionInspector(new ObjectDefinitionAutowiringInspector());
+BaseContext.addObjectDefinitionInspector(new ObjectDefinitionStartStopMethodsInspector());
+
+const { MainRouter } = require('./web/MainRouter');
+const { WebApp } = require('./web/WebApp');
+const { ControllerObjectDefinitionInspector } = require('./web/ControllerObjectDefinitionInspector');
 
 const WebContext = new Context('WebContext', BaseContext);
+WebContext.addObjectDefinitionInspector(new ObjectDefinitionAutowiringInspector());
+WebContext.addObjectDefinitionInspector(new ObjectDefinitionStartStopMethodsInspector());
+WebContext.addObjectDefinitionInspector(new ControllerObjectDefinitionInspector());
+
+WebContext.registerSingletons(MainRouter, WebApp);
 
 module.exports = { Context, BaseContext, WebContext };

@@ -1,7 +1,7 @@
 const { AbstractObjectDefinitionInspector } = require('../AbstractObjectDefinitionInspector');
 const { SingletonDefinition } = require('../objectdefinition/SingletonDefinition');
 
-class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitionInspector {
+class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitionInspector {
   interestedIn(objectDefinition) {
     return (objectDefinition instanceof SingletonDefinition) && (objectDefinition.getProducedClass().autowire !== undefined);
   }
@@ -29,7 +29,7 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
         }
       });
     }
-    Object.keys(autowire).filter((key) => key !== 'constructor').forEach((key) => {
+    Object.keys(autowire).filter((key) => key !== 'constructorArgs').forEach((key) => {
       const val = autowire[key];
       switch (val.substr(0, 1)) {
         case '~':
@@ -49,4 +49,4 @@ class ObjectDefinitionAutoconfigurationInspector extends AbstractObjectDefinitio
   }
 }
 
-module.exports = { ObjectDefinitionAutoconfigurationInspector };
+module.exports = { ObjectDefinitionAutowiringInspector };
