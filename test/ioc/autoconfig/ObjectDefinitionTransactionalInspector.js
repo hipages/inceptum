@@ -24,7 +24,7 @@ TestClass.transactional = {
 };
 
 
-describe('ObjectDefinitionTransactionalInspector', () => {
+describe('ioc/autoconfig/ObjectDefinitionTransactionalInspector', () => {
   describe('transactional wrapping', () => {
     it('non transactional method has no transaction', function* () {
       const inspector = new ObjectDefinitionTransactionalInspector();

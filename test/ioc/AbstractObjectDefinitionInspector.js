@@ -16,7 +16,7 @@ class MyInspector extends AbstractObjectDefinitionInspector {
 const singletonDefinitionA = new BaseSingletonDefinition(A);
 const singletonDefinitionB = new BaseSingletonDefinition(B);
 
-describe('AbstractObjectDefinitionInspector', () => {
+describe('ioc/autoconfig/AbstractObjectDefinitionInspector', () => {
   describe('Is abstract', () => {
     it('throws an exception on method doInspect', () => {
       try {

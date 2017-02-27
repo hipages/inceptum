@@ -1,6 +1,6 @@
 const { ObjectDefinitionInspector } = require('../../src/ioc/ObjectDefinitionInspector');
 
-describe('Object definition inspector', () => {
+describe('ioc/ObjectDefinitionInspector', () => {
   it('remains abstract', () => {
     try {
       new ObjectDefinitionInspector().inspect(null);

@@ -49,7 +49,7 @@ class Util {
 
 const util = new Util();
 
-describe('Transaction Manager', () => {
+describe('transaction/TransactionManager', () => {
   describe('Transaction', () => {
     it('Return no transaction if there\'s no open transaction', () => {
       demand(TransactionManager.getCurrentTransaction()).be.undefined();

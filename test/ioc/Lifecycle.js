@@ -12,7 +12,7 @@ class MyLifecycle extends Lifecycle {
   }
 }
 
-describe('Lifecycle', () => {
+describe('ioc/Lifecycle', () => {
   describe('Remains abstract', () => {
     it('Must fail if do* methods are not overriden', function* () {
       const myLifecycle = new Lifecycle('test1');
