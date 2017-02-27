@@ -21,7 +21,7 @@ class B {
 }
 
 
-describe('context tests', () => {
+describe('Context', () => {
   describe('individual bean options', function* () {
     const myContext = new Context('test1');
     myContext.registerSingletons(A);

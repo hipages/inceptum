@@ -32,7 +32,7 @@ class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
     if (this.inspectAll) {
       return true;
     }
-    const relevantClass = this.anyClass.find((clazz) => objectDefinition.getCla instanceof clazz);
+    const relevantClass = this.anyClass.find((clazz) => objectDefinition.getProducedClass() === clazz);
     if (relevantClass) {
       return true;
     }
@@ -57,7 +57,6 @@ class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
    * @return ObjectDefinition The modified ObjectDefinition
    */
   doInspect(objectDefinition) {
-    objectDefinition = null;
     throw new Error(`Unimplemented modify(${typeof objectDefinition})`);
   }
 
