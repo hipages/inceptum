@@ -2,4 +2,13 @@ sudo: false
 language: node_js
 node_js:
   - "6"
+
 git: { depth: 3 }
+
+install:
+  - npm install -g codecov
+  - npm install
+
+script:
+  - npm test
+  - codecov
