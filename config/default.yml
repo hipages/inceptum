@@ -8,6 +8,25 @@ Logging:
         - console
       Level: info
 
+MySQL:
+  MysqlClient: # this is the name of the object that will be exposed in the context
+    Master:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+    Slave:
+      host: localhost
+      port: 3306
+      user: root
+      password:
+      database: testDb
+      charset: utf8
+      connectionLimit: 10
+
 Context:
   ActiveProfiles: development
 

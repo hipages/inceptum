@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { createNamespace } = require('continuation-local-storage');
-
+const { CoroutineRunner } = require('../util/CoroutineRunner');
 
 const transactionalNamespace = createNamespace('transaction');
 
@@ -17,6 +17,7 @@ const TransactionEvents = {
 class Transaction extends EventEmitter {
   constructor(readonly) {
     super();
+    this.id = Transaction.idInc++;
     this.readonly = readonly;
     this.began = false;
     this.finished = false;
@@ -37,18 +38,24 @@ class Transaction extends EventEmitter {
   }
   end() {
     if (!this.began) {
+      // console.log('Transaction never got started, so can\'t be finished');
       throw new TransactionError('Transaction never got started, so can\'t be finished');
     }
     if (this.finished) {
+      // console.log('Transaction is already finished');
       throw new TransactionError('Transaction is already finished');
     }
     this.finished = true;
     if (this.error) {
+      // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
       this.emit(TransactionEvents.ROLLBACK);
     } else {
-      this.emit(TransactionEvents.COMMIT);
+      // console.log('Emitting commit');
+      // console.log(TransactionEvents.COMMIT);
+      // console.log(this.listeners(TransactionEvents.COMMIT));
+      this.emit(TransactionEvents.COMMIT, {});
     }
-    this.emit(TransactionEvents.END);
+    this.emit(TransactionEvents.END, {});
   }
   canDo(readonly) {
     return !this.readonly || readonly;
@@ -57,9 +64,27 @@ class Transaction extends EventEmitter {
     return this.readonly;
   }
 }
+Transaction.idInc = 1;
+
+function doTransactionEnd(newTransaction, transactionalNamespace) {
+  newTransaction.end();
+  transactionalNamespace.set('transaction', undefined);
+}
 
 class TransactionManager {
   static runInTransaction(readonly, callback, context, args) {
+    if (CoroutineRunner.isIterator(callback)) {
+      // console.log('Given an iterator');
+      return TransactionManager.runInTransaction(readonly, () => {
+        CoroutineRunner.execute(callback);
+      }, context, args);
+    }
+    if (CoroutineRunner.isPromise(callback)) {
+      return TransactionManager.runInTransaction(readonly, function* () {
+        yield callback;
+      }, context, args);
+    }
+    // console.log('Given a function');
     const existingTransaction = TransactionManager.getCurrentTransaction();
     if (existingTransaction) {
       if (!existingTransaction.canDo(readonly)) {
@@ -70,16 +95,39 @@ class TransactionManager {
     return transactionalNamespace.runAndReturn(
       () => {
         const newTransaction = new Transaction(readonly);
+        // console.log(`Running with transaction id: ${newTransaction.id}`);
         transactionalNamespace.set('transaction', newTransaction);
+        let delayedEnd = false;
         try {
           newTransaction.begin();
-          return callback.apply(context, args);
+          const resp = callback.apply(context, args);
+          // console.log(resp.next);
+          if (CoroutineRunner.isIterator(resp)) {
+            // console.log('It was a generator, so executing coroutine');
+            const t = CoroutineRunner.execute(resp);
+            if (CoroutineRunner.isPromise(t)) {
+              // console.log('Delaying end of transaction until completion of promise');
+              delayedEnd = true;
+              return t.then((data) => {
+                // console.log('Doing delayed end of transaction')
+                doTransactionEnd(newTransaction, transactionalNamespace);
+                return data;
+              }).catch((err) => {
+                newTransaction.markError(err);
+                doTransactionEnd(newTransaction, transactionalNamespace);
+              });
+            }
+            return t;
+          }
+          return resp;
         } catch (e) {
           newTransaction.markError(e);
           throw e;
         } finally {
-          newTransaction.end();
-          transactionalNamespace.set('transaction', undefined);
+          if (!delayedEnd) {
+            // console.log(`Ending transaction ${newTransaction.id}`);
+            doTransactionEnd(newTransaction, transactionalNamespace);
+          }
         }
       }
     );
@@ -92,7 +140,7 @@ class TransactionManager {
     return transactionalNamespace.get('transaction');
   }
 }
-
+TransactionManager.id = 0;
 TransactionManager.Events = TransactionEvents;
 
 module.exports = { TransactionManager };

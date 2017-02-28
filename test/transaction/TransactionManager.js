@@ -103,4 +103,24 @@ describe('transaction/TransactionManager', () => {
       util.rolledBack.must.be.true();
     });
   });
+  describe('Generator Support', () => {
+    it('Gives a transaction to the generator on execution', () => TransactionManager.runInTransaction(true, function* () {
+      // This is the generator
+      TransactionManager.transactionExists().must.be.true();
+    }));
+    it('Gives a transaction to the iterator that a generator produces', () => TransactionManager.runInTransaction(true, (function* () {
+      // This is the generator
+      TransactionManager.transactionExists().must.be.true();
+    }())));
+    // it('Gives a transaction to a promise', () => {
+    //   const promise = new Promise(() => {
+    //     console.log('there');
+    //     TransactionManager.transactionExists().must.be.true();
+    //     console.log(TransactionManager.transactionExists());
+    //   }).catch((err) => console.log(err));
+    //   console.log('here');
+    //   TransactionManager.runInTransaction(true, promise);
+    //   promise.resolve('hi');
+    // });
+  });
 });
