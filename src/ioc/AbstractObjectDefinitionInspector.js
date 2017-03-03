@@ -26,7 +26,7 @@ class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
   /**
    * Indicates whether this inspector is interested in this ObjectDefinition
    * @param objectDefinition ObjectDefinition The object definition to possibly modify
-   * @return bool Whether it's interested or not in this ObjectDefinition
+   * @return boolean Whether it's interested or not in this ObjectDefinition
    */
   interestedIn(objectDefinition) {
     if (this.inspectAll) {
