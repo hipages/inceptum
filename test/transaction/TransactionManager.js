@@ -1,6 +1,7 @@
 // Test...
 const { TransactionManager } = require('../../src/transaction/TransactionManager');
 const demand = require('must');
+const co = require('co');
 
 class Util {
   constructor() {
@@ -11,39 +12,82 @@ class Util {
   method1() {
     this.calls.push('method1');
   }
-  mustBeInTransaction() {
-    TransactionManager.getCurrentTransaction().must.not.be.undefined();
-    TransactionManager.transactionExists().must.be.true();
+  * mustBeInTransaction() {
+    return co.withSharedContext((context) => {
+      demand(context).is.not.undefined();
+      demand(context.currentTransaction).is.not.undefined();
+    });
   }
-  geTransaction() {
-    return TransactionManager.getCurrentTransaction();
+  * runMethod1InReadonly() {
+    return co.withSharedContext((context) => {
+      demand(context).is.not.undefined();
+      demand(context.currentTransaction).is.not.undefined();
+      context.currentTransaction.isReadonly().must.be.true();
+    });
   }
-  runMethod1InReadonly() {
-    this.calls.push('runMethod1InReadonly');
-    TransactionManager.runInTransaction(true, this.method1, this);
+  * runMethod1InReadWrite() {
+    return co.withSharedContext((context) => {
+      demand(context).is.not.undefined();
+      demand(context.currentTransaction).is.not.undefined();
+      context.currentTransaction.isReadonly().must.be.false();
+    });
   }
-  runMethod1InReadWrite() {
-    this.calls.push('method2');
-    TransactionManager.runInTransaction(false, this.method1, this);
+  * setVal(key, val) {
+    return co.withSharedContext((context) => {
+      context[key] = val;
+    });
   }
-  checkTransactionReused() {
-    TransactionManager.getCurrentTransaction().marker1 = true;
-    TransactionManager.runInTransaction(true, this.validateMarker1, this);
+  * getVal(key) {
+    return co.withSharedContext(
+      (context) =>
+        context[key]
+    );
   }
-  validateMarker1() {
-    TransactionManager.getCurrentTransaction().marker1.must.be.true();
+  * getTransaction() {
+    return co.withSharedContext((context) => context.currentTransaction);
   }
-  checkTransactionStarted() {
-    TransactionManager.getCurrentTransaction().hasBegun().must.be.true();
+  * checkTransactionReused() {
+    return co.withSharedContext(function* (context) {
+      context.marker1 = 'the value of marker1';
+      yield TransactionManager.runInTransaction(true, Util.prototype.validateMarker1, this);
+    });
   }
-  setListeners(success) {
-    this.committed = false;
-    this.rolledBack = false;
-    TransactionManager.getCurrentTransaction().once(TransactionManager.Events.COMMIT, () => { this.committed = true; });
-    TransactionManager.getCurrentTransaction().once(TransactionManager.Events.ROLLBACK, () => { this.rolledBack = true; });
-    if (!success) {
-      throw new Error('Faking error');
-    }
+  * delegateToReadWriteTransaction() {
+    yield TransactionManager.runInTransaction(false, Util.prototype.noop, this);
+  }
+  * delegateToReadOnlyTransaction() {
+    yield TransactionManager.runInTransaction(true, Util.prototype.noop, this);
+  }
+
+  * validateMarker1() {
+    return co.withSharedContext((context) => {
+      demand(context.marker1).be.not.undefined();
+      context.marker1.must.be.equal('the value of marker1');
+    });
+  }
+  * checkTransactionStarted() {
+    return co.withSharedContext((context) => {
+      context.currentTransaction.hasBegun().must.be.true();
+    });
+  }
+  * noop() {
+    // console.log('In Noop');
+  }
+  * markTransaction() {
+    return co.withSharedContext((context) => {
+      context.currentTransaction.myMark = 1;
+    });
+  }
+  * validateNoMarkInTransaction() {
+    return co.withSharedContext((context) => {
+      demand(context.currentTransaction.myMark).must.be.undefined();
+    });
+  }
+  * saveTransactionAndThrow() {
+    return co.withSharedContext((context) => {
+      context.savedTransaction = context.currentTransaction;
+      throw new Error('Exception thrown');
+    });
   }
 }
 
@@ -51,76 +95,63 @@ const util = new Util();
 
 describe('transaction/TransactionManager', () => {
   describe('Transaction', () => {
-    it('Return no transaction if there\'s no open transaction', () => {
-      demand(TransactionManager.getCurrentTransaction()).be.undefined();
+    it('Must create a transaction when run in a transaction', function* () {
+      return yield TransactionManager.runInTransaction(true, Util.prototype.mustBeInTransaction, util);
     });
-    it('Must create a transaction when run in a transaction', () => {
-      TransactionManager.runInTransaction(true, Util.prototype.mustBeInTransaction, util);
+    it('Must create a readonly transaction', function* () {
+      return yield TransactionManager.runInTransaction(true, Util.prototype.runMethod1InReadonly, util);
     });
-    it('Must create a new transaction for each execution', () => {
-      const transaction1 =
-        TransactionManager.runInTransaction(true, Util.prototype.geTransaction, util);
-      transaction1.marker1 = true;
-      transaction1.must.not.be.undefined();
-      const transaction2 =
-        TransactionManager.runInTransaction(true, Util.prototype.geTransaction, util);
-      demand(transaction2.marker1).be.undefined();
+    it('Must create a readwrite transaction', function* () {
+      return yield TransactionManager.runInTransaction(false, Util.prototype.runMethod1InReadWrite, util);
+    });
+    it('Must share a context across transactions', function* () {
+      yield TransactionManager.runInTransaction(true, Util.prototype.setVal, util, ['key1', 'the value']);
+      const value =
+        yield TransactionManager.runInTransaction(true, Util.prototype.getVal, util, ['key1']);
+      demand(value).not.be.undefined();
+      value.must.be.equal('the value');
+    });
+    it('Must create transactions on each call to runInTransaction', function* () {
+      yield TransactionManager.runInTransaction(true, Util.prototype.markTransaction, util);
+      yield TransactionManager.runInTransaction(true, Util.prototype.validateNoMarkInTransaction, util);
     });
   });
   describe('Transaction reuse', () => {
-    it('Must reuse the existing transaction', () => {
-      TransactionManager.runInTransaction(true, Util.prototype.checkTransactionReused, util);
+    it('Must reuse the existing transaction', function* () {
+      yield TransactionManager.runInTransaction(true, Util.prototype.checkTransactionReused, util);
     });
-    it('Can execute a readonly transaction inside of a readwrite one', () => {
-      TransactionManager.runInTransaction(false, Util.prototype.runMethod1InReadonly, util);
+    it('Can execute a readonly transaction inside of a readwrite one', function* () {
+      yield TransactionManager.runInTransaction(false, Util.prototype.delegateToReadOnlyTransaction, util);
     });
-    it('Can\'t execute a readwrite transaction inside of a readonly one', () => {
+    it('Can\'t execute a readwrite transaction inside of a readonly one', function* () {
       try {
-        TransactionManager.runInTransaction(true, Util.prototype.runMethod1InReadWrite, util);
+        yield TransactionManager.runInTransaction(true, Util.prototype.delegateToReadWriteTransaction, util);
         true.must.be.false();
       } catch (e) {
-        e.must.be.an.error('Couldn\'t upgrade transaction from read only to read write');
+        e.must.be.an.error('Can\'t execute a readwrite transaction inside of an already started readonly one');
       }
     });
   });
   describe('Lifecycle', () => {
-    it('Must be started by the time it gets to the execution of the method', () => {
-      TransactionManager.runInTransaction(true, Util.prototype.checkTransactionStarted, util);
+    it('Must be started by the time it gets to the execution of the method', function* () {
+      yield TransactionManager.runInTransaction(true, Util.prototype.checkTransactionStarted, util);
     });
-    it('Must commit a successful transaction', () => {
-      TransactionManager.runInTransaction(true, Util.prototype.setListeners, util, [true]);
-      util.committed.must.be.true();
-      util.rolledBack.must.be.false();
+    it('Must commit a successful transaction', function* () {
+      const transaction = yield TransactionManager.runInTransaction(true, Util.prototype.getTransaction, util);
+      transaction.finished.must.be.true();
+      demand(transaction.error).must.be.null();
     });
-    it('Must rollback a failed transaction', () => {
+    it('Must rollback a failed transaction', function* () {
       try {
-        TransactionManager.runInTransaction(true, Util.prototype.setListeners, util, [false]);
-        true.must.be.false();
+        yield TransactionManager.runInTransaction(true, Util.prototype.saveTransactionAndThrow, util);
+        false.must.be.true();
       } catch (e) {
-        e.must.be.an.error(/Faking error/);
+        e.must.be.an.error(/Exception thrown/);
       }
-      util.committed.must.be.false();
-      util.rolledBack.must.be.true();
+      const transaction = yield util.getVal('savedTransaction');
+      demand(transaction).not.be.undefined();
+      transaction.finished.must.be.true();
+      transaction.error.must.be.an.error(/Exception thrown/);
     });
-  });
-  describe('Generator Support', () => {
-    it('Gives a transaction to the generator on execution', () => TransactionManager.runInTransaction(true, function* () {
-      // This is the generator
-      TransactionManager.transactionExists().must.be.true();
-    }));
-    it('Gives a transaction to the iterator that a generator produces', () => TransactionManager.runInTransaction(true, (function* () {
-      // This is the generator
-      TransactionManager.transactionExists().must.be.true();
-    }())));
-    // it('Gives a transaction to a promise', () => {
-    //   const promise = new Promise(() => {
-    //     console.log('there');
-    //     TransactionManager.transactionExists().must.be.true();
-    //     console.log(TransactionManager.transactionExists());
-    //   }).catch((err) => console.log(err));
-    //   console.log('here');
-    //   TransactionManager.runInTransaction(true, promise);
-    //   promise.resolve('hi');
-    // });
   });
 });

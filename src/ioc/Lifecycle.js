@@ -45,8 +45,8 @@ class Lifecycle extends EventEmitter {
   * doStart() {
     yield new Error('Unimplemented');
   }
+// eslint-disable-next-line no-empty-function
   * doPostStart() {
-    yield new Error('Unimplemented');
   }
   * lcStop() {
     if (!this.setStatus(STATES.STOPPING)) return;

@@ -15,8 +15,8 @@ class TransactionSingletonDefinitionWrapper extends AbstractSingletonDefinitionW
       get: (target, property) => {
         if (Object.prototype.hasOwnProperty.call(info, property)) {
           const readonly = info[property] !== 'readwrite';
-          return (...args) => {
-            TransactionManager.runInTransaction(readonly, target[property], target, args);
+          return function* (...args) {
+            return yield TransactionManager.runInTransaction(readonly, target[property], target, args);
           };
         }
         return target[property];

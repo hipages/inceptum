@@ -25,6 +25,7 @@
     "express": "^4.14.0",
     "express-jwt": "^3.4.0",
     "express-newrelic": "^1.27.4",
+    "module-alias": "2.0.0",
     "express-yields": "^1.0.0",
     "json-schema-deref-sync": "^0.3.1",
     "jsonwebtoken": "^7.1.7",
@@ -39,8 +40,7 @@
     "node-dogstatsd": "0.0.6",
     "redis": "2.6.5",
     "bunyan-redis": "0.1.4",
-    "config": "1.25.1",
-    "continuation-local-storage": "3.2.0"
+    "config": "1.25.1"
   },
   "devDependencies": {
     "co-mocha": "^1.1.2",

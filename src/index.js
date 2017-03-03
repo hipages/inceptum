@@ -1,3 +1,4 @@
+require('./util/PatchCoroutine');
 const { Context } = require('./ioc/Context');
 const { ObjectDefinitionAutowiringInspector } = require('./ioc/autoconfig/ObjectDefinitionAutowiringInspector');
 const { ObjectDefinitionStartStopMethodsInspector } = require('./ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');

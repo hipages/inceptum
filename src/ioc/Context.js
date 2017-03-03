@@ -145,6 +145,10 @@ class Context extends Lifecycle {
     return config.has(key);
   }
 
+  hasConfig(key) {
+    return Context.hasConfig(key);
+  }
+
   static getConfigSources() {
     return config.util.getConfigSources();
   }
