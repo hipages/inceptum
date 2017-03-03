@@ -1,3 +1,4 @@
+require('../src/util/PatchCoroutine');
 require('must');
 
 const mocha = require('mocha');

@@ -1,8 +1,4 @@
-const EventEmitter = require('events');
-const { createNamespace } = require('continuation-local-storage');
-const { CoroutineRunner } = require('../util/CoroutineRunner');
-
-const transactionalNamespace = createNamespace('transaction');
+const co = require('co');
 
 class TransactionError extends Error {
 }
@@ -14,21 +10,21 @@ const TransactionEvents = {
   END: 'end'
 };
 
-class Transaction extends EventEmitter {
+class Transaction {
   constructor(readonly) {
-    super();
     this.id = Transaction.idInc++;
     this.readonly = readonly;
     this.began = false;
     this.finished = false;
     this.error = null;
+    this.commitListeners = [];
+    this.rollbackListeners = [];
   }
   begin() {
     if (this.began) {
       throw new TransactionError('Transaction is already started');
     }
     this.began = true;
-    this.emit(TransactionEvents.START);
   }
   hasBegun() {
     return this.began;
@@ -36,7 +32,19 @@ class Transaction extends EventEmitter {
   markError(e) {
     this.error = e;
   }
-  end() {
+  addCommitListener(f) {
+    if (!f || !(f instanceof Function)) {
+      throw new TransactionError('Provided input to addCommitListener is not a function');
+    }
+    this.commitListeners.push(f);
+  }
+  addRollbackListener(f) {
+    if (!f || !(f instanceof Function)) {
+      throw new TransactionError('Provided input to addRollbackListener is not a function');
+    }
+    this.rollbackListeners.push(f);
+  }
+  * end() {
     if (!this.began) {
       // console.log('Transaction never got started, so can\'t be finished');
       throw new TransactionError('Transaction never got started, so can\'t be finished');
@@ -48,14 +56,10 @@ class Transaction extends EventEmitter {
     this.finished = true;
     if (this.error) {
       // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
-      this.emit(TransactionEvents.ROLLBACK);
+      yield this.callListeners(this.rollbackListeners);
     } else {
-      // console.log('Emitting commit');
-      // console.log(TransactionEvents.COMMIT);
-      // console.log(this.listeners(TransactionEvents.COMMIT));
-      this.emit(TransactionEvents.COMMIT, {});
+      yield this.callListeners(this.commitListeners);
     }
-    this.emit(TransactionEvents.END, {});
   }
   canDo(readonly) {
     return !this.readonly || readonly;
@@ -63,84 +67,42 @@ class Transaction extends EventEmitter {
   isReadonly() {
     return this.readonly;
   }
+
+  * callListeners(listeners) {
+    for (let i = 0; i < listeners.length; i++) {
+      const result = listeners[i](this);
+      if (result) {
+        yield result;
+      }
+    }
+  }
 }
 Transaction.idInc = 1;
 
-function doTransactionEnd(newTransaction, transactionalNamespace) {
-  newTransaction.end();
-  transactionalNamespace.set('transaction', undefined);
-}
-
 class TransactionManager {
-  static runInTransaction(readonly, callback, context, args) {
-    if (CoroutineRunner.isIterator(callback)) {
-      // console.log('Given an iterator');
-      return TransactionManager.runInTransaction(readonly, () => {
-        CoroutineRunner.execute(callback);
-      }, context, args);
-    }
-    if (CoroutineRunner.isPromise(callback)) {
-      return TransactionManager.runInTransaction(readonly, function* () {
-        yield callback;
-      }, context, args);
-    }
-    // console.log('Given a function');
-    const existingTransaction = TransactionManager.getCurrentTransaction();
-    if (existingTransaction) {
-      if (!existingTransaction.canDo(readonly)) {
-        throw new TransactionError('Couldn\'t upgrade transaction from read only to read write');
-      }
-      return callback.apply(context, args);
-    }
-    return transactionalNamespace.runAndReturn(
-      () => {
-        const newTransaction = new Transaction(readonly);
-        // console.log(`Running with transaction id: ${newTransaction.id}`);
-        transactionalNamespace.set('transaction', newTransaction);
-        let delayedEnd = false;
+
+  static* runInTransaction(readonly, callback, callbackContext, args) {
+    return co.withSharedContext(function* (context) {
+      if (!context.currentTransaction) {
+        context.currentTransaction = new Transaction(readonly);
         try {
-          newTransaction.begin();
-          const resp = callback.apply(context, args);
-          // console.log(resp.next);
-          if (CoroutineRunner.isIterator(resp)) {
-            // console.log('It was a generator, so executing coroutine');
-            const t = CoroutineRunner.execute(resp);
-            if (CoroutineRunner.isPromise(t)) {
-              // console.log('Delaying end of transaction until completion of promise');
-              delayedEnd = true;
-              return t.then((data) => {
-                // console.log('Doing delayed end of transaction')
-                doTransactionEnd(newTransaction, transactionalNamespace);
-                return data;
-              }).catch((err) => {
-                newTransaction.markError(err);
-                doTransactionEnd(newTransaction, transactionalNamespace);
-              });
-            }
-            return t;
-          }
-          return resp;
+          context.currentTransaction.begin();
+          return yield callback.apply(callbackContext, args);
         } catch (e) {
-          newTransaction.markError(e);
+          context.currentTransaction.markError(e);
           throw e;
         } finally {
-          if (!delayedEnd) {
-            // console.log(`Ending transaction ${newTransaction.id}`);
-            doTransactionEnd(newTransaction, transactionalNamespace);
-          }
+          yield context.currentTransaction.end();
+          context.currentTransaction = undefined;
         }
+      } else if (!context.currentTransaction.canDo(readonly)) {
+        throw new TransactionError('Can\'t execute a readwrite transaction inside of an already started readonly one');
+      } else {
+        return yield callback.apply(callbackContext, args);
       }
-    );
-  }
-
-  static transactionExists() {
-    return TransactionManager.getCurrentTransaction() !== undefined;
-  }
-  static getCurrentTransaction() {
-    return transactionalNamespace.get('transaction');
+    });
   }
 }
-TransactionManager.id = 0;
 TransactionManager.Events = TransactionEvents;
 
-module.exports = { TransactionManager };
+module.exports = { TransactionManager, TransactionError };

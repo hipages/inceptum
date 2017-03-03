@@ -1,3 +1,4 @@
+/* eslint-disable space-before-function-paren */
 const { IoCException } = require('./../IoCException');
 const { SingletonDefinition } = require('./SingletonDefinition');
 
@@ -19,72 +20,63 @@ class AbstractSingletonDefinitionWrapper extends SingletonDefinition {
     return this.cachedInstance;
   }
 
-  doWrap(underlyingInstance) {
+  doWrap /* istanbul ignore next */ (underlyingInstance) {
     throw new Error(`Unimplemented doWrap(${underlyingInstance})`);
   }
 
-  * lcStart() {
+  * lcStart /* istanbul ignore next */ () {
     return yield* this.wrapped.lcStart();
   }
 
-  * lcStop() {
+  * lcStop /* istanbul ignore next */ () {
     return yield* this.wrapped.lcStop();
   }
 
-
-  withLazyLoading(lazyLoading) {
+  withLazyLoading /* istanbul ignore next */ (lazyLoading) {
     return this.wrapped.withLazyLoading(lazyLoading);
   }
 
-  setAutowireCandidate(autowireCandidate) {
+  setAutowireCandidate /* istanbul ignore next */ (autowireCandidate) {
     return this.wrapped.setAutowireCandidate(autowireCandidate);
   }
 
-  setContext(context) {
+  setContext /* istanbul ignore next */ (context) {
     return this.wrapped.setContext(context);
   }
 
-  getContext() {
+  getContext /* istanbul ignore next */ () {
     return this.wrapped.getContext();
   }
 
-  getProducedClass() {
+  getProducedClass /* istanbul ignore next */ () {
     return this.wrapped.getProducedClass();
   }
 
-  isLazy() {
+  isLazy /* istanbul ignore next */ () {
     return this.wrapped.isLazy();
   }
 
-  getName() {
+  getName /* istanbul ignore next */ () {
     return this.wrapped.getName();
   }
 
-  getLogger() {
+  getLogger /* istanbul ignore next */ () {
     return this.wrapped.getLogger();
   }
 
-  onState(stateId, callback) {
+  onState /* istanbul ignore next */ (stateId, callback) {
     return this.wrapped.onState(stateId, callback);
   }
 
-  setLogger(logger) {
+  setLogger /* istanbul ignore next */ (logger) {
     return this.wrapped.setLogger(logger);
   }
 
-  lcStartSync(maxAwaitMillis) {
-    return this.wrapped.lcStartSync(maxAwaitMillis);
-  }
-
-  assertState(state) {
+  assertState /* istanbul ignore next */ (state) {
     return this.wrapped.assertState(state);
   }
 
-  waitFor(func, maxAwaitMillis, message) {
-    return this.wrapped.waitFor(func, maxAwaitMillis, message);
-  }
-
-  onStateOnce(stateId, callback) {
+  onStateOnce /* istanbul ignore next */ (stateId, callback) {
     return this.wrapped.onStateOnce(stateId, callback);
   }
 }

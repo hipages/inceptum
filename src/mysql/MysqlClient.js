@@ -42,17 +42,26 @@ class MysqlClient {
    * @return {Array} an array of all rows returned by the query.
    */
   * queryAll(sql, binds) {
-    if (!Array.isArray(binds)) {
-      binds = [];
-    }
-    if (!TransactionManager.transactionExists()) {
-      // executing a query outside of a transaction is not a good idea
-      throw new Error('Shouldn\'t run queries outside of a transaction');
-    }
-    const transaction = TransactionManager.getCurrentTransaction();
-    const connectionPool = this.getConnectionPoolForReadonly(transaction.isReadonly());
-    yield MysqlClient.setupTransaction(transaction, connectionPool);
-    return MysqlClient.runQueryOnPool(connectionPool, sql, binds);
+    return co.withSharedContext(function* (sharedContext) {
+      if (!Array.isArray(binds)) {
+        binds = [];
+      }
+      if (!sharedContext.currentTransaction) {
+        // executing a query outside of a transaction is not a good idea
+        throw new Error(`Shouldn't run queries outside of a transaction: ${sql}`);
+      }
+      const transaction = sharedContext.currentTransaction;
+      console.log(`Transaction ${transaction.id} ${transaction.mysqlInited}`);
+      const connectionPool = this.getConnectionPoolForReadonly(transaction.isReadonly());
+      // console.log('d');
+      try {
+        yield this.setupTransaction(transaction, connectionPool);
+      } catch (e) {
+        console.log(e);
+      }
+      // console.log('r');
+      return this.runQueryOnPool(connectionPool, sql, binds);
+    });
   }
 
   /**
@@ -95,9 +104,10 @@ class MysqlClient {
     });
   }
 
-  static runQueryOnPool(connectionPool, sql, bindsArr) {
+  runQueryOnPool(connectionPool, sql, bindsArr) {
+    // console.log(sql);
     if (this.verbose) {
-      console.log(sql);
+      console.log(`sql: ${sql}`);
     }
     if (!Array.isArray(bindsArr)) {
       bindsArr = [];
@@ -120,21 +130,24 @@ class MysqlClient {
     });
   }
 
-  static* setupTransaction(transaction, connectionPool) {
+  * setupTransaction(transaction, connectionPool) {
+    // console.log('Entering setuptransaction');
     if (!transaction.mysqlInited) {
       // console.log(`Setting up transaction ${transaction.id} for ${TransactionManager.Events.COMMIT}`);
-      yield MysqlClient.runQueryOnPool(connectionPool, `START TRANSACTION ${transaction.isReadonly() ? ' READ ONLY' : ' READ WRITE'}`);
+      yield this.runQueryOnPool(connectionPool, `START TRANSACTION ${transaction.isReadonly() ? ' READ ONLY' : ' READ WRITE'}`);
       transaction.mysqlInited = true;
+      const self = this;
       // console.log(`Setting up 2 transaction ${transaction.id} for ${TransactionManager.Events.COMMIT}`);
       transaction.on(TransactionManager.Events.COMMIT, () => {
         // console.log('commit got called');
-        co(MysqlClient.runQueryOnPool(connectionPool, 'COMMIT'))
+        co(self.runQueryOnPool(connectionPool, 'COMMIT'))
           .then(() => {});
       });
       // console.log(`Setting up 3 transaction ${transaction.id} for ${TransactionManager.Events.COMMIT}`);
-      transaction.once(TransactionManager.Events.ROLLBACK, () => co(MysqlClient.runQueryOnPool(connectionPool, 'ROLLBACK'))
+      transaction.once(TransactionManager.Events.ROLLBACK, () => co(self.runQueryOnPool(connectionPool, 'ROLLBACK'))
         .then(() => {}));
     }
+    // console.log('Leaving setuptransaction');
   }
 
   getConnectionPoolForReadonly(readonly) {

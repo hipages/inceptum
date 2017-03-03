@@ -4,19 +4,18 @@ const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/Base
 
 class A {
   constructor(val) {
-    console.log('Instantiating A');
+    // console.log('Instantiating A');
     this.val = val;
   }
 }
 
 class B {
   constructor(a) {
-    console.log('Instantiating B');
-    // console.log(a);
+    // console.log('Instantiating B');
     this.a = a;
   }
   shutdown() {
-    console.log('Shutting down instance of B');
+    // console.log('Shutting down instance of B');
   }
 }
 
@@ -138,7 +137,7 @@ describe('ioc/Context', () => {
         yield* myContext.getObjectByName('A');
         '1'.must.equal('2'); // Fail
       } catch (e) {
-        console.log('There was an exception');
+        // console.log('There was an exception');
         e.must.be.an.error(/Circular dependency detected/);
       } finally {
         yield myContext.lcStop();
@@ -238,22 +237,3 @@ describe('ioc/Context', () => {
   });
 }
 );
-
-//
-// const myContext = new Context('testContext');
-//
-// myContext
-//   .register(new BaseSingletonDefinitionDefinition(A).constructorParamByValue('the value'))
-//   .register(new BaseSingletonDefinitionDefinition(B).constructorParamByRef('A').
-// shutdownFunction('shutdown'));
-//
-// try {
-//   myContext.lcStart();
-//   const b = myContext.getObjectByName('B');
-//   console.log(b);
-// } catch (e) {
-//   console.log(e);
-//   console.log(e.stack);
-// }
-//
-// myContext.lcStop();

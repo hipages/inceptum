@@ -1,20 +1,25 @@
 const { ObjectDefinitionTransactionalInspector } = require('../../../src/ioc/autoconfig/ObjectDefinitionTransactionalInspector');
-const { TransactionManager } = require('../../../src/transaction/TransactionManager');
 const { Context } = require('../../../src/ioc/Context');
+const co = require('co');
+const demand = require('must');
 
 class TestClass {
-  nonTransactional() {
-    TransactionManager.transactionExists().must.be.false();
+  * nonTransactional() {
+    return co.withSharedContext(function* (context) {
+      demand(context.currentTransaction).be.undefined();
+    });
   }
-  readonlyMethod() {
-    TransactionManager.transactionExists().must.be.true();
-    const currentTransaction = TransactionManager.getCurrentTransaction();
-    currentTransaction.isReadonly().must.be.true();
+  * readonlyMethod() {
+    return co.withSharedContext((context) => {
+      demand(context.currentTransaction).not.be.undefined();
+      context.currentTransaction.isReadonly().must.be.true();
+    });
   }
-  readwriteMethod() {
-    TransactionManager.transactionExists().must.be.true();
-    const currentTransaction = TransactionManager.getCurrentTransaction();
-    currentTransaction.isReadonly().must.be.false();
+  * readwriteMethod() {
+    return co.withSharedContext(function* (context) {
+      demand(context.currentTransaction).not.be.undefined();
+      context.currentTransaction.isReadonly().must.be.false();
+    });
   }
 }
 
@@ -24,40 +29,39 @@ TestClass.transactional = {
 };
 
 
+function* createBasicContext() {
+  const inspector = new ObjectDefinitionTransactionalInspector();
+  const myContext = new Context('test context');
+  myContext.addObjectDefinitionInspector(inspector);
+  myContext.registerSingletons(TestClass);
+
+  yield myContext.lcStart();
+  return myContext;
+}
+
+function* disposeContext(myContext) {
+  yield myContext.lcStop();
+}
+
 describe('ioc/autoconfig/ObjectDefinitionTransactionalInspector', () => {
   describe('transactional wrapping', () => {
     it('non transactional method has no transaction', function* () {
-      const inspector = new ObjectDefinitionTransactionalInspector();
-      const myContext = new Context('test context');
-      myContext.addObjectDefinitionInspector(inspector);
-      myContext.registerSingletons(TestClass);
-
-      yield myContext.lcStart();
+      const myContext = yield createBasicContext();
       const myTestClassInstance = yield* myContext.getObjectByName('TestClass');
-      myTestClassInstance.nonTransactional();
-      yield myContext.lcStop();
+      yield myTestClassInstance.nonTransactional();
+      yield disposeContext(myContext);
     });
     it('readonly method has a readonly transaction', function* () {
-      const inspector = new ObjectDefinitionTransactionalInspector();
-      const myContext = new Context('test context');
-      myContext.addObjectDefinitionInspector(inspector);
-      myContext.registerSingletons(TestClass);
-
-      yield myContext.lcStart();
+      const myContext = yield createBasicContext();
       const myTestClassInstance = yield* myContext.getObjectByName('TestClass');
-      myTestClassInstance.readonlyMethod();
-      yield myContext.lcStop();
+      yield myTestClassInstance.readonlyMethod();
+      yield disposeContext(myContext);
     });
     it('readwrite method has a readwrite transaction', function* () {
-      const inspector = new ObjectDefinitionTransactionalInspector();
-      const myContext = new Context('test context');
-      myContext.addObjectDefinitionInspector(inspector);
-      myContext.registerSingletons(TestClass);
-
-      yield myContext.lcStart();
+      const myContext = yield createBasicContext();
       const myTestClassInstance = yield* myContext.getObjectByName('TestClass');
-      myTestClassInstance.readwriteMethod();
-      yield myContext.lcStop();
+      yield myTestClassInstance.readwriteMethod();
+      yield disposeContext(myContext);
     });
   });
 });
