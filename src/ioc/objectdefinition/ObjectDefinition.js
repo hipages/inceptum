@@ -52,6 +52,18 @@ class ObjectDefinition extends Lifecycle {
   isLazy() {
     return this.lazyLoading;
   }
+
+  copy() {
+    const theCopy = new ObjectDefinition(this.clazz, this.name, this.logger);
+    this.copyInternalProperties(theCopy);
+    return theCopy;
+  }
+
+  copyInternalProperties(copyTo) {
+    copyTo.lazyLoading = this.lazyLoading;
+    copyTo.autowireCandidate = this.autowireCandidate;
+    copyTo.context = this.context;
+  }
 }
 
 module.exports = { ObjectDefinition };

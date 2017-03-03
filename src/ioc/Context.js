@@ -71,9 +71,9 @@ class Context extends Lifecycle {
   // Context composition methods
   // ************************************
 
-  clone() {
+  clone(name) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    const copy = new Context(this.name, this.parentContext, this.logger);
+    const copy = new Context(name, this.parentContext, this.logger);
     this.objectDefinitions.forEach((objectDefinition) => copy.registerDefinition(objectDefinition.copy()));
     return copy;
   }
@@ -143,6 +143,10 @@ class Context extends Lifecycle {
 
   static hasConfig(key) {
     return config.has(key);
+  }
+
+  hasConfig(key) {
+    return Context.hasConfig(key);
   }
 
   static getConfigSources() {

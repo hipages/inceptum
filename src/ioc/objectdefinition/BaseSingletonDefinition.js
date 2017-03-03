@@ -21,15 +21,10 @@ const ParamTypes = {
 class BaseSingletonDefinition extends SingletonDefinition {
   constructor(clazz, name, logger) {
     super(clazz, name, logger);
-    this.clazz = clazz;
-    this.lazyLoading = true;
-    this.instance = null;
     this.constructorArgDefinitions = [];
     this.propertiesToSetDefinitions = [];
     this.startFunctionName = null;
     this.shutdownFunctionName = null;
-    this.autowireCandidate = true;
-    this.context = null;
   }
 
   // ************************************
@@ -41,26 +36,31 @@ class BaseSingletonDefinition extends SingletonDefinition {
     this.constructorArgDefinitions.push({ type: ParamTypes.Value, val: value });
     return this;
   }
+
   constructorParamByConfig(key) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.Config, key });
     return this;
   }
+
   constructorParamByRef(name) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.Reference, refName: name });
     return this;
   }
+
   constructorParamByType(clazz) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.Type, className: clazz });
     return this;
   }
+
   constructorParamByTypeArray(clazz) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     this.constructorArgDefinitions.push({ type: ParamTypes.TypeArray, className: clazz });
     return this;
   }
+
   startFunction(startFunctionName) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, startFunctionName)) {
@@ -71,6 +71,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
     }
     return this;
   }
+
   shutdownFunction(shutdownFunctionName) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, shutdownFunctionName)) {
@@ -81,38 +82,57 @@ class BaseSingletonDefinition extends SingletonDefinition {
     }
     return this;
   }
+
   setPropertyByValue(paramName, value) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    this.propertiesToSetDefinitions.push({ paramName,
-      args: [{ type: ParamTypes.Value, val: value }] });
+    this.propertiesToSetDefinitions.push({
+      paramName,
+      args: [{ type: ParamTypes.Value, val: value }]
+    });
     return this;
   }
+
   setPropertyByConfig(paramName, key) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    this.propertiesToSetDefinitions.push({ paramName,
-      args: [{ type: ParamTypes.Config, key }] });
+    this.propertiesToSetDefinitions.push({
+      paramName,
+      args: [{ type: ParamTypes.Config, key }]
+    });
     return this;
   }
+
   setPropertyByRef(paramName, name) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    this.propertiesToSetDefinitions.push({ paramName,
-      args: [{ type: ParamTypes.Reference, refName: name }] });
+    this.propertiesToSetDefinitions.push({
+      paramName,
+      args: [{ type: ParamTypes.Reference, refName: name }]
+    });
     return this;
   }
+
   setPropertyByType(paramName, className) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    this.propertiesToSetDefinitions.push({ paramName,
-      args: [{ type: ParamTypes.Type,
+    this.propertiesToSetDefinitions.push({
+      paramName,
+      args: [{
+        type: ParamTypes.Type,
         className: (typeof className === 'function' && className.name) ?
-          className.name : className }] });
+          className.name : className
+      }]
+    });
     return this;
   }
+
   setPropertyByTypeArray(paramName, className) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
-    this.propertiesToSetDefinitions.push({ paramName,
-      args: [{ type: ParamTypes.TypeArray,
+    this.propertiesToSetDefinitions.push({
+      paramName,
+      args: [{
+        type: ParamTypes.TypeArray,
         className: (typeof className === 'function' && className.name) ?
-          className.name : className }] });
+          className.name : className
+      }]
+    });
     return this;
   }
 
@@ -222,27 +242,24 @@ class BaseSingletonDefinition extends SingletonDefinition {
         case ParamTypes.Config:
           args.push(this.context.getConfig(arg.key));
           break;
-        case ParamTypes.Reference:
-          {
-            const def = this.context.getDefinitionByName(arg.refName);
-            args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
-          }
+        case ParamTypes.Reference: {
+          const def = this.context.getDefinitionByName(arg.refName);
+          args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
+        }
           break;
-        case ParamTypes.Type:
-          {
-            const def = this.context.getDefinitionByType(arg.className);
-            args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
-          }
+        case ParamTypes.Type: {
+          const def = this.context.getDefinitionByType(arg.className);
+          args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
+        }
           break;
-        case ParamTypes.TypeArray:
-          {
-            const argu = [];
-            const def = this.context.getDefinitionsByType(arg.className);
-            for (let j = 0; j < def.length; j++) {
-              argu.push(yield* this.getMaxStateInstance(def[j], trace, postLoad));
-            }
-            args.push(argu);
+        case ParamTypes.TypeArray: {
+          const argu = [];
+          const def = this.context.getDefinitionsByType(arg.className);
+          for (let j = 0; j < def.length; j++) {
+            argu.push(yield* this.getMaxStateInstance(def[j], trace, postLoad));
           }
+          args.push(argu);
+        }
           break;
         default:
           throw new IoCException(`Unknown argument type ${arg.type} on bean ${this.name}`);
@@ -258,8 +275,22 @@ class BaseSingletonDefinition extends SingletonDefinition {
       this.instance[propertyToSet.paramName] = args[0];
     }
   }
-}
 
+  copy() {
+    const theCopy = new BaseSingletonDefinition(this.clazz, this.name, this.logger);
+    this.copyInternalProperties(theCopy);
+    return theCopy;
+  }
+
+  copyInternalProperties(copyTo) {
+    super.copyInternalProperties(copyTo);
+    copyTo.constructorArgDefinitions = this.constructorArgDefinitions.slice(0);
+    copyTo.propertiesToSetDefinitions = this.propertiesToSetDefinitions.slice(0);
+    copyTo.startFunctionName = this.startFunctionName;
+    copyTo.shutdownFunctionName = this.shutdownFunctionName;
+  }
+
+}
 BaseSingletonDefinition.ParamTypes = ParamTypes;
 
 module.exports = { BaseSingletonDefinition };

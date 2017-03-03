@@ -145,6 +145,97 @@ describe('ioc/Context', () => {
       }
     });
   });
+  describe('cloning', () => {
+    it('throws an exception when in any state other than NOT_STARTED', function* () {
+      const myContext = new Context('test1');
+      yield myContext.lcStart();
+
+      try {
+        myContext.clone();
+        '1'.must.equal('2'); // Fail
+      } catch (e) {
+        e.must.be.an.error(/Operation requires state to be/);
+      } finally {
+        yield myContext.lcStop();
+      }
+    });
+    it('clones all object definitions', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+
+      const clonedContext = myContext.clone('test2');
+
+      myContext.lcStart();
+      clonedContext.lcStart();
+
+      const a = yield* myContext.getObjectByName('A');
+      const copyA = yield* clonedContext.getObjectByName('A');
+
+      a.must.not.be.undefined();
+      copyA.must.not.be.undefined();
+      copyA.must.be.an.instanceOf(A);
+      a.val.must.be.equal(copyA.val);
+
+      myContext.lcStop();
+      clonedContext.lcStop();
+    });
+  });
+  describe('importContext', () => {
+    it('throws an exception when in any state other than NOT_STARTED', function* () {
+      const myContext = new Context('test1');
+      const otherContext = new Context('other_context');
+
+      yield myContext.lcStart();
+
+      try {
+        myContext.importContext(otherContext);
+        '1'.must.equal('2'); // Fail
+      } catch (e) {
+        e.must.be.an.error(/Operation requires state to be/);
+      } finally {
+        yield myContext.lcStop();
+      }
+    });
+    it('copies new object definitions into current context', function* () {
+      const otherContext = new Context('other_context');
+      otherContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
+
+      const myContext = new Context('test1');
+
+      myContext.importContext(otherContext);
+
+      myContext.lcStart();
+      otherContext.lcStart();
+
+      const a = yield* myContext.getObjectByName('A');
+
+      a.must.not.be.undefined();
+      a.val.must.be.equal('the value');
+
+      myContext.lcStop();
+      otherContext.lcStop();
+    });
+    it('overwrites an object definition in the current context', function* () {
+      const otherContext = new Context('other_context');
+      otherContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('X'));
+
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('A'));
+
+      myContext.importContext(otherContext, true);
+
+      myContext.lcStart();
+      otherContext.lcStart();
+
+      const a = yield* myContext.getObjectByName('A');
+
+      a.must.not.be.undefined();
+      a.val.must.be.equal('X');
+
+      myContext.lcStop();
+      otherContext.lcStop();
+    });
+  });
 }
 );
 
