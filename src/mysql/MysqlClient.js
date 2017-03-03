@@ -42,16 +42,15 @@ class MysqlClient {
    * @return {Array} an array of all rows returned by the query.
    */
   * queryAll(sql, binds) {
-    return co.withSharedContext(function* () {
+    return co.withSharedContext(function* (sharedContext) {
       if (!Array.isArray(binds)) {
         binds = [];
       }
-      if (!TransactionManager.transactionExists()) {
-        console.log('sdsds');
+      if (!sharedContext.currentTransaction) {
         // executing a query outside of a transaction is not a good idea
         throw new Error(`Shouldn't run queries outside of a transaction: ${sql}`);
       }
-      const transaction = TransactionManager.getCurrentTransaction();
+      const transaction = sharedContext.currentTransaction;
       console.log(`Transaction ${transaction.id} ${transaction.mysqlInited}`);
       const connectionPool = this.getConnectionPoolForReadonly(transaction.isReadonly());
       // console.log('d');

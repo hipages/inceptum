@@ -33,9 +33,15 @@ class Transaction {
     this.error = e;
   }
   addCommitListener(f) {
+    if (!f || !(f instanceof Function)) {
+      throw new TransactionError('Provided input to addCommitListener is not a function');
+    }
     this.commitListeners.push(f);
   }
   addRollbackListener(f) {
+    if (!f || !(f instanceof Function)) {
+      throw new TransactionError('Provided input to addRollbackListener is not a function');
+    }
     this.rollbackListeners.push(f);
   }
   * end() {
@@ -64,17 +70,16 @@ class Transaction {
 
   * callListeners(listeners) {
     for (let i = 0; i < listeners.length; i++) {
-      yield listeners[i](this);
+      const result = listeners[i](this);
+      if (result) {
+        yield result;
+      }
     }
   }
 }
 Transaction.idInc = 1;
 
 class TransactionManager {
-
-  static* getCurrentTransaction() {
-    return co.withSharedContext((context) => context.currentTransaction);
-  }
 
   static* runInTransaction(readonly, callback, callbackContext, args) {
     return co.withSharedContext(function* (context) {

@@ -89,6 +89,17 @@ class Util {
       throw new Error('Exception thrown');
     });
   }
+  * registerCommitListener(listener) {
+    return co.withSharedContext((context) => {
+      context.currentTransaction.addCommitListener(listener);
+    });
+  }
+  * registerRollbackListenerAndThrow(listener) {
+    return co.withSharedContext((context) => {
+      context.currentTransaction.addRollbackListener(listener);
+      throw new Error('Exception thrown');
+    });
+  }
 }
 
 const util = new Util();
@@ -152,6 +163,29 @@ describe('transaction/TransactionManager', () => {
       demand(transaction).not.be.undefined();
       transaction.finished.must.be.true();
       transaction.error.must.be.an.error(/Exception thrown/);
+    });
+    it('Must call commit callbacks', function* () {
+      const myCallback = () => {
+        // console.log('Committed');
+        myCallback.called = true;
+      };
+      yield TransactionManager.runInTransaction(true, Util.prototype.registerCommitListener, util, [myCallback]);
+      demand(myCallback.called).not.be.undefined();
+      myCallback.called.must.be.true();
+    });
+    it('Must call rollback callbacks', function* () {
+      const myCallback = () => {
+        // console.log('Rolled back');
+        myCallback.called = true;
+      };
+      try {
+        yield TransactionManager.runInTransaction(true, Util.prototype.registerRollbackListenerAndThrow, util, [myCallback]);
+        true.must.be.false();
+      } catch (e) {
+        e.must.be.an.error('Exception thrown');
+      }
+      demand(myCallback.called).not.be.undefined();
+      myCallback.called.must.be.true();
     });
   });
 });
