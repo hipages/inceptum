@@ -70,12 +70,6 @@ class Transaction {
 }
 Transaction.idInc = 1;
 
-// function doTransactionEnd(newTransaction, transactionalNamespace) {
-//   newTransaction.end();
-//   console.log('Clearing transaction');
-//   transactionalNamespace.set('transaction', undefined);
-// }
-
 class TransactionManager {
 
   static* getCurrentTransaction() {
@@ -102,89 +96,8 @@ class TransactionManager {
         return yield callback.apply(callbackContext, args);
       }
     });
-    //
-    // if (CoroutineRunner.isIterator(callback)) {
-    //   console.log('Given an iterator');
-    //   return TransactionManager.runInTransaction(readonly, () => CoroutineRunner.execute(callback, transactionalNamespace), context, args);
-    // }
-    // if (CoroutineRunner.isPromise(callback)) {
-    //   return TransactionManager.runInTransaction(readonly, function* () {
-    //     yield callback;
-    //   }, context, args);
-    // }
-    // // console.log('Given a function');
-    // const existingTransaction = TransactionManager.getCurrentTransaction();
-    // if (existingTransaction) {
-    //   // console.log(`Existing transaction ${existingTransaction.id}`);
-    //   if (!existingTransaction.canDo(readonly)) {
-    //     throw new TransactionError('Couldn\'t upgrade transaction from read only to read write');
-    //   }
-    //   return callback.apply(context, args);
-    // }
-    // return transactionalNamespace.runAndReturn(
-    //   () => {
-    //     const newTransaction = new Transaction(readonly);
-    //     console.log(`Running with transaction id: ${newTransaction.id}`);
-    //     transactionalNamespace.set('transaction', newTransaction);
-    //     let delayedEnd = false;
-    //     try {
-    //       newTransaction.begin();
-    //       const resp = callback.apply(context, args);
-    //       console.log(resp);
-    //       if (CoroutineRunner.isIterator(resp)) {
-    //         console.log('It was a generator, so executing coroutine');
-    //         const t = CoroutineRunner.execute(resp, transactionalNamespace, newTransaction);
-    //         if (CoroutineRunner.isPromise(t)) {
-    //           console.log('Delaying end of transaction until completion of promise');
-    //           delayedEnd = true;
-    //           return t.then((data) => {
-    //             console.log('Doing delayed end of transaction')
-    //             doTransactionEnd(newTransaction, transactionalNamespace);
-    //             return data;
-    //           }).catch((err) => {
-    //             newTransaction.markError(err);
-    //             doTransactionEnd(newTransaction, transactionalNamespace);
-    //             throw err;
-    //           });
-    //         }
-    //         return t;
-    //       } else if (CoroutineRunner.isPromise(resp)) {
-    //         console.log('It IS a promise');
-    //         delayedEnd = true;
-    //         return resp.then((data) => {
-    //           console.log('Doing delayed end of transaction')
-    //           doTransactionEnd(newTransaction, transactionalNamespace);
-    //           return data;
-    //         }).catch((err) => {
-    //           console.log(err);
-    //           newTransaction.markError(err);
-    //           doTransactionEnd(newTransaction, transactionalNamespace);
-    //           throw err;
-    //         });
-    //       }
-    //       return resp;
-    //     } catch (e) {
-    //       newTransaction.markError(e);
-    //       throw e;
-    //     } finally {
-    //       if (!delayedEnd) {
-    //         // console.log(`Ending transaction ${newTransaction.id}`);
-    //         doTransactionEnd(newTransaction, transactionalNamespace);
-    //       }
-    //       console.log('End of transactional run and return');
-    //     }
-    //   }
-    // );
   }
-
-  // static transactionExists() {
-  //   return TransactionManager.getCurrentTransaction() !== undefined;
-  // }
-  // static getCurrentTransaction() {
-  //   return transactionalNamespace.get('transaction');
-  // }
 }
-TransactionManager.id = 0;
 TransactionManager.Events = TransactionEvents;
 
 module.exports = { TransactionManager, TransactionError };
