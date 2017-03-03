@@ -62,7 +62,7 @@ class ObjectDefinition extends Lifecycle {
   copyInternalProperties(copyTo) {
     copyTo.lazyLoading = this.lazyLoading;
     copyTo.autowireCandidate = this.autowireCandidate;
-    copyTo.context = this.context;
+    copyTo.context = null;  // The copy must not inherit the context
   }
 }
 
