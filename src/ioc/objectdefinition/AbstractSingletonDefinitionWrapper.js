@@ -72,16 +72,8 @@ class AbstractSingletonDefinitionWrapper extends SingletonDefinition {
     return this.wrapped.setLogger(logger);
   }
 
-  lcStartSync /* istanbul ignore next */ (maxAwaitMillis) {
-    return this.wrapped.lcStartSync(maxAwaitMillis);
-  }
-
   assertState /* istanbul ignore next */ (state) {
     return this.wrapped.assertState(state);
-  }
-
-  waitFor /* istanbul ignore next */ (func, maxAwaitMillis, message) {
-    return this.wrapped.waitFor(func, maxAwaitMillis, message);
   }
 
   onStateOnce /* istanbul ignore next */ (stateId, callback) {
