@@ -119,6 +119,10 @@ class Lifecycle extends EventEmitter {
   copy() {
     return new Lifecycle(this.name, this.logger);
   }
+
+  getStatus() {
+    return this.status;
+  }
 }
 
 Lifecycle.STATES = STATES;

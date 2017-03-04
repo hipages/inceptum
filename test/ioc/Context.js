@@ -1,6 +1,8 @@
 // Test...
 const { Context } = require('../../src/ioc/Context');
+const { Lifecycle } = require('../../src/ioc/Lifecycle');
 const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
+const demand = require('must');
 
 class A {
   constructor(val) {
@@ -19,8 +21,70 @@ class B {
   }
 }
 
+class TrackSingleton {
+  static clear() {
+    TrackSingleton.initialised = false;
+  }
+  static mark() {
+    TrackSingleton.initialised = true;
+  }
+  static isInitialised() {
+    return TrackSingleton.initialised;
+  }
+  constructor() {
+    TrackSingleton.mark();
+  }
+}
+TrackSingleton.clear();
 
 describe('ioc/Context', () => {
+  describe('inheritance', () => {
+    it('starting the child context starts the parent context', function* () {
+      const parentContext = new Context('parent context');
+      const childContext = new Context('child context', parentContext);
+      yield childContext.lcStart();
+      childContext.getStatus().must.be.equal(Lifecycle.STATES.STARTED);
+      parentContext.getStatus().must.be.equal(Lifecycle.STATES.STARTED);
+      yield childContext.lcStop();
+    });
+    it('stopping the child context stops the parent context', function* () {
+      const parentContext = new Context('parent context');
+      const childContext = new Context('child context', parentContext);
+      yield childContext.lcStart();
+      yield childContext.lcStop();
+      childContext.getStatus().must.be.equal(Lifecycle.STATES.STOPPED);
+      parentContext.getStatus().must.be.equal(Lifecycle.STATES.STOPPED);
+    });
+    it('Parent objects are available in the child context', function* () {
+      const parentContext = new Context('parent context');
+      parentContext.registerSingletons(A);
+      const childContext = new Context('child context', parentContext);
+      yield childContext.lcStart();
+      const a = yield childContext.getObjectByName('A');
+      demand(a).is.not.falsy();
+      a.must.be.instanceOf(A);
+      yield childContext.lcStop();
+    });
+  });
+  describe('Lazyness', () => {
+    it('lazy objects are not initialised during context start', function* () {
+      TrackSingleton.clear();
+      const myContext = new Context('test1');
+      myContext.registerSingletons(TrackSingleton);
+      yield myContext.lcStart();
+      TrackSingleton.isInitialised().must.be.false();
+      yield myContext.lcStop();
+    });
+    it('non-lazy objects are initialised during context start', function* () {
+      TrackSingleton.clear();
+      const myContext = new Context('test1');
+      myContext.registerSingletons(TrackSingleton);
+      myContext.getDefinitionByName('TrackSingleton').withLazyLoading(false);
+      yield myContext.lcStart();
+      TrackSingleton.isInitialised().must.be.true();
+      yield myContext.lcStop();
+    });
+  });
   describe('individual bean options', function* () {
     const myContext = new Context('test1');
     myContext.registerSingletons(A);
