@@ -10,7 +10,7 @@ service:
 install:
   - npm install -g codecov
   - npm install
-  - mysql -e 'CREATE DATABASE testdb; CREATE TABLE table1 (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(20) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'
+  - mysql -e 'CREATE DATABASE testdb; CREATE TABLE testdb.table1 (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(20) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'
   - mysql -e 'insert into testdb.table1 (name) values ('Paolo'),('Maria'),('Carolina');'
 
 script:
