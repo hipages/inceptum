@@ -40,10 +40,12 @@ class MysqlClient {
     this.name = 'NotSet';
     this.masterPool = null;
     this.slavePool = null;
+    this.enable57Mode = false;
   }
   // configuration and name are two properties set by MysqlConfigManager
   initialise() {
     this.verbose = this.configuration.Verbose || false;
+    this.enable57Mode = this.configuration.enable57Mode || false;
     if (this.configuration.Master) {
       this.masterPool = mysql.createPool(this.getFullPoolConfig(this.configuration.Master));
     }
@@ -170,7 +172,11 @@ class MysqlClient {
     // console.log('Entering setuptransaction');
     if (!transaction.mysqlInited) {
       // console.log(`Setting up transaction ${transaction.id} for ${TransactionManager.Events.COMMIT}`);
-      yield runQueryOnPool.call(this, connectionPool, `START TRANSACTION ${transaction.isReadonly() ? ' READ ONLY' : ' READ WRITE'}`);
+      if (this.enable57Mode) {
+        yield runQueryOnPool.call(this, connectionPool, `START TRANSACTION ${transaction.isReadonly() ? ' READ ONLY' : ' READ WRITE'}`);
+      } else {
+        yield runQueryOnPool.call(this, connectionPool, 'BEGIN');
+      }
       transaction.mysqlInited = true;
       const self = this;
       // console.log(`Setting up 2 transaction ${transaction.id} for ${TransactionManager.Events.COMMIT}`);
