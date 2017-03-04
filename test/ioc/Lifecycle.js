@@ -2,13 +2,12 @@
 const { Lifecycle } = require('../../src/ioc/Lifecycle');
 
 class MyLifecycle extends Lifecycle {
-  doStart() {
+  * doStart() {
+    yield {};
   }
 
-  doPostStart() {
-  }
-
-  doStop() {
+  * doStop() {
+    yield {};
   }
 }
 
