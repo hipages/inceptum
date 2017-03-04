@@ -37,6 +37,12 @@ class TrackSingleton {
 }
 TrackSingleton.clear();
 
+class ThrowOnInstantiate {
+  constructor() {
+    throw new Error('Exception instantiating');
+  }
+}
+
 describe('ioc/Context', () => {
   describe('inheritance', () => {
     it('starting the child context starts the parent context', function* () {
@@ -83,6 +89,17 @@ describe('ioc/Context', () => {
       yield myContext.lcStart();
       TrackSingleton.isInitialised().must.be.true();
       yield myContext.lcStop();
+    });
+    it('an exception during the initialisation of a non-lazy object cancels the context initialisation', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(ThrowOnInstantiate);
+      myContext.getDefinitionByName('ThrowOnInstantiate').withLazyLoading(false);
+      try {
+        yield myContext.lcStart();
+        true.must.be.false();
+      } catch (e) {
+        e.must.be.an.error('Exception instantiating');
+      }
     });
   });
   describe('individual bean options', function* () {

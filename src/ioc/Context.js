@@ -50,10 +50,10 @@ class Context extends Lifecycle {
             this.getLogger().error(
               `There was an error starting context. Object "${objectDefinition.getName()}" threw an exception during startup. Stopping context`, e);
           }
-          this.emit('error',
-            `There was an error starting context. Object "${objectDefinition.getName()}" threw an exception during startup. Stopping context`, e);
-          yield* this.lcStop();
-          return false;
+          // this.emit('error',
+          //  `There was an error starting context. Object "${objectDefinition.getName()}" threw an exception during startup. Stopping context`, e);
+          yield this.lcStop();
+          throw e;
         }
       }
     }

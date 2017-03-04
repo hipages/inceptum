@@ -38,6 +38,7 @@ class Lifecycle extends EventEmitter {
       if (this.logger) {
         this.logger.error(`There was an error starting element ${this.name}`, e);
       }
+      throw e;
     }
   }
 
@@ -59,6 +60,7 @@ class Lifecycle extends EventEmitter {
       if (this.logger) {
         this.logger.error(`There was an error stopping element ${this.name}`, e);
       }
+      throw e;
     }
   }
 
