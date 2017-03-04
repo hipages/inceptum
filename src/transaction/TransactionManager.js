@@ -102,6 +102,10 @@ class TransactionManager {
       }
     });
   }
+
+  static withTransaction(fn, ctx) {
+    return co.withSharedContext((sharedContext) => fn.call(ctx, sharedContext.currentTransaction));
+  }
 }
 TransactionManager.Events = TransactionEvents;
 
