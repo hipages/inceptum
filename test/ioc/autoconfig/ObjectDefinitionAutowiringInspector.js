@@ -17,7 +17,7 @@ class A {}
 const inspector = new ObjectDefinitionAutowiringInspector();
 const singletonDefinition = new BaseSingletonDefinition(TestClass);
 
-describe('ObjectDefinitionAutowiringInspector', () => {
+describe('ioc/autoconfig/ObjectDefinitionAutowiringInspector', () => {
   describe('interest', () => {
     it('is not interested in non-singletons', () => {
       inspector.interestedIn(new A()).must.be.false();

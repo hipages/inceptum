@@ -37,7 +37,6 @@ class ObjectDefinition extends Lifecycle {
   // ************************************
 
   * getInstance() {
-    yield null;
     throw new Error('Unimplemented');
   }
 
@@ -51,6 +50,10 @@ class ObjectDefinition extends Lifecycle {
 
   isLazy() {
     return this.lazyLoading;
+  }
+
+  isAutowireCandidate() {
+    return this.autowireCandidate;
   }
 
   copy() {
