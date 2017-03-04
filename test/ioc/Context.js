@@ -102,30 +102,63 @@ describe('ioc/Context', () => {
       }
     });
   });
-  describe('individual bean options', function* () {
-    const myContext = new Context('test1');
-    myContext.registerSingletons(A);
-    yield myContext.lcStart();
-    it('can get a bean', () => {
-      myContext.getObjectByName('A').must.not.be.undefined();
+  describe('register singleton validations', () => {
+    it('can\'t register an object definition that is not one', () => {
+      const myContext = new Context('test1');
+      try {
+        myContext.registerDefinition('not an object definition');
+        true.must.be.false();
+      } catch (e) {
+        e.must.be.an.error('Provided input for registration is not an instance of ObjectDefinition');
+      }
     });
-    it('can get a bean by type', () => {
+    it('can\'t register an object definition if one by the same name already exists', () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      try {
+        myContext.registerSingletons(A);
+        true.must.be.false();
+      } catch (e) {
+        e.must.be.an.error('Object definition with name A already exists in this context');
+      }
+    });
+  });
+  describe('individual bean options', () => {
+    it('can get a bean', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
+      myContext.getObjectByName('A').must.not.be.undefined();
+      yield myContext.lcStop();
+    });
+    it('can get a bean by type', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
       myContext.getObjectByType('A').must.not.be.undefined();
+      yield myContext.lcStop();
     });
     it('can get a bean by type multi', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
       const beans = yield* myContext.getObjectsByType('A');
       beans.must.be.array();
       beans.length.must.be.equal(1);
+      yield myContext.lcStop();
     });
     it('the bean is a singleton', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
       const bean = yield* myContext.getObjectByName('A');
       bean.val = 15;
       const bean2 = yield* myContext.getObjectByName('A');
       bean2.val.must.be.equal(15);
+      yield myContext.lcStop();
     });
-    yield myContext.lcStop();
   });
-  describe('beans with constructor args', () => {
+  describe('object with constructor args', () => {
     it('can use value constructor arguments', function* () {
       const myContext = new Context('test1');
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
@@ -160,7 +193,69 @@ describe('ioc/Context', () => {
       yield myContext.lcStop();
     });
   });
-  describe('beans with parameters set', () => {
+  describe('getting objects', () => {
+    it('getting by name', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
+      const a = yield myContext.getObjectByName('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.instanceOf(A);
+      yield myContext.lcStop();
+    });
+    it('getting by type', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
+      const a = yield myContext.getObjectByType('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.instanceOf(A);
+      yield myContext.lcStop();
+    });
+    it('getting by type array', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      yield myContext.lcStart();
+      const a = yield myContext.getObjectsByType('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.array();
+      a.length.must.be.equal(1);
+      a[0].must.be.an.instanceOf(A);
+      yield myContext.lcStop();
+    });
+  });
+  describe('getting object definitions', () => {
+    it('getting by name', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      const a = myContext.getDefinitionByName('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.instanceOf(BaseSingletonDefinition);
+    });
+    it('getting by type', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      const a = myContext.getDefinitionByType('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.instanceOf(BaseSingletonDefinition);
+    });
+    it('getting by type array', function* () {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2'));
+      const a = myContext.getDefinitionsByType('A');
+      demand(a).is.not.undefined();
+      a.must.be.an.array();
+      a.length.must.equal(2);
+      a[0].must.be.an.instanceOf(BaseSingletonDefinition);
+      a[0].getProducedClass().must.equal(A);
+      demand(a[0].getName() === 'A' || a[0].getName() === 'A2').is.true();
+      a[1].must.be.an.instanceOf(BaseSingletonDefinition);
+      a[1].getProducedClass().must.equal(A);
+      demand(a[1].getName() === 'A' || a[1].getName() === 'A2').is.true();
+    });
+  });
+  describe('objects with parameters set', () => {
     it('can use value params', function* () {
       const myContext = new Context('test1');
       myContext.registerSingletons(new BaseSingletonDefinition(A).setPropertyByValue('val', 'the value'));
