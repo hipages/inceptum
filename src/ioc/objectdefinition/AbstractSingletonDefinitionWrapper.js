@@ -79,6 +79,16 @@ class AbstractSingletonDefinitionWrapper extends SingletonDefinition {
   onStateOnce /* istanbul ignore next */ (stateId, callback) {
     return this.wrapped.onStateOnce(stateId, callback);
   }
+
+  * getInstanceAtState /* istanbul ignore next */ (...args) {
+    const underlyingInstance = yield this.wrapped.getInstanceAtState(...args);
+    return this.doWrap(underlyingInstance);
+  }
+
+  * getInstanceWithTrace /* istanbul ignore next */ (...args) {
+    const underlyingInstance = yield this.wrapped.getInstanceWithTrace(...args);
+    return this.doWrap(underlyingInstance);
+  }
 }
 
 module.exports = { AbstractSingletonDefinitionWrapper };

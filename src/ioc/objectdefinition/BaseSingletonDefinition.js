@@ -64,7 +64,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
   startFunction(startFunctionName) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, startFunctionName)) {
-      this.startFunction = startFunctionName;
+      this.startFunctionName = startFunctionName;
     } else {
       throw new IoCException(
         `Can't find function named ${startFunctionName} on class ${this.clazz.name}`);
@@ -72,7 +72,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
     return this;
   }
 
-  shutdownFunction(shutdownFunctionName) {
+  stopFunction(shutdownFunctionName) {
     this.assertState(Lifecycle.STATES.NOT_STARTED);
     if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, shutdownFunctionName)) {
       this.shutdownFunctionName = shutdownFunctionName;
@@ -268,10 +268,10 @@ class BaseSingletonDefinition extends SingletonDefinition {
     return args;
   }
 
-  * setAllProperties() {
+  * setAllProperties(trace, postload) {
     for (let i = 0; i < this.propertiesToSetDefinitions.length; i++) {
       const propertyToSet = this.propertiesToSetDefinitions[i];
-      const args = yield* this.resolveArgs(propertyToSet.args, [this.getName()], new Set());
+      const args = yield* this.resolveArgs(propertyToSet.args, trace, postload);
       this.instance[propertyToSet.paramName] = args[0];
     }
   }

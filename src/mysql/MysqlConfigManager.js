@@ -3,11 +3,11 @@ const { MysqlClient } = require('./MysqlClient');
 
 class MysqlConfigManager {
   static registerSingletons(context) {
-    if (!context.hasConfig('Mysql')) {
+    if (!context.hasConfig('MySQL')) {
       // No Mysql configured. Skipping
       return;
     }
-    const confs = context.getConfig('Mysql');
+    const confs = context.getConfig('MySQL');
     Object.keys(confs).forEach((key) => {
       const clientSingleton = new BaseSingletonDefinition(MysqlClient, key);
       clientSingleton.setPropertyByValue('name', key);

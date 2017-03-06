@@ -2,6 +2,8 @@
 // Factory beans
 // Profile support
 
+const fs = require('fs');
+const path = require('path');
 const config = require('config');
 const { Lifecycle } = require('./Lifecycle');
 const { IoCException } = require('./IoCException');
@@ -129,6 +131,38 @@ class Context extends Lifecycle {
     });
   }
 
+  registerSingletonsInDir(dir) {
+    Context.walkDirSync(dir).filter(file => path.extname(file) === '.js').forEach(file => {
+      let expectedClass = path.basename(file);
+      expectedClass = expectedClass.substr(0, expectedClass.length - 3);
+      // eslint-disable-next-line global-require
+      const loaded = require(file);
+      if (loaded) {
+        if ((typeof loaded === 'object') && !(loaded instanceof Function) && loaded[expectedClass] && loaded[expectedClass].constructor) {
+          this.registerSingletons(loaded[expectedClass]);
+        } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
+          this.registerSingletons(loaded);
+        } else {
+          throw new IoCException(`Couldn't register singleton for ${file}`);
+        }
+      }
+    });
+  }
+
+  /**
+   *
+   * @param dir
+   * @param filelist
+   * @return {Array}
+   */
+  static walkDirSync(dir, filelist = []) {
+    fs.readdirSync(dir).forEach(file => {
+      filelist = fs.statSync(path.join(dir, file)).isDirectory()
+        ? Context.walkDirSync(path.join(dir, file), filelist)
+        : filelist.concat(path.join(dir, file));
+    });
+    return filelist;
+  }
   // ************************************
   // Config functions
   // ************************************

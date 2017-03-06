@@ -47,10 +47,10 @@ class MysqlClient {
     this.verbose = this.configuration.Verbose || false;
     this.enable57Mode = this.configuration.enable57Mode || false;
     if (this.configuration.Master) {
-      this.masterPool = mysql.createPool(this.getFullPoolConfig(this.configuration.Master));
+      this.masterPool = mysql.createPool(this.getFullPoolConfig(this.configuration.master));
     }
     if (this.configuration.Slave) {
-      this.slavePool = mysql.createPool(this.getFullPoolConfig(this.configuration.Slave));
+      this.slavePool = mysql.createPool(this.getFullPoolConfig(this.configuration.slave));
     }
     if (!this.masterPool && !this.slavePool) {
       throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
@@ -116,7 +116,8 @@ class MysqlClient {
   /**
    * Executes a query and streams rows into a generator.
    * @param sql
-   * @param bindArr
+   * @param consumer
+   * @param binds
    * @return {Promise} a promise with the return value of the generator function or any error
    */
   * queryIntoRowConsumer(sql, consumer, binds) {

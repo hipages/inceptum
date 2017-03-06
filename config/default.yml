@@ -10,7 +10,7 @@ Logging:
 
 MySQL:
   MysqlClient: # this is the name of the object that will be exposed in the context
-    Master:
+    master:
       host: localhost
       port: 3306
       user: root
@@ -18,7 +18,7 @@ MySQL:
       database: testDb
       charset: utf8
       connectionLimit: 10
-    Slave:
+    slave:
       host: localhost
       port: 3306
       user: root

@@ -13,8 +13,10 @@ class TransactionSingletonDefinitionWrapper extends AbstractSingletonDefinitionW
     const info = this.transactionalInfo;
     return new Proxy(underlyingInstance, {
       get: (target, property) => {
-        if (Object.prototype.hasOwnProperty.call(info, property)) {
-          const readonly = info[property] !== 'readwrite';
+        if (Object.prototype.hasOwnProperty.call(info, property) || Object.prototype.hasOwnProperty.call(info, 'default')) {
+          const readonly = Object.prototype.hasOwnProperty.call(info, property) ?
+            info[property] !== 'readwrite' :
+            info.default !== 'readwrite';
           return function* (...args) {
             return yield TransactionManager.runInTransaction(readonly, target[property], target, args);
           };
