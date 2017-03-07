@@ -46,10 +46,10 @@ class MysqlClient {
   initialise() {
     this.verbose = this.configuration.Verbose || false;
     this.enable57Mode = this.configuration.enable57Mode || false;
-    if (this.configuration.Master) {
+    if (this.configuration.master) {
       this.masterPool = mysql.createPool(this.getFullPoolConfig(this.configuration.master));
     }
-    if (this.configuration.Slave) {
+    if (this.configuration.slave) {
       this.slavePool = mysql.createPool(this.getFullPoolConfig(this.configuration.slave));
     }
     if (!this.masterPool && !this.slavePool) {
