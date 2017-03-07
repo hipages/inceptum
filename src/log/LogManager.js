@@ -1,4 +1,4 @@
-const { Context } = require('../ioc/Context');
+const config = require('config');
 const bunyan = require('bunyan');
 const PrettyStream = require('bunyan-prettystream');
 const path = require('path');
@@ -10,7 +10,7 @@ const stringify = require('json-stringify-safe');
 // const RedisStream = require('bunyan-redis-stream');
 // const redis = require('redis');
 
-class LevelFixingTransform extends Transform {
+class LevelStringifyTransform extends Transform {
   constructor() {
     super({ writableObjectMode: true, readableObjectMode: true });
   }
@@ -58,6 +58,10 @@ class StringifyTransform extends Transform {
 
 class LogManager {
 
+  constructor() {
+    this.streamCache = new Map();
+  }
+
   getLogger(filePath) {
     if (filePath.substr(0, 1) !== '/') {
       // It's not a full file path.
@@ -84,13 +88,13 @@ class LogManager {
   }
 
   getLoggerInternal(loggerPath) {
-    if (!Context.hasConfig('Logging.loggers')) {
+    if (!config.has('Logging.loggers')) {
       throw new Error('Couldn\'t find loggers configuration!!! Your logging config is wrong!');
     }
-    const loggers = Context.getConfig('Logging.loggers');
-    const candidates = Object.keys(loggers).filter((logger) => loggerPath.startsWith(logger.name));
+    const loggers = config.get('Logging.loggers');
+    const candidates = loggers.filter((logger) => loggerPath.startsWith(logger.name));
     if (!candidates || candidates.length === 0) {
-      candidates.push('ROOT');
+      candidates.push(loggers.filter((logger) => logger.name === 'ROOT')[0]);
     } else {
       candidates.sort((a, b) => {
         if (a.length > b.length) return -1;
@@ -98,58 +102,110 @@ class LogManager {
         return 0;
       });
     }
-    const loggerName = candidates[0];
-    const loggerConfig = loggers.find((t) => (t.name === loggerName));
+    const loggerConfig = candidates[0];
+    const loggerName = loggerConfig.name;
     const streamNames = loggerConfig.streams;
-    const streams = Object.keys(streamNames).map((streamName) => this.getStreamConfig(streamName, streamNames[streamName]));
+    const streams = Object.keys(streamNames).map(
+      (streamName) =>
+        this.getStreamConfig(
+          streamName,
+          this.getEffectiveLevel(loggerName, streamName, streamNames[streamName]
+          )
+        )
+    );
     return bunyan.createLogger({ name: loggerPath, streams, _app: this.appName });
   }
 
+  getEffectiveLevel(loggerName, streamName, configuredLevel) {
+    let overrideEnv = `LOG_${loggerName}_${streamName}`
+      .replace('/[^a-zA-z0-9_]+/', '_')
+      .replace('/[_]{2,}', '_');
+    if (process.env[overrideEnv]) {
+      return process.env[overrideEnv];
+    }
+    overrideEnv = `LOG_${loggerName}`
+      .replace('/[^a-zA-z0-9_]+/', '_')
+      .replace('/[_]{2,}', '_');
+    if (process.env[overrideEnv]) {
+      return process.env[overrideEnv];
+    }
+    return configuredLevel;
+  }
 
   getStreamConfig(streamName, level) {
-    const prettyStream = new PrettyStream();
     const configKey = `Logging.streams.${streamName}`;
-    if (!Context.hasConfig(configKey)) {
+    if (!config.has(configKey)) {
       throw new Error(`Couldn't find stream with name ${streamName}`);
     }
-    const transformStream = new LevelFixingTransform();
-    const streamConfig = Context.getConfig(configKey);
+    const streamConfig = config.get(configKey);
     switch (streamConfig.type) {
       case 'console':
-        prettyStream.pipe(process.stdout);
         return {
-          stream: prettyStream,
+          stream: this.getUnderlyingStream(streamName),
           level,
           name: streamConfig.name
         };
       case 'file':
-        transformStream.pipe(new StringifyTransform()).pipe(new bunyan.RotatingFileStream({
-          path: this.resolvePath(streamConfig.path),
-          period: streamConfig.period || '1d',
-          count: streamConfig.count || 14
-        }));
         return {
           type: 'raw',
-          stream: transformStream,
+          stream: this.getUnderlyingStream(streamName),
           closeOnExit: true,
           level
         };
       case 'redis':
-        transformStream.pipe(this.getRedisStream(streamConfig));
         return {
           type: 'raw',
           level,
-          stream: transformStream
+          stream: this.getUnderlyingStream(streamName)
         };
       default:
         throw new Error('Unknown log stream type');
     }
   }
 
+  getUnderlyingStream(streamName) {
+    if (!this.streamCache.has(streamName)) {
+      const configKey = `Logging.streams.${streamName}`;
+      if (!config.has(configKey)) {
+        throw new Error(`Couldn't find stream with name ${streamName}`);
+      }
+      const streamConfig = config.get(configKey);
+      switch (streamConfig.type) {
+        case 'console':
+          {
+            const prettyStream = new PrettyStream();
+            prettyStream.pipe(process.stdout);
+            this.streamCache.set(streamName, prettyStream);
+          }
+          break;
+        case 'file':
+          {
+            const levelStringifyTransform = new LevelStringifyTransform();
+            levelStringifyTransform.pipe(new StringifyTransform()).pipe(new bunyan.RotatingFileStream({
+              path: this.resolvePath(streamConfig.path),
+              period: streamConfig.period || '1d',
+              count: streamConfig.count || 14
+            }));
+            this.streamCache.set(streamName, levelStringifyTransform);
+          }
+          break;
+        case 'redis':
+          {
+            const levelStringifyTransform = new LevelStringifyTransform();
+            levelStringifyTransform.pipe(this.getRedisStream(streamConfig));
+            this.streamCache.set(streamName, levelStringifyTransform);
+          }
+          break;
+        default:
+          throw new Error('Unknown log stream type');
+      }
+    }
+    return this.streamCache.get(streamName);
+  }
 
   resolvePath(thePath) {
     const basePath = process.env.LOG_DIR ||
-      (Context.hasConfig('Logger.dir') && Context.getConfig('Logger.dir')) ||
+      (config.has('Logger.dir') && config.get('Logger.dir')) ||
         os.tmpdir();
     const finalPath = path.resolve(basePath, thePath);
     if (!fs.existsSync(path.dirname(finalPath))) {

@@ -1,6 +1,7 @@
 const { IoCException } = require('./../IoCException');
 const { SingletonDefinition } = require('./SingletonDefinition');
 const { Lifecycle } = require('./../Lifecycle');
+const LogManager = require('../../log/LogManager');
 
 // Means resolving the constructor arguments necessary to instantiate
 Lifecycle.registerState('INSTANTIATING', 100);
@@ -20,7 +21,7 @@ const ParamTypes = {
 
 class BaseSingletonDefinition extends SingletonDefinition {
   constructor(clazz, name, logger) {
-    super(clazz, name, logger);
+    super(clazz, name, logger || LogManager.getLogger(__filename));
     this.constructorArgDefinitions = [];
     this.propertiesToSetDefinitions = [];
     this.startFunctionName = null;

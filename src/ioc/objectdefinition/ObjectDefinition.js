@@ -1,8 +1,9 @@
 const { Lifecycle } = require('./../Lifecycle');
+const LogManager = require('../../log/LogManager');
 
 class ObjectDefinition extends Lifecycle {
   constructor(clazz, name, logger) {
-    super(name || clazz.name, logger);
+    super(name || clazz.name, logger || LogManager.getLogger(__filename));
     this.clazz = clazz;
     this.lazyLoading = true;
     this.instance = null;

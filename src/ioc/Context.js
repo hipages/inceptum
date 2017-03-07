@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('config');
+const LogManager = require('../log/LogManager');
 const { Lifecycle } = require('./Lifecycle');
 const { IoCException } = require('./IoCException');
 const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
@@ -13,7 +14,7 @@ const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
 
 class Context extends Lifecycle {
   constructor(name, parentContext, logger) {
-    super(name, logger);
+    super(name, logger || LogManager.getLogger(__filename));
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();

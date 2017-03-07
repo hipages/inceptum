@@ -1,4 +1,3 @@
-
 const { SingletonDefinition } = require('./SingletonDefinition');
 
 class PreinstantiatedSingletonDefinition extends SingletonDefinition {
@@ -12,16 +11,15 @@ class PreinstantiatedSingletonDefinition extends SingletonDefinition {
   }
 
   * getInstance() {
-    yield null;
     return this.instance;
   }
 
+// eslint-disable-next-line no-empty-function
   * doStart() {
-    yield null;
   }
 
+// eslint-disable-next-line no-empty-function
   * doStop() {
-    yield null;
   }
 }
 

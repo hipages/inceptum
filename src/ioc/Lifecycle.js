@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const LogManager = require('../log/LogManager');
 
 const STATES = {
   NOT_STARTED: 0,
@@ -23,7 +24,7 @@ class Lifecycle extends EventEmitter {
   constructor(name, logger) {
     super();
     this.name = name;
-    this.logger = logger;
+    this.logger = logger || LogManager.getLogger(__filename);
     this.status = STATES.NOT_STARTED;
   }
 
@@ -70,13 +71,14 @@ class Lifecycle extends EventEmitter {
 
   setStatus(newStatus, eventPayload) {
     if (newStatus < this.status) {
-      throw new LifecycleException(`Can't revert on the status chain. Object "${this.name}" can't go from ${this.status} to ${newStatus}`);
+      throw new LifecycleException(
+        `Can't revert on the status chain. Object "${this.name}" can't go from ${STATES.fromValue(this.status)} to ${STATES.fromValue(newStatus)}`);
     }
     if (newStatus === this.status) {
       return false;
     }
     if (this.logger) {
-      this.logger.debug(`Switching state for object ${this.name} from ${this.status} to ${newStatus}`);
+      this.logger.debug(`Switching state for object ${this.name} from ${STATES.fromValue(this.status)} to ${STATES.fromValue(newStatus)}`);
     }
     this.status = newStatus;
     this.emit(STATES.fromValue(newStatus), this.name, eventPayload);
