@@ -1,12 +1,22 @@
 Logging:
-  Streams:
-    Console:
-      Type: console
-  Loggers:
-    ROOT:
-      Streams:
-        - console
-      Level: info
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+    mainLogFile:
+      type: file
+      path: main.log
+  loggers:
+    - name: ROOT
+      streams:
+        console: info
+        myredis: info
+        mainLogFile: debug
+    - name: ioc/
+      streams:
+        console: info
+        myredis: info
 
 MySQL:
   MysqlClient: # this is the name of the object that will be exposed in the context

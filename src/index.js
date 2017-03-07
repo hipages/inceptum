@@ -1,5 +1,6 @@
 require('./util/PatchCoroutine');
 const { Context } = require('./ioc/Context');
+const LogManager = require('./log/LogManager');
 const { ObjectDefinitionAutowiringInspector } = require('./ioc/autoconfig/ObjectDefinitionAutowiringInspector');
 const { ObjectDefinitionStartStopMethodsInspector } = require('./ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');
 const { ObjectDefinitionTransactionalInspector } = require('./ioc/autoconfig/ObjectDefinitionTransactionalInspector');
@@ -21,4 +22,4 @@ WebContext.addObjectDefinitionInspector(new ObjectDefinitionTransactionalInspect
 
 WebContext.registerSingletons(MainRouter, WebApp);
 
-module.exports = { Context, BaseContext, WebContext };
+module.exports = { Context, BaseContext, WebContext, LogManager };
