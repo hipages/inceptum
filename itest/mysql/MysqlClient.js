@@ -5,7 +5,7 @@ const myClient = new MysqlClient();
 myClient.name = 'TestClient';
 myClient.configuration = {
   Verbose: true,
-  Master: { database: 'testdb' }
+  master: { database: 'testdb' }
 };
 
 myClient.initialise();
