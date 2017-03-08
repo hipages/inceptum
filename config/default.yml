@@ -11,12 +11,12 @@ Logging:
     - name: ROOT
       streams:
         console: info
-        myredis: info
+#        myredis: info
         mainLogFile: debug
     - name: ioc/
       streams:
         console: info
-        myredis: info
+#        myredis: info
 
 MySQL:
   MysqlClient: # this is the name of the object that will be exposed in the context
