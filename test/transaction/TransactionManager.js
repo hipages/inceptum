@@ -66,8 +66,8 @@ class Util {
     });
   }
   * checkTransactionStarted() {
-    return co.withSharedContext((context) => {
-      context.currentTransaction.hasBegun().must.be.true();
+    return TransactionManager.withTransaction((transaction) => {
+      transaction.hasBegun().must.be.true();
     });
   }
   * noop() {
@@ -166,6 +166,15 @@ describe('transaction/TransactionManager', () => {
     });
     it('Must call commit callbacks', function* () {
       const myCallback = () => {
+        // console.log('Committed');
+        myCallback.called = true;
+      };
+      yield TransactionManager.runInTransaction(true, Util.prototype.registerCommitListener, util, [myCallback]);
+      demand(myCallback.called).not.be.undefined();
+      myCallback.called.must.be.true();
+    });
+    it('Must call commit callbacks that are generators', function* () {
+      const myCallback = function* () {
         // console.log('Committed');
         myCallback.called = true;
       };

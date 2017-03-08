@@ -71,7 +71,7 @@ class Transaction {
   * callListeners(listeners) {
     for (let i = 0; i < listeners.length; i++) {
       const result = listeners[i](this);
-      if (result) {
+      if (result && result.next) {
         yield result;
       }
     }
