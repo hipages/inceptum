@@ -1,6 +1,8 @@
 /* eslint-disable prefer-arrow-callback,vars-on-top,prefer-template,yoda,curly,eqeqeq */
 /* eslint-disable no-var,dot-notation,no-use-before-define,no-underscore-dangle,prefer-rest-params,consistent-return,consistent-return */
 
+const Promise = require('bluebird');
+
 /**
  * slice() reference.
  */
@@ -128,7 +130,7 @@ function coWithSharedContext(gen, sharedContext) {
       return onRejected(new TypeError('You may only yield a function, promise, generator, array, or object, '
         + 'but the following object was passed: "' + String(ret.value) + '"'), sharedContext);
     }
-  });
+  }).catch((err) => gen.throw(err));
 }
 
 /**

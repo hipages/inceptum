@@ -7,6 +7,11 @@ const os = require('os');
 const fs = require('fs');
 const Transform = require('stream').Transform;
 const stringify = require('json-stringify-safe');
+const Promise = require('bluebird');
+
+if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
+  Promise.longStackTraces();
+}
 // const RedisStream = require('bunyan-redis-stream');
 // const redis = require('redis');
 
@@ -113,7 +118,7 @@ class LogManager {
           )
         )
     );
-    return bunyan.createLogger({ name: loggerPath, streams, _app: this.appName });
+    return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, _app: this.appName });
   }
 
   getEffectiveLevel(loggerName, streamName, configuredLevel) {
@@ -211,6 +216,7 @@ class LogManager {
     if (!fs.existsSync(path.dirname(finalPath))) {
       this.mkdirpSync(path.dirname(finalPath), 0o766);
     }
+    // eslint-disable-next-line no-console
     console.log(`Logging to file: ${finalPath}`);
     return finalPath;
   }
@@ -245,5 +251,15 @@ class LogManager {
 }
 
 const SINGLETON = new LogManager();
+
+const baseLogger = SINGLETON.getLogger('ROOT');
+process.on('unhandledRejection', (reason, promise) => {
+// eslint-disable-next-line no-underscore-dangle
+  baseLogger.fatal(`Unhandled promise: ${reason} ${(promise && promise._trace && promise._trace.stack) ? promise._trace.stack : ''}`);
+});
+
+process.on('uncaughtException', (err) => {
+  baseLogger.fatal({ err }, `Uncaught exception: ${err}`);
+});
 
 module.exports = SINGLETON;

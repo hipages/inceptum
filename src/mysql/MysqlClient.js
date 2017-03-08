@@ -1,11 +1,11 @@
 const mysql = require('mysql');
 const { TransactionManager } = require('../transaction/TransactionManager');
+const Promise = require('bluebird');
+const log = require('../log/LogManager').getLogger(__filename);
 
 function runQueryOnPool(connectionPool, sql, bindsArr) {
   // console.log(sql);
-  if (this.verbose) {
-    console.log(`sql: ${sql}`);
-  }
+  log.debug(`sql: ${sql}`);
   if (!Array.isArray(bindsArr)) {
     bindsArr = [];
   }
@@ -41,16 +41,16 @@ class MysqlClient {
     this.masterPool = null;
     this.slavePool = null;
     this.enable57Mode = false;
+    this.connectionPoolCreator = (config) => mysql.createPool(config);
   }
   // configuration and name are two properties set by MysqlConfigManager
   initialise() {
-    this.verbose = this.configuration.Verbose || false;
     this.enable57Mode = this.configuration.enable57Mode || false;
     if (this.configuration.master) {
-      this.masterPool = mysql.createPool(this.getFullPoolConfig(this.configuration.master));
+      this.masterPool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.master));
     }
     if (this.configuration.slave) {
-      this.slavePool = mysql.createPool(this.getFullPoolConfig(this.configuration.slave));
+      this.slavePool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.slave));
     }
     if (!this.masterPool && !this.slavePool) {
       throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
@@ -134,9 +134,7 @@ class MysqlClient {
             reject(err);
             return;
           }
-          if (this.verbose) {
-            console.log(`sql: ${sql}`);
-          }
+          log.debug(`sql: ${sql}`);
           const q = connection.query(sql, binds);
           q.on('error', (err) => { q.removeAllListeners(); reject(err); });
           const highMark = 10;
@@ -205,4 +203,6 @@ class MysqlClient {
 MysqlClient.startMethod = 'initialise';
 MysqlClient.stopMethod = 'shutdown';
 
-module.exports = { MysqlClient, RowConsumer };
+const TestUtil = { runQueryOnPool };
+
+module.exports = { MysqlClient, RowConsumer, TestUtil };
