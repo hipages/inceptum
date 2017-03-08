@@ -14,14 +14,4 @@ BaseContext.addObjectDefinitionInspector(new ObjectDefinitionTransactionalInspec
 MysqlConfigManager.registerSingletons(BaseContext);
 BaseContext.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
 
-const { MainRouter } = require('./web/MainRouter');
-const { WebApp } = require('./web/WebApp');
-
-const WebContext = new Context('WebContext', BaseContext);
-WebContext.addObjectDefinitionInspector(new ObjectDefinitionAutowiringInspector());
-WebContext.addObjectDefinitionInspector(new ObjectDefinitionStartStopMethodsInspector());
-WebContext.addObjectDefinitionInspector(new ObjectDefinitionTransactionalInspector());
-
-WebContext.registerSingletons(MainRouter, WebApp);
-
-module.exports = { Context, BaseContext, WebContext, LogManager };
+module.exports = { Context, BaseContext, LogManager };

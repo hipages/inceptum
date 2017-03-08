@@ -1,6 +1,9 @@
 instrumentation:
-    root: .
-    extensions:
-        - .js
-    default-excludes: true
-    excludes: ['src/util/CoroutineReplacement.js']
+  root: .
+  extensions:
+    - .js
+  default-excludes: true
+  excludes:
+    - src/util/CoroutineReplacement.js
+    - itest/**
+  include-all-sources: true

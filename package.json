@@ -4,7 +4,7 @@
   "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "src/index.js",
   "scripts": {
-    "test": "NODE_ENV=test istanbul --include-all-sources cover _mocha",
+    "test": "NODE_ENV=test istanbul cover _mocha",
     "itest": "NODE_ENV=test mocha itest",
     "lint": "eslint src test config",
     "precommit": "npm run lint"
