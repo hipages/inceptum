@@ -34,6 +34,9 @@ class RowConsumer {
   }
 }
 
+/**
+ * A MySQL client you can use to execute queries against MySQL
+ */
 class MysqlClient {
   constructor() {
     this.configuration = {};
@@ -78,7 +81,7 @@ class MysqlClient {
   }
 
   /**
-   *
+   * Execute a query
    * @param {string} sql
    * @param {Array} binds
    * @return {Array} an array of all rows returned by the query.

@@ -10,10 +10,14 @@ Logging:
   loggers:
     - name: ROOT
       streams:
-        console: info
+        console: debug
 #        myredis: info
-        mainLogFile: debug
+#        mainLogFile: debug
     - name: ioc/
+      streams:
+        console: debug
+#        myredis: info
+    - name: mysql/
       streams:
         console: info
 #        myredis: info

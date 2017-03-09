@@ -156,8 +156,8 @@ function toPromise(obj, sharedContext) {
 /**
  * Convert a thunk to a promise.
  *
- * @param {Function}
- * @return {Promise}
+ * @param {Function} The thunk
+ * @return {Promise} A promise
  * @api private
  */
 
