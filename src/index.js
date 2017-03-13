@@ -1,4 +1,4 @@
-require('./util/PatchCoroutine');
+require('./util/BluePatch');
 const { Context } = require('./ioc/Context');
 const LogManager = require('./log/LogManager');
 const { PreinstantiatedSingletonDefinition } = require('./ioc/objectdefinition/PreinstantiatedSingletonDefinition');

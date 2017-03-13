@@ -12,24 +12,27 @@ class AbstractSingletonDefinitionWrapper extends SingletonDefinition {
     this.cachedInstance = null;
   }
 
-  * getInstance() {
+  getInstance() {
     if (!this.cachedInstance) {
-      const underlyingInstance = yield* this.wrapped.getInstance();
-      this.cachedInstance = this.doWrap(underlyingInstance);
+      return this.wrapped.getInstance()
+        .then((underlyingInstance) => {
+          this.cachedInstance = this.doWrap(underlyingInstance);
+          return this.cachedInstance;
+        });
     }
-    return this.cachedInstance;
+    return Promise.resolve(this.cachedInstance);
   }
 
   doWrap /* istanbul ignore next */ (underlyingInstance) {
     throw new Error(`Unimplemented doWrap(${underlyingInstance})`);
   }
 
-  * lcStart /* istanbul ignore next */ () {
-    return yield* this.wrapped.lcStart();
+  lcStart /* istanbul ignore next */ () {
+    return this.wrapped.lcStart();
   }
 
-  * lcStop /* istanbul ignore next */ () {
-    return yield* this.wrapped.lcStop();
+  lcStop /* istanbul ignore next */ () {
+    return this.wrapped.lcStop();
   }
 
   withLazyLoading /* istanbul ignore next */ (lazyLoading) {
@@ -80,14 +83,14 @@ class AbstractSingletonDefinitionWrapper extends SingletonDefinition {
     return this.wrapped.onStateOnce(stateId, callback);
   }
 
-  * getInstanceAtState /* istanbul ignore next */ (...args) {
-    const underlyingInstance = yield this.wrapped.getInstanceAtState(...args);
-    return this.doWrap(underlyingInstance);
+  getInstanceAtState /* istanbul ignore next */ (...args) {
+    return this.wrapped.getInstanceAtState(...args)
+      .then((underlyingInstance) => this.doWrap(underlyingInstance));
   }
 
-  * getInstanceWithTrace /* istanbul ignore next */ (...args) {
-    const underlyingInstance = yield this.wrapped.getInstanceWithTrace(...args);
-    return this.doWrap(underlyingInstance);
+  getInstanceWithTrace /* istanbul ignore next */ (...args) {
+    return this.wrapped.getInstanceWithTrace(...args)
+      .then((underlyingInstance) => this.doWrap(underlyingInstance));
   }
 }
 

@@ -1,7 +1,3 @@
-require('../src/util/PatchCoroutine');
+require('../src/util/BluePatch');
 require('must');
-
-const mocha = require('mocha');
-const coMocha = require('co-mocha');
-
-coMocha(mocha);
+require('mocha');

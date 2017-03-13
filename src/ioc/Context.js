@@ -25,49 +25,41 @@ class Context extends Lifecycle {
   // Lifecycle related methods
   // ************************************
 
-  * lcStart() {
+  lcStart() {
     if (this.parentContext) {
-      yield* this.parentContext.lcStart();
+      return this.parentContext.lcStart()
+        .then(() => super.lcStart());
     }
-    yield* super.lcStart();
+    return super.lcStart();
   }
 
-  * lcStop() {
-    yield* super.lcStop();
+  lcStop() {
+    const stopPromise = super.lcStop();
     if (this.parentContext) {
-      yield* this.parentContext.lcStop();
+      return stopPromise.then(() => this.parentContext.lcStop());
     }
+    return stopPromise;
   }
 
-  * doStart() {
+  doStart() {
     this.applyObjectDefinitionModifiers();
-    const nonLazyObjectsPending = new Set();
-    for (const objectDefinition of this.objectDefinitions.values()) {
-      if (!objectDefinition.isLazy()) {
-        try {
-          nonLazyObjectsPending.add(objectDefinition.getName());
-          objectDefinition.onStateOnce(Lifecycle.STATES.STARTED, () => nonLazyObjectsPending.delete(objectDefinition.getName()));
-          yield* objectDefinition.getInstance();
-        } catch (e) {
-          if (this.getLogger()) {
-            this.getLogger().error(
-              `There was an error starting context. Object "${objectDefinition.getName()}" threw an exception during startup. Stopping context`, e);
-          }
-          // this.emit('error',
-          //  `There was an error starting context. Object "${objectDefinition.getName()}" threw an exception during startup. Stopping context`, e);
-          yield this.lcStop();
-          throw e;
-        }
-      }
-    }
-    return nonLazyObjectsPending.size === 0;
+    this.nonLazyObjectsPending = new Set();
+    return Promise.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) => {
+      this.nonLazyObjectsPending.add(objectDefinition.getName());
+      objectDefinition.onStateOnce(Lifecycle.STATES.STARTED, () => this.nonLazyObjectsPending.delete(objectDefinition.getName()));
+      return objectDefinition.getInstance();
+    }).catch((err) => {
+      this.getLogger().error(
+        { err },
+        'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context'
+      );
+      return this.lcStop().then(() => { throw err; });
+    }).then(() => (this.nonLazyObjectsPending.size === 0));
   }
 
-  * doStop() {
-    for (const startedObject of this.startedObjects.values()) {
-      yield* startedObject.lcStop();
-    }
-    return this.startedObjects.size === 0;
+  doStop() {
+    return Promise.map(Array.from(this.startedObjects.values()), (startedObject) => startedObject.lcStop())
+      .then(() => (this.startedObjects.size === 0));
   }
 
   // ************************************
@@ -192,23 +184,19 @@ class Context extends Lifecycle {
   // Get Bean Functions
   // ************************************
 
-  * getObjectByName(beanName) {
+  getObjectByName(beanName) {
     const beanDefinition = this.getDefinitionByName(beanName);
-    return yield* beanDefinition.getInstance();
+    return beanDefinition.getInstance();
   }
 
-  * getObjectByType(className) {
+  getObjectByType(className) {
     const beanDefinition = this.getDefinitionByType(className);
-    return yield* beanDefinition.getInstance();
+    return beanDefinition.getInstance();
   }
 
-  * getObjectsByType(className) {
+  getObjectsByType(className) {
     const beanDefinitions = this.getDefinitionsByType(className);
-    const resp = [];
-    for (let i = 0; i < beanDefinitions.length; i++) {
-      resp.push(yield* beanDefinitions[i].getInstance());
-    }
-    return resp;
+    return Promise.map(beanDefinitions, bd => bd.getInstance());
   }
 
   // ************************************

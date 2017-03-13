@@ -37,8 +37,8 @@ class ObjectDefinition extends Lifecycle {
   // Get instance methods
   // ************************************
 
-  * getInstance() {
-    throw new Error('Unimplemented');
+  getInstance() {
+    return Promise.reject(new Error('Unimplemented'));
   }
 
   // ************************************

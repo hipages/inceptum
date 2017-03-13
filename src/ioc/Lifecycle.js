@@ -28,45 +28,71 @@ class Lifecycle extends EventEmitter {
     this.status = STATES.NOT_STARTED;
   }
 
-  * lcStart() {
-    if (!this.setStatus(STATES.STARTING)) return;
-    try {
-      const startTime = Date.now();
-      yield this.doStart();
-      this.setStatus(STATES.STARTED, { elapsed: (Date.now() - startTime) });
-      yield this.doPostStart();
-    } catch (e) {
-      if (this.logger) {
-        this.logger.error(`There was an error starting element ${this.name}`, e);
-      }
-      throw e;
-    }
+  /**
+   * Initiates the lifecycle of this object.
+   * This is the method you should call before using the object
+   *
+   * @return {Promise} A promise that will resolve when this object's lifecycle has started
+   */
+  lcStart() {
+    return new Promise(
+      (resolve, reject) => {
+        if (!this.setStatus(STATES.STARTING)) {
+          reject(new Error(`Can't start object ${this.name}. It's on state ${STATES.fromValue(this.status)}`));
+        } else {
+          this.startTime = Date.now();
+          resolve();
+        }
+      })
+      .then(() =>
+        this.doStart())
+      .then(() => {
+        this.setStatus(STATES.STARTED, { elapsed: (Date.now() - this.startTime) });
+      })
+      .catch((err) => {
+        if (this.logger) {
+          this.logger.error({ err }, `There was an error starting element ${this.name}`);
+        }
+        throw err;
+      });
   }
 
-  * doStart() {
-    yield new Error('Unimplemented');
+  /**
+   *
+   * @return {Promise}
+   */
+  doStart() {
+    return Promise.reject(new Error('Unimplemented'));
   }
 
-  // eslint-disable-next-line no-empty-function
-  * doPostStart() {
+  lcStop() {
+    return new Promise(
+      (resolve, reject) => {
+        if (!this.setStatus(STATES.STOPPING)) {
+          reject(new Error(`Can't stop object ${this.name}. It's on state ${STATES.fromValue(this.status)}`));
+        } else {
+          this.stopTime = Date.now();
+          resolve();
+        }
+      })
+      .then(() => this.doStop())
+      .then(() => {
+        this.setStatus(STATES.STOPPED, { elapsed: (Date.now() - this.startTime) });
+      })
+      .catch((err) => {
+        if (this.logger) {
+          this.logger.error({ err }, `There was an error stopping element ${this.name}`);
+        }
+        throw err;
+      });
   }
 
-  * lcStop() {
-    if (!this.setStatus(STATES.STOPPING)) return;
-    try {
-      const startTime = Date.now();
-      yield this.doStop();
-      this.setStatus(STATES.STOPPED, { elapsed: (Date.now() - startTime) });
-    } catch (e) {
-      if (this.logger) {
-        this.logger.error(`There was an error stopping element ${this.name}`, e);
-      }
-      throw e;
-    }
-  }
-
-  * doStop() {
-    yield new Error('Unimplemented');
+  /**
+   * Executes the actual logic necessary to stop the object
+   * @return {Promise.<*>}
+   */
+  doStop() {
+    return Promise.reject(new Error('Unimplemented'));
   }
 
   setStatus(newStatus, eventPayload) {

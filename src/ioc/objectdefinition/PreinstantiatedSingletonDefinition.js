@@ -10,16 +10,16 @@ class PreinstantiatedSingletonDefinition extends SingletonDefinition {
     this.withLazyLoading(false);
   }
 
-  * getInstance() {
-    return this.instance;
+  getInstance() {
+    return Promise.resolve(this.instance);
   }
 
 // eslint-disable-next-line no-empty-function
-  * doStart() {
+  doStart() {
   }
 
 // eslint-disable-next-line no-empty-function
-  * doStop() {
+  doStop() {
   }
 }
 

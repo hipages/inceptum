@@ -141,140 +141,135 @@ class BaseSingletonDefinition extends SingletonDefinition {
   // Get instance methods
   // ************************************
 
-  * getInstance() {
+  getInstance() {
     // console.log(`Getting instance of ${this.getName()}`);
     const postLoad = new Set();
-    const instance = yield* this.getInstanceWithTrace([this.getName()], postLoad);
-    for (const dd of postLoad) {
-      yield* dd.getInstance();
-    }
-    return instance;
+    return this.getInstanceWithTrace([this.getName()], postLoad)
+      .then((instance) =>
+        Promise.map(Array.from(postLoad.values()), (d) => d.getInstance())
+          .then(() => instance));
   }
 
-  * getInstanceWithTrace(trace, postLoad) {
-    return yield* this.getInstanceAtState(Lifecycle.STATES.STARTED, trace, postLoad);
+  getInstanceWithTrace(trace, postLoad) {
+    return this.getInstanceAtState(Lifecycle.STATES.STARTED, trace, postLoad);
   }
 
-  * getInstanceAtState(minState, trace, postLoad) {
+  getInstanceAtState(minState, trace, postLoad) {
     // console.log(`Getting instance of ${this.getName()} at state ${Lifecycle.STATES.fromValue(minState)}`);
     if (minState !== Lifecycle.STATES.INSTANTIATED && minState !== Lifecycle.STATES.STARTED) {
-      throw new IoCException(`Doesn't make sense to request an object in states other than INSTANTIATED and STARTED: ${minState}`);
+      return Promise.reject(new IoCException(`Doesn't make sense to request an object in states other than INSTANTIATED and STARTED: ${minState}`));
     }
     if (this.status >= Lifecycle.STATES.STOPPING) {
-      throw new IoCException(`Object ${this.getName()} is stopping. Can't give it to you`);
+      return Promise.reject(new IoCException(`Object ${this.getName()} is stopping. Can't give it to you`));
     }
     if (this.status === Lifecycle.STATES.INSTANTIATING) {
-      throw new IoCException(`Circular dependency detected. Can't instantiate ${this.getName()}`);
+      return Promise.reject(new IoCException(`Circular dependency detected. Can't instantiate ${this.getName()}`));
     }
     if (minState <= this.status) {  // We're ready, just return it
-      return this.instance;
+      return Promise.resolve(this.instance);
     }
+    let basePromise;
     if (this.status < Lifecycle.STATES.INSTANTIATING) {
-      yield* this.instantiate(trace, postLoad);
+      basePromise = this.instantiate(trace, postLoad);
+    } else {
+      basePromise = Promise.resolve();
     }
     // The object is, at least, instantiated.
     if (minState === Lifecycle.STATES.INSTANTIATED) {
-      return this.instance;
+      return basePromise.then(() => this.instance);
     }
     // Then the minState is Started. Let's finish up then
-    yield* this.setAllProperties(trace, postLoad);
-    yield* this.lcStart();
-    return this.instance;
+    return basePromise
+      .then(() => this.setAllProperties(trace, postLoad))
+      .then(() => this.lcStart())
+      .then(() => this.instance);
   }
 
   // ************************************
   // Lifecycle methods
   // ************************************
 
-  * doStart() {
+  doStart() {
     if (this.startFunctionName) {
       const resp = this.clazz.prototype[this.startFunctionName].call(this.instance);
-      if (resp != null && typeof resp[Symbol.iterator] === 'function') {
-        yield* resp;
-      } else {
-        return resp;
+      if (resp.then) {
+        return resp.then(true);
       }
+      return Promise.resolve(true);
     }
-    return true;
+    return Promise.resolve(true);
   }
 
-  * doStop() {
+  doStop() {
     if (this.shutdownFunctionName) {
       const resp = this.clazz.prototype[this.shutdownFunctionName].call(this.instance);
-      if (resp != null && typeof resp[Symbol.iterator] === 'function') {
-        yield* resp;
-      } else {
-        return resp;
+      if (resp.then) {
+        return resp.then(true);
       }
+      return Promise.resolve(true);
     }
-    return true;
+    return Promise.resolve(true);
   }
 
-  * instantiate(trace, postLoad) {
+  instantiate(trace, postLoad) {
     if (!this.context) {
-      throw new IoCException(`ObjectDefinition ${this.getName()} hasn't been added to a context, Can't instantiate`);
+      return Promise.reject(new IoCException(`ObjectDefinition ${this.getName()} hasn't been added to a context, Can't instantiate`));
     }
     this.setStatus(Lifecycle.STATES.INSTANTIATING);
-    const constructorArgs = yield* this.resolveArgs(this.constructorArgDefinitions, trace, postLoad);
-    this.instance = Reflect.construct(this.clazz, constructorArgs);
-    this.setStatus(Lifecycle.STATES.INSTANTIATED);
+    return this.resolveArgs(this.constructorArgDefinitions, trace, postLoad)
+      .then((constructorArgs) => {
+        this.instance = Reflect.construct(this.clazz, constructorArgs);
+        this.setStatus(Lifecycle.STATES.INSTANTIATED);
+        return this.instance;
+      });
   }
 
-  * getMaxStateInstance(def, trace, postLoad) {
+  getMaxStateInstance(def, trace, postLoad) {
     // console.log(`In ${this.getName()} getting max instance of ${def.getName()} - ${def.status} - ${Lifecycle.STATES.STARTED} / trace: [${trace}]`);
     if ((trace.indexOf(def.getName()) >= 0) || (def.status < Lifecycle.STATES.STARTED)) {
       // Circular reference, let's try to go for one that is just instantiated and finalise init afterwards
       postLoad.add(def);
       // console.log(`Getting ${def.getName()} as Instantiated`);
-      return yield* def.getInstanceAtState(Lifecycle.STATES.INSTANTIATED, trace.concat([def.getName()]), postLoad);
+      return def.getInstanceAtState(Lifecycle.STATES.INSTANTIATED, trace.concat([def.getName()]), postLoad);
     }
     // console.log(`Getting ${def.getName()} as ready`);
-    return yield* def.getInstanceWithTrace(trace.concat([def.getName()]), postLoad);
+    return def.getInstanceWithTrace(trace.concat([def.getName()]), postLoad);
   }
 
-  * resolveArgs(constructorArgs, trace, postLoad) {
-    const args = [];
-    for (let i = 0; i < constructorArgs.length; i++) {
-      const arg = constructorArgs[i];
+  resolveArgs(constructorArgs, trace, postLoad) {
+    return Promise.map(constructorArgs, (arg) => {
       switch (arg.type) {
         case ParamTypes.Value:
-          args.push(arg.val);
-          break;
+          return arg.val;
         case ParamTypes.Config:
-          args.push(this.context.getConfig(arg.key));
-          break;
-        case ParamTypes.Reference: {
-          const def = this.context.getDefinitionByName(arg.refName);
-          args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
-        }
-          break;
-        case ParamTypes.Type: {
-          const def = this.context.getDefinitionByType(arg.className);
-          args.push(yield* this.getMaxStateInstance(def, trace, postLoad));
-        }
-          break;
-        case ParamTypes.TypeArray: {
-          const argu = [];
-          const def = this.context.getDefinitionsByType(arg.className);
-          for (let j = 0; j < def.length; j++) {
-            argu.push(yield* this.getMaxStateInstance(def[j], trace, postLoad));
-          }
-          args.push(argu);
-        }
-          break;
+          return this.context.getConfig(arg.key);
+        case ParamTypes.Reference:
+          return this.getMaxStateInstance(
+            this.context.getDefinitionByName(arg.refName),
+            trace,
+            postLoad);
+        case ParamTypes.Type:
+          return this.getMaxStateInstance(
+            this.context.getDefinitionByType(arg.className),
+            trace,
+            postLoad);
+        case ParamTypes.TypeArray:
+          return Promise.all(
+            this.context.getDefinitionsByType(arg.className),
+            (d) => this.getMaxStateInstance(d, trace, postLoad)
+          );
         default:
-          throw new IoCException(`Unknown argument type ${arg.type} on bean ${this.name}`);
+          return Promise.reject(new IoCException(`Unknown argument type ${arg.type} on bean ${this.name}`));
       }
-    }
-    return args;
+    });
   }
 
-  * setAllProperties(trace, postload) {
-    for (let i = 0; i < this.propertiesToSetDefinitions.length; i++) {
-      const propertyToSet = this.propertiesToSetDefinitions[i];
-      const args = yield* this.resolveArgs(propertyToSet.args, trace, postload);
-      this.instance[propertyToSet.paramName] = args[0];
-    }
+  setAllProperties(trace, postload) {
+    return Promise.map(this.propertiesToSetDefinitions, (propertyToSet) =>
+      this.resolveArgs(propertyToSet.args, trace, postload).then((args) => {
+        this.instance[propertyToSet.paramName] = args[0];
+      })
+    );
   }
 
   copy() {
