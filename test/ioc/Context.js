@@ -2,6 +2,7 @@
 const { Context } = require('../../src/ioc/Context');
 const { Lifecycle } = require('../../src/ioc/Lifecycle');
 const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
+const { PromiseUtil } = require('../../src/util/PromiseUtil');
 const demand = require('must');
 
 class A {
@@ -198,7 +199,7 @@ describe('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
       myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByRef('A'));
       return myContext.lcStart()
-        .then(() => Promise.mapSeries(['A', 'B'], (l) => myContext.getObjectByName(l)))
+        .then(() => PromiseUtil.mapSeries(['A', 'B'], (l) => myContext.getObjectByName(l)))
         .spread((a, b) => {
           a.must.not.be.undefined();
           b.must.not.be.undefined();
@@ -211,7 +212,7 @@ describe('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
       myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByType('A'));
       return myContext.lcStart()
-        .then(() => Promise.mapSeries(['A', 'B'], (l) => myContext.getObjectByName(l)))
+        .then(() => PromiseUtil.mapSeries(['A', 'B'], (l) => myContext.getObjectByName(l)))
         .then((arr) => {
           const a = arr[0];
           const b = arr[1];
@@ -307,7 +308,7 @@ describe('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
       myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
       return myContext.lcStart()
-        .then(() => Promise.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
+        .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
         .spread((a, b) => {
           a.must.not.be.undefined();
           b.must.not.be.undefined();
@@ -320,7 +321,7 @@ describe('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByValue('the value'));
       myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByType('a', 'A'));
       return myContext.lcStart()
-        .then(() => Promise.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
+        .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
         .spread((a, b) => {
           a.must.not.be.undefined();
           b.must.not.be.undefined();
@@ -335,7 +336,7 @@ describe('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByRef('B'));
       myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
       return myContext.lcStart()
-        .then(() => Promise.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
+        .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
         .spread((a, b) => {
           a.must.not.be.undefined();
           b.must.not.be.undefined();
@@ -376,7 +377,7 @@ describe('ioc/Context', () => {
 
       return myContext.lcStart()
         .then(() => clonedContext.lcStart())
-        .then(() => Promise.mapSeries([myContext, clonedContext], (c) => c.getObjectByName('A')))
+        .then(() => PromiseUtil.mapSeries([myContext, clonedContext], (c) => c.getObjectByName('A')))
         .spread((a, copyA) => {
           a.must.not.be.undefined();
           copyA.must.not.be.undefined();

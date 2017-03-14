@@ -1,6 +1,7 @@
 const { IoCException } = require('./../IoCException');
 const { SingletonDefinition } = require('./SingletonDefinition');
 const { Lifecycle } = require('./../Lifecycle');
+const { PromiseUtil } = require('./../../util/PromiseUtil');
 const LogManager = require('../../log/LogManager');
 
 // Means resolving the constructor arguments necessary to instantiate
@@ -146,7 +147,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
     const postLoad = new Set();
     return this.getInstanceWithTrace([this.getName()], postLoad)
       .then((instance) =>
-        Promise.map(Array.from(postLoad.values()), (d) => d.getInstance())
+        PromiseUtil.map(Array.from(postLoad.values()), (d) => d.getInstance())
           .then(() => instance));
   }
 
@@ -192,7 +193,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
   doStart() {
     if (this.startFunctionName) {
       const resp = this.clazz.prototype[this.startFunctionName].call(this.instance);
-      if (resp.then) {
+      if (resp && resp.then) {
         return resp.then(true);
       }
       return Promise.resolve(true);
@@ -203,7 +204,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
   doStop() {
     if (this.shutdownFunctionName) {
       const resp = this.clazz.prototype[this.shutdownFunctionName].call(this.instance);
-      if (resp.then) {
+      if (resp && resp.then) {
         return resp.then(true);
       }
       return Promise.resolve(true);
@@ -237,7 +238,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
   }
 
   resolveArgs(constructorArgs, trace, postLoad) {
-    return Promise.map(constructorArgs, (arg) => {
+    return PromiseUtil.map(constructorArgs, (arg) => {
       switch (arg.type) {
         case ParamTypes.Value:
           return arg.val;
@@ -265,7 +266,7 @@ class BaseSingletonDefinition extends SingletonDefinition {
   }
 
   setAllProperties(trace, postload) {
-    return Promise.map(this.propertiesToSetDefinitions, (propertyToSet) =>
+    return PromiseUtil.map(this.propertiesToSetDefinitions, (propertyToSet) =>
       this.resolveArgs(propertyToSet.args, trace, postload).then((args) => {
         this.instance[propertyToSet.paramName] = args[0];
       })

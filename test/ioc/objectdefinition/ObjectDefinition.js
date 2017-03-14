@@ -5,13 +5,11 @@ class A {}
 
 describe('ioc/objectdefinition/ObjectDefinition', () => {
   describe('Remains abstract', () => {
-    it('getInstance is abstract', function* () {
+    it('getInstance is abstract', () => {
       const objectDefinition = new ObjectDefinition(A);
-      try {
-        yield objectDefinition.getInstance();
-      } catch (e) {
-        e.must.be.an.error('Unimplemented');
-      }
+      return objectDefinition.getInstance()
+        .then(() => { throw new Error('Should have thrown an exception'); })
+        .catch((e) => e.must.be.an.error('Unimplemented'));
     });
   });
   describe('Copy', () => {

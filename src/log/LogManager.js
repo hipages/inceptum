@@ -7,13 +7,6 @@ const os = require('os');
 const fs = require('fs');
 const Transform = require('stream').Transform;
 const stringify = require('json-stringify-safe');
-const Promise = require('bluebird');
-
-if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
-  Promise.longStackTraces();
-}
-// const RedisStream = require('bunyan-redis-stream');
-// const redis = require('redis');
 
 class LevelStringifyTransform extends Transform {
   constructor() {

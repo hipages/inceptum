@@ -1,11 +1,11 @@
 const mysql = require('mysql');
 const { TransactionManager } = require('../transaction/TransactionManager');
-const Promise = require('bluebird');
+const { PromiseUtil } = require('../util/PromiseUtil');
 const log = require('../log/LogManager').getLogger(__filename);
 
 function runQueryOnPool(connection, sql, bindsArr) {
   // console.log(sql);
-  log.debug(`sql: ${sql}`);
+  log.debug(`sql: ${sql} ${(bindsArr && (bindsArr.length > 0)) ? `| ${bindsArr}` : ''}`);
   if (!Array.isArray(bindsArr)) {
     bindsArr = [];
   }
@@ -13,18 +13,12 @@ function runQueryOnPool(connection, sql, bindsArr) {
   return new Promise((resolve, reject) =>
     connection.query(sql, bindsArr, (err, rows) => {
       if (err) {
+        log.error({ err }, `SQL error for ${sql}`);
         return reject(err);
       }
       return resolve(rows);
     })
   );
-}
-
-class RowConsumer {
-// eslint-disable-next-line no-unused-vars
-  consume(row) {
-    throw new Error('Unimplemented');
-  }
 }
 
 function getConnectionPromise(connectionPool) {
@@ -37,6 +31,52 @@ function getConnectionPromise(connectionPool) {
       }
     });
   });
+}
+
+function runQueryPrivate(sql, bindsArr) {
+  return PromiseUtil.try(() => {
+    if (!this.connection) {
+      return getConnectionPromise(this.myslqClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
+    }
+    return this.connection;
+  })
+    .then((connection) => { this.connection = connection; return connection; })
+    .then((connection) => runQueryOnPool(connection, `/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr));
+}
+
+class MysqlTransaction {
+  /**
+   *
+   * @param {MysqlClient} myslqClient
+   * @param transaction
+   */
+  constructor(myslqClient, transaction) {
+    this.myslqClient = myslqClient;
+    this.transaction = transaction;
+  }
+
+  begin() {
+    return runQueryPrivate.call(this, 'BEGIN')
+      .then(() => {
+        this.transaction.begin();
+        this.transaction.addCommitListener(() => runQueryPrivate.call(this, 'COMMIT'));
+        this.transaction.addRollbackListener(() => runQueryPrivate.call(this, 'ROLLBACK'));
+      });
+  }
+
+  query(sql, ...bindArrs) {
+    return runQueryPrivate.call(this, sql, bindArrs);
+  }
+
+  end() {
+    return this.transaction.end()
+      .then(() => {
+        if (this.connection) {
+          this.connection.release();
+        }
+      });
+  }
+
 }
 
 /**
@@ -64,6 +104,28 @@ class MysqlClient {
       throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
     }
   }
+
+  /**
+   * Runs a function in a transaction. The function must receive one parameter that will be of class
+   * {MysqlTransaction} and that you need to use to run all queries in this transaction
+   *
+   * @param {boolean} readonly Whether the transaction needs to be readonly or not
+   * @param {Function} func A function that returns a promise that will execute all the queries wanted in this transaction
+   * @returns {Promise} A promise that will execute the whole transaction
+   */
+  runInTransaction(readonly, func) {
+    const transaction = TransactionManager.newTransaction(readonly);
+    const mysqlTransaction = new MysqlTransaction(this, transaction);
+    return mysqlTransaction.begin()
+      .then(() => func(mysqlTransaction))
+      .catch((err) => {
+        log.error({ err }, 'There was an error running in transaction');
+        transaction.markError(err);
+        throw err;
+      })
+      .finally(() => mysqlTransaction.end());
+  }
+
   shutdown() {
     if (this.masterPool) {
       this.masterPool.end();
@@ -85,114 +147,6 @@ class MysqlClient {
     return full;
   }
 
-  /**
-   * Execute a query
-   * @param {string} sql
-   * @param {Array} binds
-   * @return {Array} an array of all rows returned by the query.
-   */
-  queryAll(sql, binds) {
-    binds = Array.isArray(binds) ? binds : [];
-    if (!TransactionManager.hasTransaction()) {
-      throw new Error(`Shouldn't run queries outside of a transaction: ${sql}`);
-    }
-    return this.setupTransaction()
-      .then((connection) => runQueryOnPool.call(this, connection, sql, binds));
-  }
-
-  /**
-   *
-   * @param {string} sql
-   * @param {Array} binds
-   * @return {Array} an array of all rows returned by the query.
-   */
-  execute(sql, binds) {
-    return this.queryAll(sql, binds);
-  }
-
-  // /**
-  //  * Executes a query and streams rows into a generator.
-  //  * @param sql
-  //  * @param consumer
-  //  * @param binds
-  //  * @return {Promise} a promise with the return value of the generator function or any error
-  //  */
-  // * queryIntoRowConsumer(sql, consumer, binds) {
-  //   return TransactionManager.withTransaction(function* (currentTransaction) {
-  //     binds = Array.isArray(binds) ? binds : [];
-  //     if (!currentTransaction) {
-  //       throw new Error(`Shouldn't run queries outside of a transaction: ${sql}`);
-  //     }
-  //     const connectionPool = this.getConnectionPoolForReadonly(currentTransaction.isReadonly());
-  //     yield this.setupTransaction(currentTransaction, connectionPool);
-  //     return new Promise((resolve, reject) => {
-  //       connectionPool.getConnection((err, connection) => {
-  //         if (err) {
-  //           reject(err);
-  //           return;
-  //         }
-  //         log.debug(`sql: ${sql}`);
-  //         const q = connection.query(sql, binds);
-  //         q.on('error', (err) => { q.removeAllListeners(); reject(err); });
-  //         const highMark = 10;
-  //         consumer.concurrentProcessing = 0;
-  //         consumer.paused = false;
-  //         q.on('result', (row) => {
-  //           if (!consumer.paused && consumer.concurrentProcessing >= highMark) {
-  //             connection.pause();
-  //             consumer.paused = true;
-  //           }
-  //           try {
-  //             consumer.concurrentProcessing++;
-  //             consumer.consume(row);
-  //           } catch (e) {
-  //             reject(e);
-  //             return;
-  //           } finally {
-  //             consumer.concurrentProcessing--;
-  //             if (consumer.paused && consumer.concurrentProcessing < highMark) {
-  //               consumer.resume();
-  //             }
-  //           }
-  //         });
-  //         q.once('end', () => {
-  //           q.removeAllListeners();
-  //           resolve(consumer);
-  //         });
-  //       });
-  //     });
-  //   }, this);
-  // }
-
-  setupTransaction() {
-    // console.log('Entering setuptransaction');
-    const transaction = TransactionManager.getCurrentTransaction();
-    if (!transaction.mysqlConnection) {
-      const connectionPool = this.getConnectionPoolForReadonly(transaction.isReadonly());
-      return getConnectionPromise(connectionPool)
-        .then((connection) => {
-          transaction.mysqlConnection = connection;
-        })
-        .then(() => {
-          if (this.enable57Mode) {
-            return runQueryOnPool.call(this, transaction.mysqlConnection,
-              `START TRANSACTION ${transaction.isReadonly() ? ' READ ONLY' : ' READ WRITE'}`);
-          }
-          return runQueryOnPool.call(this, transaction.mysqlConnection, 'BEGIN');
-        })
-        .then(() => {
-          transaction.mysqlInited = true;
-          const self = this;
-          transaction.addCommitListener(() => runQueryOnPool.call(self, transaction.mysqlConnection, 'COMMIT')
-            .then(() => { transaction.mysqlConnection.release(); transaction.mysqlConnection = null; }));
-          transaction.addRollbackListener(() => runQueryOnPool.call(self, transaction.mysqlConnection, 'ROLLBACK')
-            .then(() => { transaction.mysqlConnection.release(); transaction.mysqlConnection = null; }));
-        })
-        .then(() => transaction.mysqlConnection);
-    }
-    return Promise.resolve(transaction.mysqlConnection);
-  }
-
   getConnectionPoolForReadonly(readonly) {
     if (readonly && this.slavePool) {
       return this.slavePool;
@@ -208,4 +162,4 @@ MysqlClient.stopMethod = 'shutdown';
 
 const TestUtil = { runQueryOnPool };
 
-module.exports = { MysqlClient, RowConsumer, TestUtil };
+module.exports = { MysqlClient, TestUtil };

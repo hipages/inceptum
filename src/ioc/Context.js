@@ -8,6 +8,7 @@ const config = require('config');
 const LogManager = require('../log/LogManager');
 const { Lifecycle } = require('./Lifecycle');
 const { IoCException } = require('./IoCException');
+const { PromiseUtil } = require('../util/PromiseUtil');
 const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
 const { BaseSingletonDefinition } = require('./objectdefinition/BaseSingletonDefinition');
 const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
@@ -44,7 +45,7 @@ class Context extends Lifecycle {
   doStart() {
     this.applyObjectDefinitionModifiers();
     this.nonLazyObjectsPending = new Set();
-    return Promise.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) => {
+    return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) => {
       this.nonLazyObjectsPending.add(objectDefinition.getName());
       objectDefinition.onStateOnce(Lifecycle.STATES.STARTED, () => this.nonLazyObjectsPending.delete(objectDefinition.getName()));
       return objectDefinition.getInstance();
@@ -58,7 +59,7 @@ class Context extends Lifecycle {
   }
 
   doStop() {
-    return Promise.map(Array.from(this.startedObjects.values()), (startedObject) => startedObject.lcStop())
+    return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) => startedObject.lcStop())
       .then(() => (this.startedObjects.size === 0));
   }
 
@@ -196,7 +197,7 @@ class Context extends Lifecycle {
 
   getObjectsByType(className) {
     const beanDefinitions = this.getDefinitionsByType(className);
-    return Promise.map(beanDefinitions, bd => bd.getInstance());
+    return PromiseUtil.map(beanDefinitions, bd => bd.getInstance());
   }
 
   // ************************************
