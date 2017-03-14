@@ -26,20 +26,28 @@ class CountingRowConsumer extends RowConsumer {
 
 describe('MysqlClient', () => {
   describe('Basic queries', () => {
-    it('Gets all 3 records', function* () {
-      yield TransactionManager.runInTransaction(true, function* () {
-        const rows = yield myClient.queryAll('SELECT * FROM table1');
-        rows.length.must.be.equal(3);
-      });
-    });
-    it('Gets all 3 records twice', function* () {
-      yield TransactionManager.runInTransaction(true, function*() {
-        const rows = yield myClient.queryAll('SELECT * FROM table1');
-        rows.length.must.be.equal(3);
-        const rows2 = yield myClient.queryAll('SELECT * FROM table1');
-        rows2.length.must.be.equal(3);
-      });
-    });
+    it('Gets all 3 records', () =>
+      TransactionManager.runInTransaction(true, () => myClient.queryAll('SELECT * FROM table1')
+        .then((rows) => {
+          rows.length.must.be.equal(3);
+          console.log(rows);
+        })
+      )
+    );
+    it('Gets all 3 records twice', () => {
+      return TransactionManager.runInTransaction(true, () => {
+        return myClient.queryAll('SELECT * FROM table1')
+          .then((rows) => {
+            console.log(rows);
+            rows.length.must.be.equal(3);
+          })
+          .then(() => myClient.queryAll('SELECT name FROM table1'))
+          .then((rows) => {
+            console.log(rows);
+            rows.length.must.be.equal(3);
+          });
+      })}
+    );
   });
   describe('Row Consumer', () => {
     it('Counts 3 records', function* () {

@@ -114,6 +114,25 @@ describe('transaction/TransactionManager', () => {
         })
     );
   });
+  describe('Pass the transaction down the promise', () => {
+    const checkPromise = () => {
+      demand(TransactionManager.getCurrentTransaction()).is.not.falsy();
+    };
+    it('passes the transaction', () =>
+// eslint-disable-next-line no-undef
+       TransactionManager.runInTransaction(true, () => PromiseUtil.try(() => {
+         demand(TransactionManager.getCurrentTransaction()).is.not.falsy();
+       })
+      .then(() => new Promise((resolve) => {
+        setTimeout(resolve, 1000);
+        demand(TransactionManager.getCurrentTransaction()).is.not.falsy();
+        checkPromise();
+      }))
+      .then(() => {
+        checkPromise();
+        demand(TransactionManager.getCurrentTransaction()).is.not.falsy();
+      })));
+  });
   describe('Lifecycle', () => {
     it('Must be started by the time it gets to the execution of the method', () =>
       TransactionManager.runInTransaction(true, Util.prototype.checkTransactionStarted, util)
@@ -150,12 +169,6 @@ describe('transaction/TransactionManager', () => {
           myCallback.called.must.be.true();
         });
     });
-    it('Must fail on callbacks that return a promise', () =>
-      TransactionManager.runInTransaction(true, Util.prototype.registerCommitListener, util, [() => Promise.resolve()])
-        .then(() => {
-          throw Error('Unexpected continuation');
-        })
-        .catch((e) => e.must.be.an.error('Commit listener returned a promise. Callbacks are expected to be synchronous')));
     it('Must call rollback callbacks', () => {
       const myCallback = () => {
         // console.log('Rolled back');

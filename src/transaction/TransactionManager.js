@@ -51,19 +51,18 @@ class Transaction {
   end() {
     if (!this.began) {
       // console.log('Transaction never got started, so can\'t be finished');
-      throw new TransactionError('Transaction never got started, so can\'t be finished');
+      return Promise.reject(new TransactionError('Transaction never got started, so can\'t be finished'));
     }
     if (this.finished) {
       // console.log('Transaction is already finished');
-      throw new TransactionError('Transaction is already finished');
+      return Promise.reject(new TransactionError('Transaction is already finished'));
     }
     this.finished = true;
     if (this.error) {
       // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
-      this.callListeners(this.rollbackListeners, 'Rollback');
-    } else {
-      this.callListeners(this.commitListeners, 'Commit');
+      return this.callListeners(this.rollbackListeners);
     }
+    return this.callListeners(this.commitListeners);
   }
   canDo(readonly) {
     return !this.readonly || readonly;
@@ -72,13 +71,17 @@ class Transaction {
     return this.readonly;
   }
 
-  callListeners(listeners, type) {
-    for (let i = 0; i < listeners.length; i++) {
-      const result = listeners[i](this);
-      if (result && result.then) {
-        throw new TransactionError(`${type} listener returned a promise. Callbacks are expected to be synchronous`);
-      }
+  callListeners(listeners) {
+    if (listeners && listeners.length > 0) {
+      return Promise.all(listeners.map((listener) => listener(this)).filter((resp) => !!resp));
     }
+    return Promise.resolve();
+    // for (let i = 0; i < listeners.length; i++) {
+    //   const result = listeners[i](this);
+    //   if (result && result.then) {
+    //     throw new TransactionError(`${type} listener returned a promise. Callbacks are expected to be synchronous`);
+    //   }
+    // }
   }
 }
 Transaction.idInc = 1;
@@ -104,8 +107,10 @@ class TransactionManager {
       const currentTransaction = new Transaction(readonly);
       transactionNS.set(TRANSACTION_KEY, currentTransaction);
       currentTransaction.begin();
-      return Promise.try(() => {
-        const result = callback.apply(callbackContext, args);
+      console.log('Starting transaction');
+// eslint-disable-next-line no-undef
+      return PromiseUtil.try(() => {
+        const result = transactionNS.bind(callback).apply(callbackContext, args);
         if (result && !result.then) {
           throw new TransactionError(`Wrapped method (${callback.name}) didn't return a promise. Only methods that return` +
             ' a promise can be transactional or making them transactional would change their semantics');
@@ -151,6 +156,10 @@ class TransactionManager {
 
   static getCurrentTransaction() {
     return transactionNS.active && transactionNS.get(TRANSACTION_KEY);
+  }
+
+  static hasTransaction() {
+    return !!TransactionManager.getCurrentTransaction();
   }
 }
 TransactionManager.Events = TransactionEvents;

@@ -19,7 +19,7 @@ Logging:
 #        myredis: info
     - name: mysql/
       streams:
-        console: info
+        console: debug
 #        myredis: info
 
 MySQL:
