@@ -13,6 +13,11 @@ const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
 const { BaseSingletonDefinition } = require('./objectdefinition/BaseSingletonDefinition');
 const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
 
+/**
+ * A context used by IoC to register and request objects from.
+ * This is the main class for the inversion of control framework. It serves as a registry where you can
+ * add {ObjectDefinition}s and request instances from them.
+ */
 class Context extends Lifecycle {
   constructor(name, parentContext, logger) {
     super(name, logger || LogManager.getLogger(__filename));
@@ -144,10 +149,12 @@ class Context extends Lifecycle {
   }
 
   /**
+   * Walks a directory recursively and returns an array with all the files
    *
-   * @param dir
-   * @param filelist
-   * @return {Array}
+   * @private
+   * @param dir The directory to walk through
+   * @param filelist The carried-over list of files
+   * @return {Array} The list of files in this directory and subdirs
    */
   static walkDirSync(dir, filelist = []) {
     fs.readdirSync(dir).forEach(file => {
@@ -161,6 +168,17 @@ class Context extends Lifecycle {
   // Config functions
   // ************************************
 
+  /**
+   * Get an element from the configuration.
+   * Can be both a leaf of the configuration, or an intermediate path. In the latter case it will return
+   * an object with all the configs under that path.
+   * It will throw an exception if the key doesn't exist.
+   *
+   * @param key The key of the config we want
+   * @return {*} The requested configuration
+   * @throws {Error} If the given key doesn't exist
+   * @see {@link Context.hasConfig}
+   */
   static getConfig(key) {
     return config.get(key);
   }
@@ -169,6 +187,11 @@ class Context extends Lifecycle {
     return Context.getConfig(key);
   }
 
+  /**
+   * Indicates whether a given key exists in the configuration
+   * @param key
+   * @return {*}
+   */
   static hasConfig(key) {
     return config.has(key);
   }
