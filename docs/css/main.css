@@ -56,9 +56,37 @@ code {
     padding-right: 10px;
 }
 
+#navigation .nav-item {
+    padding-left: 10px;
+}
+
+/*#navigation .nav-item a {*/
+    /*padding-left: 15px;*/
+    /*padding-right: 10px;*/
+/*}*/
+
 #navigation .nav-header {
-    padding-left: 0;
     padding-right: 0;
+    margin-top: 5px;
+}
+
+#navigation .nav-header-link {
+    padding-right: 0;
+    margin-top: 5px;
+}
+
+/*#navigation .nav-header-link a {*/
+    /*padding-left: 10px;*/
+/*}*/
+
+#navigation .nav-header span {
+    padding-left: 10px;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.nav > li > a {
+    padding: 10px 0px;
 }
 
 body.rtl {

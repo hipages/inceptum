@@ -7,7 +7,7 @@
     "test": "NODE_ENV=test istanbul cover _mocha",
     "itest": "NODE_ENV=test mocha itest",
     "lint": "eslint src test config",
-    "doc": "jsdoc -c jsdocconf.json -t ./node_modules/ink-docstrap/template -R README.md -r -d docs/api",
+    "docs": "jsdoc -c jsdocconf.json -t ./node_modules/ink-docstrap/template -R README.md -r -d docs/api",
     "precommit": "npm run lint"
   },
   "repository": {

@@ -10,6 +10,8 @@
     },
     "plugins": ["plugins/markdown"],
     "templates": {
+        "systemName": "Inceptum - Enterprise Node.js Framework",
+        "theme": "united",
         "cleverLinks": false,
         "monospaceLinks": false
     }
