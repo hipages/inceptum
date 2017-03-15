@@ -1,6 +1,6 @@
 # Site title and subtitle. This is used in _includes/header.html
-title: 'jekyll-docs-template'
-subtitle: 'Painless documentation for your projects'
+title: 'Inceptum'
+subtitle: 'An enterprise framework for building Node.js microservices'
 
 # if you wish to integrate disqus on pages set your shortname here
 disqus_shortname: ''
