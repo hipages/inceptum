@@ -34,5 +34,4 @@ Thumbs.db
 
 #dotenv
 .env
-docs/api
 docs/_site
