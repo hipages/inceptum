@@ -2,6 +2,7 @@ const mysql = require('mysql');
 const { TransactionManager } = require('../transaction/TransactionManager');
 const { PromiseUtil } = require('../util/PromiseUtil');
 const log = require('../log/LogManager').getLogger(__filename);
+const { MetricsService } = require('../metrics/Metrics');
 
 function runQueryOnPool(connection, sql, bindsArr) {
   // console.log(sql);
@@ -79,6 +80,51 @@ class MysqlTransaction {
 
 }
 
+class MetricsAwareConnectionPoolWrapper {
+  constructor(instance, name) {
+    this.instance = instance;
+    this.active = 0;
+    this.numConnections = 0;
+    this.enqueueTimes = [];
+    this.setupPool();
+    this.durationHistogram = MetricsService.histogram(`db.pool.${name}`);
+  }
+  setupPool() {
+    const self = this;
+    if (this.instance.on) {
+      this.instance.on('acquire', () => {
+        self.active++;
+        if (this.enqueueTimes.length > 0) {
+          const start = this.enqueueTimes.shift();
+          self.registerWaitTime(Date.now() - start);
+        }
+      });
+      this.instance.on('connection', () => { self.numConnections++; });
+      this.instance.on('enqueue', () => {
+        this.enqueueTimes.push(Date.now());
+      });
+      this.instance.on('release', () => {
+        this.active--;
+      });
+    }
+  }
+  registerWaitTime(duration) {
+    this.durationHistogram.observe(duration);
+  }
+  end() {
+    try {
+      return this.instance.end();
+    } finally {
+      this.instance.removeAllListeners();
+    }
+  }
+  getConnection(cb) {
+    this.instance.getConnection((err, connection) => {
+      cb(err, connection);
+    });
+  }
+}
+
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
@@ -89,7 +135,7 @@ class MysqlClient {
     this.masterPool = null;
     this.slavePool = null;
     this.enable57Mode = false;
-    this.connectionPoolCreator = (config) => mysql.createPool(config);
+    this.connectionPoolCreator = (config) => new MetricsAwareConnectionPoolWrapper(mysql.createPool(config), this.name);
   }
   // configuration and name are two properties set by MysqlConfigManager
   initialise() {
@@ -141,7 +187,11 @@ class MysqlClient {
       user: 'root',
       password: '',
       charset: 'utf8',
-      connectionLimit: 10
+      connectionLimit: 10,
+      acquireTimeout: 1000, // 1 second
+      waitForConnections: true,
+      queueLimit: 10,
+      connectTimeout: 3000 // 3 seconds should be more than enough
     };
     Object.assign(full, partial);
     return full;

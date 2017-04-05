@@ -22,6 +22,10 @@ Logging:
         console: debug
 #        myredis: info
 
+Metrics:
+  gateway:
+    active: 1
+
 MySQL:
   MysqlClient: # this is the name of the object that will be exposed in the context
     master:

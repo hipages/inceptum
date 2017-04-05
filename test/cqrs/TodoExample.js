@@ -1,5 +1,7 @@
+const { AggregateCommand } = require('../../src/cqrs/command/AggregateCommand');
 const { AggregateCreatingCommand } = require('../../src/cqrs/command/AggregateCreatingCommand');
 const { AggregateCreatingEvent } = require('../../src/cqrs/event/AggregateCreatingEvent');
+const { AggregateEvent } = require('../../src/cqrs/event/AggregateEvent');
 
 class TodoCreatedEvent extends AggregateCreatingEvent {
   constructor(aggregateId, issuerCommandId, eventId, title, description) {
@@ -11,6 +13,12 @@ class TodoCreatedEvent extends AggregateCreatingEvent {
     aggregate.title = this.title;
     aggregate.description = this.description;
     aggregate.status = 'NotDone';
+  }
+}
+
+class MarkedTodoDoneEvent extends AggregateEvent {
+  apply(aggregate) {
+    aggregate.status = 'Done';
   }
 }
 
@@ -42,4 +50,25 @@ class CreateTodoCommand extends AggregateCreatingCommand {
   }
 }
 
-module.exports = { CreateTodoCommand, TodoCreatedEvent };
+class MarkTodoDoneCommand extends AggregateCommand {
+  doExecute(executionContext) {
+    executionContext.commitEvent(new MarkedTodoDoneEvent(this.getAggregateId(), this.getCommandId()));
+  }
+  validate(executionContext, aggregate) {
+    if (aggregate.status !== 'NotDone') {
+      throw new Error('Aggregate is not currently in NotDone');
+    }
+  }
+  static fromObject(obj) {
+    if (!obj.aggregateId) {
+      throw new Error('Need to specify an aggregateId for the Command');
+    }
+    const instance = new MarkTodoDoneCommand(obj.aggregateId, obj.commandId || undefined);
+    const copy = Object.assign({}, obj);
+    delete copy.aggregateId;
+    delete copy.commandId;
+    return Object.assign(instance, copy);
+  }
+}
+
+module.exports = { CreateTodoCommand, TodoCreatedEvent, MarkTodoDoneCommand };

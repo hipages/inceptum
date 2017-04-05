@@ -19,7 +19,7 @@ class CQRS {
   }
   getAggregate(aggregateId) {
     const allEvents = this.aggregateEventStore.getEventsOf(aggregateId);
-    if (allEvents.length === 0) {
+    if (!allEvents || allEvents.length === 0) {
       return null;
     }
     const firstEvent = allEvents[0];

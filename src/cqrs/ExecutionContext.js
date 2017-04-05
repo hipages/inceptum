@@ -61,8 +61,8 @@ class ExecutionContext extends AggregateEventStore {
     // if (this.aggregateCache.has(aggregateId)) {
     //   return this.aggregateCache.get(aggregateId);
     // }
-    const aggregateEvents = this.aggregateEventStore.getEventsOf(aggregateId);
-    const uncommittedEvents = this.getUncommittedEventsOf(aggregateId);
+    const aggregateEvents = this.aggregateEventStore.getEventsOf(aggregateId) || [];
+    const uncommittedEvents = this.getUncommittedEventsOf(aggregateId) || [];
     const allEvents = aggregateEvents.concat(uncommittedEvents);
     if (allEvents.length === 0) {
       return null;
@@ -122,7 +122,7 @@ class ExecutionContext extends AggregateEventStore {
       }
     }
     // All commands executed correctly
-    this.committed = true;
+    this.status = Status.COMMITTED;
     try {
       this.aggregateEventStore.commitAllEvents(this.eventsToEmit);
     } catch (e) {
