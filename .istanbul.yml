@@ -6,4 +6,5 @@ instrumentation:
   excludes:
     - src/util/CoroutineReplacement.js
     - itest/**
+    - docs/**
   include-all-sources: true
