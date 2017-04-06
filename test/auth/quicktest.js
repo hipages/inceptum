@@ -2,8 +2,8 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 
-const pub3 = fs.readFileSync(path.join(__dirname, 'public3.pem'));
-const priv3 = fs.readFileSync(path.join(__dirname, 'private3.pem'));
+const pub3 = fs.readFileSync(path.join(__dirname, 'service/public.pem'));
+const priv3 = fs.readFileSync(path.join(__dirname, 'service/private.pem'));
 
 // To generate the key pair:
 // ssh-keygen -t rsa -b 1024 -f private.pem

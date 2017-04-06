@@ -4,15 +4,18 @@ const { AggregateCreatingEvent } = require('../../src/cqrs/event/AggregateCreati
 const { AggregateEvent } = require('../../src/cqrs/event/AggregateEvent');
 
 class TodoCreatedEvent extends AggregateCreatingEvent {
-  constructor(aggregateId, issuerCommandId, eventId, title, description) {
-    super('Todo', aggregateId, issuerCommandId, eventId);
-    this.title = title;
-    this.description = description;
+  constructor(createTodoCommand) {
+    // aggregateId, issuerCommandId, eventId, title, description
+    super('Todo', createTodoCommand.getAggregateId(), createTodoCommand.getCommandId());
+    this.title = createTodoCommand.title;
+    this.description = createTodoCommand.description;
+    this.creator = createTodoCommand.getIssuerAuth().getFullId();
   }
   apply(aggregate) {
     aggregate.title = this.title;
     aggregate.description = this.description;
     aggregate.status = 'NotDone';
+    aggregate.aggregateRoles[this.creator] = 'creator';
   }
 }
 
@@ -23,11 +26,11 @@ class MarkedTodoDoneEvent extends AggregateEvent {
 }
 
 class CreateTodoCommand extends AggregateCreatingCommand {
-  constructor(aggregateId, commandId) {
-    super('Todo', aggregateId, commandId);
+  constructor(aggregateId, issuerAuth, commandId) {
+    super('Todo', aggregateId, issuerAuth, commandId);
   }
   doExecute(executionContext) {
-    executionContext.commitEvent(new TodoCreatedEvent(this.getAggregateId(), this.getCommandId(), undefined, this.title, this.description));
+    executionContext.commitEvent(new TodoCreatedEvent(this));
   }
   validate() {
     if (!this.title) {
@@ -37,14 +40,20 @@ class CreateTodoCommand extends AggregateCreatingCommand {
       throw new Error('Need to specify a description for the Todo');
     }
   }
+  validateAuth() {
+    if (this.issuerAuth.getType() !== 'user') {
+      throw new Error(`Only users can execute this command. Provided auth for an entity of type ${this.issuerAuth.getType()}`);
+    }
+  }
   static fromObject(obj) {
     if (!obj.aggregateId) {
       throw new Error('Need to specify an aggregateId for the Todo');
     }
-    const instance = new CreateTodoCommand(obj.aggregateId, obj.commandId || undefined);
+    const instance = new CreateTodoCommand(obj.aggregateId, obj.issuerAuth, obj.commandId || undefined);
     const copy = Object.assign({}, obj);
     delete copy.aggregateId;
     delete copy.commandId;
+    delete copy.issuerAuth;
     delete copy.aggregateType;
     return Object.assign(instance, copy);
   }
@@ -53,6 +62,12 @@ class CreateTodoCommand extends AggregateCreatingCommand {
 class MarkTodoDoneCommand extends AggregateCommand {
   doExecute(executionContext) {
     executionContext.commitEvent(new MarkedTodoDoneEvent(this.getAggregateId(), this.getCommandId()));
+  }
+  validateAuth(executionContext, aggregate) {
+    const roles = this.getRolesForAggregate(aggregate);
+    if (roles.indexOf('creator') < 0) {
+      throw new Error('Only the creator of the Todo can mark it as done');
+    }
   }
   validate(executionContext, aggregate) {
     if (aggregate.status !== 'NotDone') {
