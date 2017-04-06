@@ -29,7 +29,11 @@ describe('cqrs', () => {
     it('Can be marked as done', () => {
       const aggregateId = UUID.v4();
       const executionContext = cqrs.newExecutionContext();
-      executionContext.addCommandToExecute(CreateTodoCommand.fromObject({ aggregateId, issuerAuth, title: 'Test title', description: 'Test description' }));
+      executionContext.addCommandToExecute(CreateTodoCommand.fromObject({
+        aggregateId,
+        issuerAuth,
+        title: 'Test title',
+        description: 'Test description' }));
       executionContext.addCommandToExecute(MarkTodoDoneCommand.fromObject({ aggregateId, issuerAuth }));
       executionContext.commit();
       const aggregate = cqrs.getAggregate(aggregateId);
