@@ -1,7 +1,7 @@
 const { Aggregate } = require('./Aggregate');
 const { AggregateEvent } = require('./event/AggregateEvent');
 const { AggregateCommand } = require('./command/AggregateCommand');
-const { AggregateEventStore } = require('./event/AggregateEventStore');
+const { AggregateEventStore } = require('./event/store/AggregateEventStore');
 const { AggregateCreatingEvent } = require('./event/AggregateCreatingEvent');
 const { AggregateCreatingCommand } = require('./command/AggregateCreatingCommand');
 

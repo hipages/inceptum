@@ -1,3 +1,10 @@
+app:
+  name: Test Application
+  context:
+    name: BaseContext
+  server:
+    port: 10010
+
 Logging:
   streams:
     console:
@@ -22,9 +29,9 @@ Logging:
         console: debug
 #        myredis: info
 
-Metrics:
+metrics:
   gateway:
-    active: 1
+    active: 0
 
 MySQL:
   MysqlClient: # this is the name of the object that will be exposed in the context

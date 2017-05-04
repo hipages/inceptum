@@ -1,13 +1,15 @@
 const { AggregateEvent } = require('./AggregateEvent');
 
 class AggregateCreatingEvent extends AggregateEvent {
-  constructor(aggregateType, aggregateId, issuerCommandId, eventId) {
-    super(aggregateId, issuerCommandId, eventId);
-    this.aggregateType = aggregateType;
+  constructor(obj) {
+    super(obj);
+    this.copyFrom(obj, ['aggregateType']);
   }
   getAggregateType() {
     return this.aggregateType;
   }
 }
+
+AggregateEvent.registerEventClass(AggregateCreatingEvent);
 
 module.exports = { AggregateCreatingEvent };

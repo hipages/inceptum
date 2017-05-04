@@ -44,6 +44,7 @@
     "redis": "2.6.5",
     "sinon": "^1.17.6",
     "striptags": "^2.1.1",
+    "swagger-tools": "0.10.1",
     "url": "^0.11.0"
   },
   "devDependencies": {

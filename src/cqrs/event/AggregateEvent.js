@@ -1,9 +1,9 @@
 const { Event } = require('./Event');
 
 class AggregateEvent extends Event {
-  constructor(aggregateId, issuerCommandId, eventId) {
-    super(issuerCommandId, eventId);
-    this.aggregateId = aggregateId;
+  constructor(obj) {
+    super(obj);
+    this.copyFrom(obj, ['aggregateId']);
   }
   getAggregateId() {
     return this.aggregateId;
@@ -13,5 +13,7 @@ class AggregateEvent extends Event {
     throw new Error('Not implemented');
   }
 }
+
+Event.registerEventClass(AggregateEvent);
 
 module.exports = { AggregateEvent };

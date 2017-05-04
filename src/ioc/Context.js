@@ -174,12 +174,16 @@ class Context extends Lifecycle {
    * an object with all the configs under that path.
    * It will throw an exception if the key doesn't exist.
    *
-   * @param key The key of the config we want
+   * @param {string} key The key of the config we want
+   * @param {*} defaultValue A default value to use if the key doesn't exist
    * @return {*} The requested configuration
-   * @throws {Error} If the given key doesn't exist
+   * @throws {Error} If the given key doesn't exist and a default value is not provided
    * @see {@link Context.hasConfig}
    */
-  static getConfig(key) {
+  static getConfig(key, defaultValue) {
+    if (!config.has(key) && defaultValue !== undefined) {
+      return defaultValue;
+    }
     return config.get(key);
   }
 
@@ -220,7 +224,20 @@ class Context extends Lifecycle {
 
   getObjectsByType(className) {
     const beanDefinitions = this.getDefinitionsByType(className);
-    return PromiseUtil.map(beanDefinitions, bd => bd.getInstance());
+    const instances = PromiseUtil.map(beanDefinitions, bd => bd.getInstance());
+    return instances.then((arr) => {
+      arr.sort((a, b) => {
+        const aPos = Object.hasOwnProperty.call(a, 'getOrder') ? a.getOrder() : 0;
+        const bPos = Object.hasOwnProperty.call(b, 'getOrder') ? b.getOrder() : 0;
+        if (aPos === bPos) {
+          return 0;
+        } else if (aPos < bPos) {
+          return -1;
+        }
+        return 1;
+      });
+      return arr;
+    });
   }
 
   // ************************************

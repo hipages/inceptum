@@ -1,15 +1,14 @@
+const { Command } = require('../../src/cqrs/command/Command');
 const { AggregateCommand } = require('../../src/cqrs/command/AggregateCommand');
 const { AggregateCreatingCommand } = require('../../src/cqrs/command/AggregateCreatingCommand');
 const { AggregateCreatingEvent } = require('../../src/cqrs/event/AggregateCreatingEvent');
 const { AggregateEvent } = require('../../src/cqrs/event/AggregateEvent');
 
 class TodoCreatedEvent extends AggregateCreatingEvent {
-  constructor(createTodoCommand) {
-    // aggregateId, issuerCommandId, eventId, title, description
-    super('Todo', createTodoCommand.getAggregateId(), createTodoCommand.getCommandId());
-    this.title = createTodoCommand.title;
-    this.description = createTodoCommand.description;
-    this.creator = createTodoCommand.getIssuerAuth().getFullId();
+  constructor(obj) {
+    obj.aggregateType = 'Todo';
+    super(obj);
+    this.copyFrom(obj, ['title', 'description', 'creator']);
   }
   apply(aggregate) {
     aggregate.title = this.title;
@@ -17,20 +16,35 @@ class TodoCreatedEvent extends AggregateCreatingEvent {
     aggregate.status = 'NotDone';
     aggregate.aggregateRoles[this.creator] = 'creator';
   }
+  static fromCommand(createTodoCommand) {
+    return new TodoCreatedEvent({
+      aggregateId: createTodoCommand.getAggregateId(),
+      issuerCommandId: createTodoCommand.getCommandId(),
+      title: createTodoCommand.title,
+      description: createTodoCommand.description,
+      creator: createTodoCommand.getIssuerAuth().getFullId()
+    });
+  }
 }
 
-class MarkedTodoDoneEvent extends AggregateEvent {
+AggregateCreatingEvent.registerEventClass(TodoCreatedEvent);
+
+class TodoMarkedDoneEvent extends AggregateEvent {
   apply(aggregate) {
     aggregate.status = 'Done';
   }
 }
 
+AggregateEvent.registerEventClass(TodoMarkedDoneEvent);
+
 class CreateTodoCommand extends AggregateCreatingCommand {
-  constructor(aggregateId, issuerAuth, commandId) {
-    super('Todo', aggregateId, issuerAuth, commandId);
+  constructor(obj) {
+    obj.aggregateType = 'Todo';
+    super(obj);
+    this.copyFrom(obj, ['title', 'description']);
   }
   doExecute(executionContext) {
-    executionContext.commitEvent(new TodoCreatedEvent(this));
+    executionContext.commitEvent(TodoCreatedEvent.fromCommand(this));
   }
   validate() {
     if (!this.title) {
@@ -45,23 +59,11 @@ class CreateTodoCommand extends AggregateCreatingCommand {
       throw new Error(`Only users can execute this command. Provided auth for an entity of type ${this.issuerAuth.getType()}`);
     }
   }
-  static fromObject(obj) {
-    if (!obj.aggregateId) {
-      throw new Error('Need to specify an aggregateId for the Todo');
-    }
-    const instance = new CreateTodoCommand(obj.aggregateId, obj.issuerAuth, obj.commandId || undefined);
-    const copy = Object.assign({}, obj);
-    delete copy.aggregateId;
-    delete copy.commandId;
-    delete copy.issuerAuth;
-    delete copy.aggregateType;
-    return Object.assign(instance, copy);
-  }
 }
 
 class MarkTodoDoneCommand extends AggregateCommand {
   doExecute(executionContext) {
-    executionContext.commitEvent(new MarkedTodoDoneEvent(this.getAggregateId(), this.getCommandId()));
+    executionContext.commitEvent(new TodoMarkedDoneEvent({ aggregateId: this.getAggregateId(), issuerCommandId: this.getCommandId() }));
   }
   validateAuth(executionContext, aggregate) {
     const roles = this.getRolesForAggregate(aggregate);
@@ -74,16 +76,9 @@ class MarkTodoDoneCommand extends AggregateCommand {
       throw new Error('Aggregate is not currently in NotDone');
     }
   }
-  static fromObject(obj) {
-    if (!obj.aggregateId) {
-      throw new Error('Need to specify an aggregateId for the Command');
-    }
-    const instance = new MarkTodoDoneCommand(obj.aggregateId, obj.commandId || undefined);
-    const copy = Object.assign({}, obj);
-    delete copy.aggregateId;
-    delete copy.commandId;
-    return Object.assign(instance, copy);
-  }
 }
+
+Command.registerCommandClass(CreateTodoCommand);
+Command.registerCommandClass(MarkTodoDoneCommand);
 
 module.exports = { CreateTodoCommand, TodoCreatedEvent, MarkTodoDoneCommand };

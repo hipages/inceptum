@@ -1,3 +1,5 @@
+const { Event } = require('../Event');
+
 class AggregateEventStore {
   /**
    * Load all the events of an aggregate
@@ -22,6 +24,25 @@ class AggregateEventStore {
    */
   commitAllEvents(aggregateEvents) {
     aggregateEvents.forEach((event) => this.commitEvent(event));
+  }
+  /**
+   * Serialises an aggregate event for storage
+   * @param {AggregateEvent} event The aggregate event to serialise
+   * @returns {string} The serialised aggregate event
+   */
+  serialize(event) {
+    return JSON.stringify(event);
+  }
+  /**
+   * Deserialises an event into an instance of the appropriate class.
+   * Important to note is that all events must extend Event, and register themselves calling
+   * the {@link Event.registerEventClass} method. Also, the constructor must receive only one
+   * parameter that is an object from which it must copy the necessary properties.
+   * @param {string} str The serialised aggregate event
+   * @returns {AggregateEvent} The aggregate event as an object of the right class
+   */
+  deserialize(str) {
+    return Event.fromObject(JSON.parse(str));
   }
 }
 

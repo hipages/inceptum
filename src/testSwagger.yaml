@@ -1,0 +1,201 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: ToDo sample application
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths 
+basePath: /
+# 
+schemes:
+  # tip: remove http to make production-grade
+  - http
+#  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+  /todo:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: CQRS:CreateTodoCommand
+    post:
+      description: Create a new TODO
+      # used as the method name of the controller
+      operationId: createTodo(todo, @res)
+      parameters:
+        - name: todo
+          in: body
+          description: The todo to create
+          required: true
+          schema:
+            $ref: "#/definitions/BasicTodo"
+      responses:
+        "201":
+          description: Todo created
+          schema:
+            $ref: "#/definitions/SimpleMessage"
+          headers:
+            Location:
+              type: string
+              description: URL of the newly created Todo item
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    get:
+      description: Get's a list of todos
+      # used as the method name of the controller
+      operationId: listTodos(page, pageSize)
+      parameters:
+        - $ref: "#/parameters/page"
+        - $ref: "#/parameters/pageSize"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/TodoList"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /todo/{id}:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: TodoController
+    get:
+      description: Gets one todo by id
+      # used as the method name of the controller
+      operationId: get(id)
+      parameters:
+        - $ref: "#/parameters/todoId"
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/Todo"
+        # responses may fall through to errors
+        "404":
+          description: A Todo with the provided id doesn't exist
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /todo/{id}/complete:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: TodoController
+    post:
+      description: Marks a todo as completed
+      consumes: ['application/json', 'application/octet-stream']
+      # used as the method name of the controller
+      operationId: markCompleted(id, @res)
+      parameters:
+        - $ref: "#/parameters/todoId"
+      responses:
+        "204":
+          description: The Todo was marked as completed
+        # responses may fall through to errors
+        "404":
+          description: A Todo with the provided id doesn't exist
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+parameters:
+  page:
+    name: page
+    type: integer
+    description: The page number to load
+    required: false
+    default: 1
+    in: query
+  pageSize:
+    name: pageSize
+    type: integer
+    description: The number of elements to return per page
+    required: false
+    default: 20
+    in: query
+  todoId:
+    name: id
+    type: string
+    description: The Id of the Todo
+    required: true
+    in: path
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+definitions:
+  PaginationInfo:
+    type: object
+    required:
+      - numResults
+      - pageNum
+      - pageSize
+    properties:
+      numResults:
+        type: integer
+        description: The total number of results in this search
+      pageNum:
+        type: integer
+        description: The page being displayed
+      pageSize:
+        type: integer
+        description: The size of the page
+  BasicTodo:
+    type: object
+    required:
+      - id
+      - title
+      - description
+    properties:
+      id:
+        type: string
+        pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+        description: The identifier of the ToDo
+      title:
+        type: string
+        description: The title of the Todo
+      description:
+        type: string
+        description: The description of the Todo
+  Todo:
+    allOf:
+      - $ref: "#/definitions/BasicTodo"
+      - type: object
+        required:
+          - status
+        properties:
+          status:
+            type: string
+            description: The status of this Todo
+            enum:
+              - NotDone
+              - Done
+  TodoList:
+    required:
+      - pageInfo
+      - items
+    properties:
+      pageInfo:
+        $ref: "#/definitions/PaginationInfo"
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/Todo"
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
+  SimpleMessage:
+    required:
+      - message
+    properties:
+      message:
+        type: string

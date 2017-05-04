@@ -1,5 +1,6 @@
 const { ExecutionContext } = require('./ExecutionContext');
 const { Aggregate } = require('./Aggregate');
+const { Command } = require('./command/Command');
 const { AggregateCreatingEvent } = require('./event/AggregateCreatingEvent');
 
 class CQRS {
@@ -29,6 +30,9 @@ class CQRS {
     const aggregate = new Aggregate(firstEvent.getAggregateType(), firstEvent.getAggregateId());
     allEvents.forEach((e) => e.apply(aggregate));
     return aggregate;
+  }
+  static deserialiseCommand(obj, commandType) {
+    return Command.fromObject(obj, commandType);
   }
 }
 

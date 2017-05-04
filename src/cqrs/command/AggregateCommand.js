@@ -1,9 +1,16 @@
 const { Command } = require('./Command');
 
 class AggregateCommand extends Command {
-  constructor(aggregateId, issuerAuth, commandId) {
-    super(issuerAuth, commandId);
-    this.aggregateId = aggregateId;
+  /**
+   *
+   * @param {object} obj The object to take parameters from
+   * @param {Auth} issuerAuth The Auth object of the issuer of this command
+   * @param {[string]} commandId The id for this command. If not specified, the IdGenerator will be called to generate one
+   * @param {string} aggregateId The id of the aggregate this command acts upon
+   */
+  constructor(obj) {
+    super(obj);
+    this.copyFrom(obj, ['aggregateId']);
   }
   getAggregateId() {
     return this.aggregateId;
@@ -55,9 +62,8 @@ class AggregateCommand extends Command {
     this.validateAuth(executionContext, aggregate);
     this.doExecute(executionContext, aggregate);
   }
-  static fromObject(obj) {
-    return new AggregateCommand(obj.aggregateId, obj.issuerAuth, obj.commandId || undefined);
-  }
 }
+
+Command.registerCommandClass(AggregateCommand);
 
 module.exports = { AggregateCommand };

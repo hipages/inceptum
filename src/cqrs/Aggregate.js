@@ -23,6 +23,7 @@ class Aggregate {
   /**
    * Gets the extra roles that this aggregate grants to an entity
    * @param {string} Optional. The id of the entity we're asking about.
+   * @returns {[string]} The list of roles for this aggregate
    */
   getAggregateRolesFor(entityId) {
     return Object.hasOwnProperty.call(this.aggregateRoles, entityId) ? this.aggregateRoles[entityId] : [];
