@@ -87,7 +87,7 @@ class MetricsAwareConnectionPoolWrapper {
     this.numConnections = 0;
     this.enqueueTimes = [];
     this.setupPool();
-    this.durationHistogram = MetricsService.histogram(`db.pool.${name}`);
+    this.durationHistogram = MetricsService.histogram(`db_pool_${name}`);
   }
   setupPool() {
     const self = this;

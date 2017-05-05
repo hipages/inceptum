@@ -5,7 +5,7 @@ app:
   server:
     port: 10010
 
-Logging:
+logging:
   streams:
     console:
       type: console

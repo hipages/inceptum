@@ -1,6 +1,7 @@
 const yaml = require('js-yaml');
 const fs = require('fs');
 const initSwaggerTools = require('swagger-tools').initializeMiddleware;
+const logger = require('../log/LogManager').getLogger(__filename);
 
 class SwaggerMetadataMiddleware {
   /**
@@ -32,6 +33,7 @@ class SwaggerMetadataMiddleware {
   register(expressApp) {
     return new Promise((resolve) => {
       initSwaggerTools(this.swagger, (swaggerTools) => {
+        logger.debug('Adding swagger middleware');
         const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
         const swaggerValidatorFunc = swaggerTools.swaggerValidator();
         expressApp.use((req, res, next) => {
@@ -41,6 +43,7 @@ class SwaggerMetadataMiddleware {
           });
         });
         expressApp.use(swaggerValidatorFunc);
+        logger.debug('Adding swagger middleware - Done');
         resolve(expressApp);
       });
     });

@@ -33,7 +33,7 @@ class InceptumWebApp extends InceptumApp {
   doInternalStart(promise) {
     const self = this;
     return promise
-      .then(super.start())
+      .then(() => super.start())
       .then(() => {
         self.port = process.env.PORT || this.getConfig('app.server.port', 10010);
         self.server = self.app.listen(self.port, () => {
@@ -46,12 +46,13 @@ class InceptumWebApp extends InceptumApp {
     return Promise.resolve()
       .then(() => {
         try {
+          this.logger.info('Shutting down server');
           theServer.close();
         } catch (e) {
           this.logger.error('There was an error stopping the server', e);
         }
       })
-      .then(super.stop());
+      .then(() => super.stop());
   }
 
   /**

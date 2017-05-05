@@ -1,5 +1,6 @@
 const { InceptumWebApp } = require('./InceptumWebApp');
 const { SwaggerMetadataMiddleware } = require('../swagger/SwaggerMetadataMiddleware');
+const { SwaggerRouterMiddleware } = require('../swagger/SwaggerRouterMiddleware');
 
 class InceptumSwaggerApp extends InceptumWebApp {
   constructor(swaggerFilePath) {
@@ -18,7 +19,8 @@ class InceptumSwaggerApp extends InceptumWebApp {
   setConfigurator() {
     const self = this;
     super.setAppConfigurator((app) => self.getPreSwaggerPromise(app)
-        .then(() => self.getAddSwaggerMiddlewarePromise(app))
+      .then(() => self.getSwaggerMetadataMiddlewarePromise(app))
+      .then(() => self.getSwaggerRouterMiddlewarePromise(app))
         .then(() => self.getPostSwaggerPromise(app)));
   }
 
@@ -58,14 +60,25 @@ class InceptumSwaggerApp extends InceptumWebApp {
     return Promise.resolve();
   }
 
-  getAddSwaggerMiddlewarePromise(app) {
+  getSwaggerMetadataMiddlewarePromise(app) {
     try {
-      this.logger.debug('Executing addSwaggerMiddleware');
+      this.logger.debug('Executing getSwaggerMetadataMiddlewarePromise');
       const sm = new SwaggerMetadataMiddleware({ swaggerFilePath: this.swaggerFilePath });
       return sm.register(app);
     } catch (e) {
-      this.logger.error(e, 'There was an error creating Swagger Middleware');
-      return Promise.reject(new Error(`There was an error creating Swagger Middleware: ${e.message}`));
+      this.logger.error(e, 'There was an error creating Swagger Metadata Middleware');
+      return Promise.reject(new Error(`There was an error creating Swagger Metadata Middleware: ${e.message}`));
+    }
+  }
+
+  getSwaggerRouterMiddlewarePromise(app) {
+    try {
+      this.logger.debug('Executing getSwaggerRouterMiddlewarePromise');
+      const sr = new SwaggerRouterMiddleware(this.getContext());
+      return sr.register(app);
+    } catch (e) {
+      this.logger.error(e, 'There was an error creating Swagger Router Middleware');
+      return Promise.reject(new Error(`There was an error creating Swagger Router Middleware: ${e.message}`));
     }
   }
 

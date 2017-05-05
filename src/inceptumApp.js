@@ -1,4 +1,4 @@
-const { InceptumSwaggerApp } = require('./app/InceptumSwaggerApp');
+const { InceptumSwaggerApp } = require('./index');
 const path = require('path');
 const stringify = require('json-stringify-safe');
 

@@ -86,10 +86,10 @@ class LogManager {
   }
 
   getLoggerInternal(loggerPath) {
-    if (!config.has('Logging.loggers')) {
+    if (!config.has('logging.loggers')) {
       throw new Error('Couldn\'t find loggers configuration!!! Your logging config is wrong!');
     }
-    const loggers = config.get('Logging.loggers');
+    const loggers = config.get('logging.loggers');
     const candidates = loggers.filter((logger) => loggerPath.startsWith(logger.name));
     if (!candidates || candidates.length === 0) {
       candidates.push(loggers.filter((logger) => logger.name === 'ROOT')[0]);
@@ -131,7 +131,7 @@ class LogManager {
   }
 
   getStreamConfig(streamName, level) {
-    const configKey = `Logging.streams.${streamName}`;
+    const configKey = `logging.streams.${streamName}`;
     if (!config.has(configKey)) {
       throw new Error(`Couldn't find stream with name ${streamName}`);
     }
@@ -163,7 +163,7 @@ class LogManager {
 
   getUnderlyingStream(streamName) {
     if (!this.streamCache.has(streamName)) {
-      const configKey = `Logging.streams.${streamName}`;
+      const configKey = `logging.streams.${streamName}`;
       if (!config.has(configKey)) {
         throw new Error(`Couldn't find stream with name ${streamName}`);
       }

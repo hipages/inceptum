@@ -5,11 +5,24 @@ const logger = require('../log/LogManager').getLogger(__filename);
 
 
 class MetricsService {
-  counter(metricName, labels = [], metricHelp = '') {
-    return new prometheus.Counter(metricName, metricHelp, labels);
+  constructor() {
+    this.metricsCache = new Map();
   }
-  gauge(metricName, labels = [], metricHelp = '') {
-    return new prometheus.Gauge(metricName, metricHelp, labels);
+
+  getOrCreate(name, creator) {
+    if (this.metricsCache.has(name)) {
+      return this.metricsCache.get(name);
+    }
+    const metric = creator();
+    this.metricsCache.set(name, metric);
+    return metric;
+  }
+
+  counter(metricName, labels = [], metricHelp) {
+    return this.getOrCreate(`Counter:${metricName}:${labels.join(';')}`, () => new prometheus.Counter(metricName, metricHelp || metricName, labels));
+  }
+  gauge(metricName, labels = [], metricHelp) {
+    return this.getOrCreate(`Gauge:${metricName}:${labels.join(';')}`, () => new prometheus.Gauge(metricName, metricHelp || metricName, labels));
   }
 
   /**
@@ -19,10 +32,11 @@ class MetricsService {
    * @param metricHelp
    * @return {Summary}
    */
-  histogram(metricName, labels = [], metricHelp = '') {
-    return new prometheus.Summary(metricName, metricHelp, labels, {
-      percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
-    });
+  histogram(metricName, labels = [], metricHelp) {
+    return this.getOrCreate(`Histogram:${metricName}:${labels.join(';')}`,
+      () => new prometheus.Summary(metricName, metricHelp || metricName, labels, {
+        percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
+      }));
   }
 }
 
@@ -36,9 +50,9 @@ class MetricsManager {
     const defaultInterval = defaultMetrics(['osMemoryHeap'], 10000);
     process.on('exit', () => { clearInterval(defaultInterval); });
 
-    if (Context.hasConfig('Metrics.gateway') &&
-      Context.hasConfig('Metrics.gateway.active') &&
-      Context.getConfig('Metrics.gateway.active')
+    if (Context.hasConfig('metrics.gateway') &&
+      Context.hasConfig('metrics.gateway.active') &&
+      Context.getConfig('metrics.gateway.active')
     ) {
       const gateway = new prometheus.Pushgateway(Context.getConfig('metrics.gateway.hostport'), { timeout: 2000 });
       const tags = {
