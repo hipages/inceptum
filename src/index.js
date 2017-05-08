@@ -3,6 +3,7 @@ const { Context } = require('./ioc/Context');
 const LogManager = require('./log/LogManager');
 const { PromiseUtil } = require('./util/PromiseUtil');
 
+const { CQRS } = require('./cqrs/CQRS');
 const { AggregateCommand } = require('./cqrs/command/AggregateCommand');
 const { AggregateCreatingCommand } = require('./cqrs/command/AggregateCreatingCommand');
 
@@ -15,7 +16,10 @@ const { InceptumApp } = require('./app/InceptumApp');
 const { InceptumWebApp } = require('./app/InceptumWebApp');
 const { InceptumSwaggerApp } = require('./app/InceptumSwaggerApp');
 
-const CQRS = {
+const { HttpError } = require('./util/HttpError');
+
+const CQRSExport = {
+  CQRS,
   Command: {
     AggregateCommand,
     AggregateCreatingCommand
@@ -30,4 +34,4 @@ const Swagger = {
   SwaggerMetadataMiddleware
 };
 
-module.exports = { InceptumApp, InceptumWebApp, InceptumSwaggerApp, Context, LogManager, PromiseUtil, CQRS, Swagger };
+module.exports = { InceptumApp, InceptumWebApp, InceptumSwaggerApp, Context, LogManager, PromiseUtil, CQRS: CQRSExport, Swagger, HttpError };

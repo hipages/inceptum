@@ -2,6 +2,9 @@ const logger = require('../log/LogManager').getLogger(__filename);
 
 const optionParsingRegExp = /^\s*([^\s]*)\s*\((.*)\)/;
 const optionParsingRegExp2 = /[a-zA-Z0-9?:@_-]+/g;
+const SWAGGER_CONTROLLER_PROPERTY = 'x-inceptum-controller';
+const SWAGGER_OPERATION_PROPERTY = 'x-inceptum-operation';
+
 
 class SwaggerRouterMiddleware {
   constructor(context) {
@@ -12,10 +15,10 @@ class SwaggerRouterMiddleware {
     if (!req || !req.swagger) {
       return false;
     }
-    if (req.swagger.operation && req.swagger.operation['x-swagger-router-controller']) {
+    if (req.swagger.operation && req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY]) {
       return true;
     }
-    if (req.swagger.path && req.swagger.path['x-swagger-router-controller']) {
+    if (req.swagger.path && req.swagger.path[SWAGGER_CONTROLLER_PROPERTY]) {
       return true;
     }
     return false;
@@ -67,11 +70,11 @@ class SwaggerRouterMiddleware {
    * @returns {Request}
    */
   getControllerHandler(req) {
-    const controllerName = req.swagger.operation['x-swagger-router-controller'] ?
-      req.swagger.operation['x-swagger-router-controller'] :
-      req.swagger.path['x-swagger-router-controller'];
-    const operationId = req.swagger.operation.operationId ?
-      req.swagger.operation.operationId :
+    const controllerName = req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY] ?
+      req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY] :
+      req.swagger.path[SWAGGER_CONTROLLER_PROPERTY];
+    const operationId = req.swagger.operation[SWAGGER_OPERATION_PROPERTY] ?
+      req.swagger.operation[SWAGGER_OPERATION_PROPERTY] :
       req.method.toLowerCase();
     const key = `${controllerName}_${operationId}`;
     if (this.handlerCache.has(key)) {

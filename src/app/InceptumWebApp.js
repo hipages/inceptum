@@ -14,14 +14,14 @@ class InceptumWebApp extends InceptumApp {
       try {
         const resp = this.configurator(this.app);
         if (resp && resp.then) {
-          return this.doInternalStart(resp);
+          return this.doInternalStartAfter(resp);
         }
-        return this.doInternalStart(Promise.resolve(resp));
+        return this.doInternalStartAfter(Promise.resolve(resp));
       } catch (e) {
         Promise.reject(new Error(`There was an error calling the configurator: ${e.message}`));
       }
     }
-    return this.doInternalStart(Promise.resolve());
+    return this.doInternalStartAfter(Promise.resolve());
   }
 
   /**
@@ -30,7 +30,7 @@ class InceptumWebApp extends InceptumApp {
    * @param {Promise} promise
    * @returns {Promise.<TResult>}
    */
-  doInternalStart(promise) {
+  doInternalStartAfter(promise) {
     const self = this;
     return promise
       .then(() => super.start())

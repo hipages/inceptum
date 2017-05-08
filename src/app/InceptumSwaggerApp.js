@@ -1,6 +1,7 @@
 const { InceptumWebApp } = require('./InceptumWebApp');
 const { SwaggerMetadataMiddleware } = require('../swagger/SwaggerMetadataMiddleware');
 const { SwaggerRouterMiddleware } = require('../swagger/SwaggerRouterMiddleware');
+const { SwaggerCQRSMiddleware } = require('../swagger/SwaggerCQRSMiddleware');
 
 class InceptumSwaggerApp extends InceptumWebApp {
   constructor(swaggerFilePath) {
@@ -76,6 +77,27 @@ class InceptumSwaggerApp extends InceptumWebApp {
       this.logger.debug('Executing getSwaggerRouterMiddlewarePromise');
       const sr = new SwaggerRouterMiddleware(this.getContext());
       return sr.register(app);
+    } catch (e) {
+      this.logger.error(e, 'There was an error creating Swagger Router Middleware');
+      return Promise.reject(new Error(`There was an error creating Swagger Router Middleware: ${e.message}`));
+    }
+  }
+
+  getCQRSMiddlewarePromise(app) {
+    try {
+      this.logger.debug('Executing getSwaggerRouterMiddlewarePromise');
+      const cqrsObjectName = this.getConfig('app.cqrs.objectName', 'CQRS');
+      return this.context.getObjectByName(cqrsObjectName)
+        .then((cqrs) => {
+          if (cqrs) {
+            this.logger.debug(`Found CQRS object with name : "${cqrsObjectName}"`);
+            const sr = new SwaggerCQRSMiddleware(cqrs);
+            return sr.register(app);
+          }
+          return app;
+        }, () => {
+          this.logger.debug(`Couldn't find CQRS object with name: "${cqrsObjectName}". Skipping CQRS setup`);
+        });
     } catch (e) {
       this.logger.error(e, 'There was an error creating Swagger Router Middleware');
       return Promise.reject(new Error(`There was an error creating Swagger Router Middleware: ${e.message}`));
