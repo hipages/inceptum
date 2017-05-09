@@ -6,6 +6,7 @@ const { MysqlConfigManager } = require('../mysql/MysqlConfigManager');
 const { PreinstantiatedSingletonDefinition } = require('../ioc/objectdefinition/PreinstantiatedSingletonDefinition');
 const { ObjectDefinitionAutowiringInspector } = require('../ioc/autoconfig/ObjectDefinitionAutowiringInspector');
 const { ObjectDefinitionStartStopMethodsInspector } = require('../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');
+const { ObjectDefinitionLazyLoadingInspector } = require('../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector');
 
 class InceptumApp {
   /**
@@ -18,6 +19,7 @@ class InceptumApp {
     MetricsManager.registerSingletons(this.appName, this.context);
     this.context.addObjectDefinitionInspector(new ObjectDefinitionAutowiringInspector());
     this.context.addObjectDefinitionInspector(new ObjectDefinitionStartStopMethodsInspector());
+    this.context.addObjectDefinitionInspector(new ObjectDefinitionLazyLoadingInspector());
     MysqlConfigManager.registerSingletons(this.context);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
     this.logger = logger || LogManager.getLogger(__filename);
