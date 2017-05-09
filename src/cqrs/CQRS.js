@@ -14,9 +14,16 @@ class CQRS {
   newExecutionContext() {
     return new ExecutionContext(this.aggregateEventStore);
   }
+
+  /**
+   * Executes a single command and return the ExecutionContext
+   * @param {Command} The command to execute
+   * @returns {ExecutionContext} The execution context of the command
+   */
   executeCommand(command) {
     const executionContext = this.newExecutionContext();
     executionContext.executeCommand(command);
+    return executionContext;
   }
   getAggregate(aggregateId) {
     const allEvents = this.aggregateEventStore.getEventsOf(aggregateId);

@@ -85,8 +85,20 @@ class SwaggerCQRSMiddleware {
   handleCQRSCommandWithName(req, res, commandName, bodyParamName) {
     const payload = this.getPayload(req, bodyParamName);
     const command = Command.fromObject(payload || {}, commandName);
-    this.cqrs.executeCommand(command);
-    res.send('OK');
+    console.log(payload, command);
+    const executionContext = this.cqrs.executeCommand(command);
+    if (executionContext.hasCommandResultForCommand(command)) {
+      const commandResult = executionContext.getCommandResultForCommand(command);
+      if (commandResult.hasNewAggregateId()) {
+        res.status(201);
+      } else {
+        res.status(200);
+      }
+      res.send(commandResult);
+    } else {
+      res.status(204);
+      res.send('');
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ const { AggregateCommand } = require('./command/AggregateCommand');
 const { AggregateEventStore } = require('./event/store/AggregateEventStore');
 const { AggregateCreatingEvent } = require('./event/AggregateCreatingEvent');
 const { AggregateCreatingCommand } = require('./command/AggregateCreatingCommand');
+const { CommandResult } = require('./command/CommandResult');
 
 const Status = {
   NOT_COMMMITED: 1,
@@ -23,6 +24,7 @@ class ExecutionContext extends AggregateEventStore {
     this.eventsToEmit = [];
     this.commandsToExecute = [];
     this.error = null;
+    this.commandResults = new Map();
     // this.aggregateCache = new Map();
   }
   /**
@@ -133,6 +135,17 @@ class ExecutionContext extends AggregateEventStore {
   }
   getError() {
     return this.error;
+  }
+  hasCommandResultForCommand(command) {
+    return this.commandResults.has(command);
+  }
+  getCommandResultForCommand(command) {
+    if (this.commandResults.has(command)) {
+      return this.commandResults.get(command);
+    }
+    const result = new CommandResult(command);
+    this.commandResults.set(command, result);
+    return result;
   }
 }
 

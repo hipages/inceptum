@@ -148,6 +148,13 @@ class Context extends Lifecycle {
     });
   }
 
+  requireFilesInDir(dir) {
+    Context.walkDirSync(dir).filter(file => path.extname(file) === '.js').forEach(file => {
+      // eslint-disable-next-line global-require
+      require(file);
+    });
+  }
+
   /**
    * Walks a directory recursively and returns an array with all the files
    *

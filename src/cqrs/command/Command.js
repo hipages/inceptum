@@ -16,6 +16,9 @@ class Command {
   getCommandId() {
     return this.commandId;
   }
+  getCommandType() {
+    return this[commandFieldType];
+  }
 // eslint-disable-next-line no-unused-vars
   validate(executionContext) {
     throw new Error('Not implemented');
@@ -28,6 +31,12 @@ class Command {
   validateAuth(executionContext) {
     throw new Error('Not implemented');
   }
+
+  /**
+   * Executed this command as part of the execution context.
+   * @param {ExecutionContext} executionContext
+   * @returns {*}
+   */
   execute(executionContext) {
     this.validate(executionContext);
     this.validateAuth(executionContext);

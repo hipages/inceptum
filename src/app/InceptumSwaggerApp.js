@@ -22,7 +22,8 @@ class InceptumSwaggerApp extends InceptumWebApp {
     super.setAppConfigurator((app) => self.getPreSwaggerPromise(app)
       .then(() => self.getSwaggerMetadataMiddlewarePromise(app))
       .then(() => self.getSwaggerRouterMiddlewarePromise(app))
-        .then(() => self.getPostSwaggerPromise(app)));
+      .then(() => self.getCQRSMiddlewarePromise(app))
+      .then(() => self.getPostSwaggerPromise(app)));
   }
 
   /**
