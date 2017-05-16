@@ -1,8 +1,14 @@
-const { Lifecycle } = require('./../Lifecycle');
-const LogManager = require('../../log/LogManager');
+import { Context } from '../Context';
+import { Logger, LogManager } from '../../log/LogManager';
+import { Lifecycle, LifecycleState } from './../Lifecycle';
 
-class ObjectDefinition extends Lifecycle {
-  constructor(clazz, name, logger) {
+export abstract class ObjectDefinition<T> extends Lifecycle {
+  context: Context;
+  autowireCandidate: boolean;
+  instance: T;
+  lazyLoading: boolean;
+  clazz: Function;
+  constructor(clazz: Function, name: string, logger: Logger) {
     super(name || clazz.name, logger || LogManager.getLogger(__filename));
     this.clazz = clazz;
     this.lazyLoading = true;
@@ -15,21 +21,21 @@ class ObjectDefinition extends Lifecycle {
   // Configuration methods
   // ************************************
 
-  withLazyLoading(lazyLoading) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
+  withLazyLoading(lazyLoading: boolean): ObjectDefinition<T> {
+    this.assertState(LifecycleState.NOT_STARTED);
     this.lazyLoading = lazyLoading;
     return this;
   }
-  setAutowireCandidate(autowireCandidate) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
+  setAutowireCandidate(autowireCandidate: boolean): ObjectDefinition<T> {
+    this.assertState(LifecycleState.NOT_STARTED);
     this.autowireCandidate = autowireCandidate;
     return this;
   }
-  setContext(context) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
+  setContext(context: Context) {
+    this.assertState(LifecycleState.NOT_STARTED);
     this.context = context;
   }
-  getContext() {
+  getContext(): Context {
     return this.context;
   }
 
@@ -37,37 +43,35 @@ class ObjectDefinition extends Lifecycle {
   // Get instance methods
   // ************************************
 
-  getInstance() {
-    return Promise.reject(new Error('Unimplemented'));
-  }
+  abstract getInstance(): Promise<T>;
 
   // ************************************
   // Information methods
   // ************************************
 
-  getProducedClass() {
+  getProducedClass(): Function {
     return this.clazz;
   }
 
-  isLazy() {
+  isLazy(): boolean {
     return this.lazyLoading;
   }
 
-  isAutowireCandidate() {
+  isAutowireCandidate(): boolean {
     return this.autowireCandidate;
   }
 
-  copy() {
-    const theCopy = new ObjectDefinition(this.clazz, this.name, this.logger);
+  copy(): ObjectDefinition<T> {
+    const theCopy = this.getCopyInstance();
     this.copyInternalProperties(theCopy);
     return theCopy;
   }
 
-  copyInternalProperties(copyTo) {
+  protected copyInternalProperties(copyTo): void {
     copyTo.lazyLoading = this.lazyLoading;
     copyTo.autowireCandidate = this.autowireCandidate;
     copyTo.context = null;  // The copy must not inherit the context
   }
-}
 
-module.exports = { ObjectDefinition };
+  protected abstract getCopyInstance(): ObjectDefinition<T>;
+}

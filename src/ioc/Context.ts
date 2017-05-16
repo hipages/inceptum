@@ -2,24 +2,30 @@
 // Factory beans
 // Profile support
 
-const fs = require('fs');
-const path = require('path');
-const config = require('config');
-const LogManager = require('../log/LogManager');
-const { Lifecycle } = require('./Lifecycle');
-const { IoCException } = require('./IoCException');
-const { PromiseUtil } = require('../util/PromiseUtil');
-const { ObjectDefinition } = require('./objectdefinition/ObjectDefinition');
-const { BaseSingletonDefinition } = require('./objectdefinition/BaseSingletonDefinition');
-const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as config from 'config';
+import { Logger, LogManager } from '../log/LogManager';
+import { PromiseUtil } from '../util/PromiseUtil';
+import { Lifecycle, LifecycleState } from './Lifecycle';
+import { IoCException } from './IoCException';
+import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
+import { BaseSingletonDefinition } from './objectdefinition/BaseSingletonDefinition';
+import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
+
 
 /**
  * A context used by IoC to register and request objects from.
  * This is the main class for the inversion of control framework. It serves as a registry where you can
  * add {ObjectDefinition}s and request instances from them.
  */
-class Context extends Lifecycle {
-  constructor(name, parentContext, logger) {
+export class Context extends Lifecycle {
+  private objectDefinitionInspector: ObjectDefinitionInspector[];
+  private startedObjects: Map<any, any>;
+  private objectDefinitions: Map<string, ObjectDefinition<any>>;
+  private parentContext: Context;
+
+  constructor(name: string, parentContext?: Context, logger?: Logger) {
     super(name, logger || LogManager.getLogger(__filename));
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
@@ -31,7 +37,7 @@ class Context extends Lifecycle {
   // Lifecycle related methods
   // ************************************
 
-  lcStart() {
+  lcStart(): Promise<void> {
     if (this.parentContext) {
       return this.parentContext.lcStart()
         .then(() => super.lcStart());
@@ -39,7 +45,7 @@ class Context extends Lifecycle {
     return super.lcStart();
   }
 
-  lcStop() {
+  lcStop(): Promise<void> {
     const stopPromise = super.lcStop();
     if (this.parentContext) {
       return stopPromise.then(() => this.parentContext.lcStop());
@@ -47,25 +53,24 @@ class Context extends Lifecycle {
     return stopPromise;
   }
 
-  doStart() {
+  protected doStart(): Promise<void> {
     this.applyObjectDefinitionModifiers();
-    this.nonLazyObjectsPending = new Set();
+    const nonLazyObjectsPending = new Set();
     return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) => {
-      this.nonLazyObjectsPending.add(objectDefinition.getName());
-      objectDefinition.onStateOnce(Lifecycle.STATES.STARTED, () => this.nonLazyObjectsPending.delete(objectDefinition.getName()));
+      nonLazyObjectsPending.add(objectDefinition.getName());
+      objectDefinition.onStateOnce(LifecycleState.STARTED, () => nonLazyObjectsPending.delete(objectDefinition.getName()));
       return objectDefinition.getInstance();
     }).catch((err) => {
       this.getLogger().error(
         { err },
-        'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context'
-      );
+        'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context');
       return this.lcStop().then(() => { throw err; });
-    }).then(() => (this.nonLazyObjectsPending.size === 0));
+    }).then(() => { if (nonLazyObjectsPending.size !== 0) { throw new Error(`There are some objects pending initialisation`); } } );
   }
 
-  doStop() {
+  protected doStop(): Promise<void> {
     return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) => startedObject.lcStop())
-      .then(() => (this.startedObjects.size === 0));
+      .then(() => { /* donothing */ });
   }
 
   // ************************************
@@ -73,15 +78,15 @@ class Context extends Lifecycle {
   // ************************************
 
   clone(name) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
+    this.assertState(LifecycleState.NOT_STARTED);
     const copy = new Context(name, this.parentContext, this.logger);
     this.objectDefinitions.forEach((objectDefinition) => copy.registerDefinition(objectDefinition.copy()));
     return copy;
   }
 
   importContext(otherContext, overwrite = false) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
-    otherContext.assertState(Lifecycle.STATES.NOT_STARTED);
+    this.assertState(LifecycleState.NOT_STARTED);
+    otherContext.assertState(LifecycleState.NOT_STARTED);
     otherContext.objectDefinitions.forEach((objectDefinition) => this.registerDefinition(objectDefinition, overwrite));
   }
 
@@ -89,10 +94,7 @@ class Context extends Lifecycle {
   // Object Definition inspector methods
   // ************************************
 
-  addObjectDefinitionInspector(inspector) {
-    if (!inspector || !(inspector instanceof ObjectDefinitionInspector)) {
-      throw new IoCException(`Provided modifier is not of type ${ObjectDefinitionInspector.name}. It's a ${typeof inspector}`);
-    }
+  addObjectDefinitionInspector(inspector: ObjectDefinitionInspector) {
     this.objectDefinitionInspector.push(inspector);
   }
 
@@ -100,8 +102,8 @@ class Context extends Lifecycle {
   // Object Definition registration methods
   // ************************************
 
-  registerDefinition(objectDefinition, overwrite = false) {
-    this.assertState(Lifecycle.STATES.NOT_STARTED);
+  registerDefinition(objectDefinition: ObjectDefinition<any>, overwrite = false) {
+    this.assertState(LifecycleState.NOT_STARTED);
     if (!(objectDefinition instanceof ObjectDefinition)) {
       throw new IoCException('Provided input for registration is not an instance of ObjectDefinition');
     }
@@ -113,8 +115,8 @@ class Context extends Lifecycle {
     }
     this.objectDefinitions.set(objectDefinition.getName(), objectDefinition);
     objectDefinition.setContext(this);
-    objectDefinition.onStateOnce(Lifecycle.STATES.STARTED, () => this.startedObjects.set(objectDefinition.getName(), objectDefinition));
-    objectDefinition.onStateOnce(Lifecycle.STATES.STOPPED, () => this.startedObjects.delete(objectDefinition.getName()));
+    objectDefinition.onStateOnce(LifecycleState.STARTED, () => this.startedObjects.set(objectDefinition.getName(), objectDefinition));
+    objectDefinition.onStateOnce(LifecycleState.STOPPED, () => this.startedObjects.delete(objectDefinition.getName()));
   }
 
   registerSingletons(...singletons) {
@@ -131,7 +133,7 @@ class Context extends Lifecycle {
   }
 
   registerSingletonsInDir(dir) {
-    Context.walkDirSync(dir).filter(file => path.extname(file) === '.js').forEach(file => {
+    Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       let expectedClass = path.basename(file);
       expectedClass = expectedClass.substr(0, expectedClass.length - 3);
       // eslint-disable-next-line global-require
@@ -148,8 +150,8 @@ class Context extends Lifecycle {
     });
   }
 
-  requireFilesInDir(dir) {
-    Context.walkDirSync(dir).filter(file => path.extname(file) === '.js').forEach(file => {
+  static requireFilesInDir(dir) {
+    Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       // eslint-disable-next-line global-require
       require(file);
     });
@@ -164,7 +166,7 @@ class Context extends Lifecycle {
    * @return {Array} The list of files in this directory and subdirs
    */
   static walkDirSync(dir, filelist = []) {
-    fs.readdirSync(dir).forEach(file => {
+    fs.readdirSync(dir).forEach((file) => {
       filelist = fs.statSync(path.join(dir, file)).isDirectory()
         ? Context.walkDirSync(path.join(dir, file), filelist)
         : filelist.concat(path.join(dir, file));
@@ -187,15 +189,16 @@ class Context extends Lifecycle {
    * @throws {Error} If the given key doesn't exist and a default value is not provided
    * @see {@link Context.hasConfig}
    */
-  static getConfig(key, defaultValue) {
+  static getConfig(key: string, defaultValue?: any) {
     if (!config.has(key) && defaultValue !== undefined) {
       return defaultValue;
     }
     return config.get(key);
   }
 
-  getConfig(key) {
-    return Context.getConfig(key);
+  // tslint:disable-next-line:prefer-function-over-method
+  getConfig(key: string, defaultValue?: any) {
+    return Context.getConfig(key, defaultValue);
   }
 
   /**
@@ -203,11 +206,12 @@ class Context extends Lifecycle {
    * @param key
    * @return {*}
    */
-  static hasConfig(key) {
+  static hasConfig(key: string) {
     return config.has(key);
   }
 
-  hasConfig(key) {
+  // tslint:disable-next-line:prefer-function-over-method
+  hasConfig(key: string) {
     return Context.hasConfig(key);
   }
 
@@ -231,7 +235,7 @@ class Context extends Lifecycle {
 
   getObjectsByType(className) {
     const beanDefinitions = this.getDefinitionsByType(className);
-    const instances = PromiseUtil.map(beanDefinitions, bd => bd.getInstance());
+    const instances = PromiseUtil.map(beanDefinitions, (bd) => bd.getInstance());
     return instances.then((arr) => {
       arr.sort((a, b) => {
         const aPos = Object.hasOwnProperty.call(a, 'getOrder') ? a.getOrder() : 0;
@@ -253,7 +257,9 @@ class Context extends Lifecycle {
 
   getDefinitionByName(objectName) {
     const val = this.objectDefinitions.get(objectName);
-    if (val) return val;
+    if (val) {
+      return val;
+    }
     if (this.parentContext) {
       return this.parentContext.getDefinitionByName(objectName);
     }

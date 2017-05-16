@@ -9,6 +9,122 @@ import * as fs from 'fs';
 import * as stream from 'stream';
 import stringify = require('json-stringify-safe');
 
+export interface Logger {
+    /**
+     * Returns a boolean: is the `trace` level enabled?
+     * This is equivalent to `log.isTraceEnabled()` or `log.isEnabledFor(TRACE)` in log4j.
+     */
+    trace(): boolean,
+    /**
+     * The first field can optionally be a "fields" object, which
+     * is merged into the log record.
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    trace(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    trace(format: string | number, ...params: any[]): void,
+
+    /**
+     * Returns a boolean: is the `debug` level enabled?
+     * This is equivalent to `log.isDebugEnabled()` or `log.isEnabledFor(DEBUG)` in log4j.
+     */
+    debug(): boolean,
+
+    /**
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    debug(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    debug(format: string | number, ...params: any[]): void,
+
+    /**
+     * Returns a boolean: is the `info` level enabled?
+     * This is equivalent to `log.isInfoEnabled()` or `log.isEnabledFor(INFO)` in log4j.
+     */
+    info(): boolean,
+
+    /**
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    info(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    info(format: string | number, ...params: any[]): void,
+
+    /**
+     * Returns a boolean: is the `warn` level enabled?
+     * This is equivalent to `log.isWarnEnabled()` or `log.isEnabledFor(WARN)` in log4j.
+     */
+    warn(): boolean,
+
+    /**
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    warn(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    warn(format: string | number, ...params: any[]): void,
+
+    /**
+     * Returns a boolean: is the `error` level enabled?
+     * This is equivalent to `log.isErrorEnabled()` or `log.isEnabledFor(ERROR)` in log4j.
+     */
+    error(): boolean,
+
+    /**
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    error(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    error(format: string | number, ...params: any[]): void,
+
+    /**
+     * Returns a boolean: is the `fatal` level enabled?
+     * This is equivalent to `log.isFatalEnabled()` or `log.isEnabledFor(FATAL)` in log4j.
+     */
+    fatal(): boolean,
+
+    /**
+     * Special case to log an `Error` instance to the record.
+     * This adds an `err` field with exception details
+     * (including the stack) and sets `msg` to the exception
+     * message or you can specify the `msg`.
+     */
+    fatal(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+
+    /**
+     * Uses `util.format` for msg formatting.
+     */
+    fatal(format: string | number, ...params: any[]): void,
+}
+
 class LevelStringifyTransform extends stream.Transform {
   private static levelSerialiser(level) {
     switch (level) {
@@ -126,7 +242,7 @@ class LogManager {
   private streamCache: Map<string, bunyan.Stream> = new Map();
   private appName: string;
 
-  getLogger(filePath) {
+  getLogger(filePath: string): Logger {
     if (filePath.substr(0, 1) !== '/') {
       // It's not a full file path.
       return this.getLoggerInternal(filePath);
@@ -142,7 +258,7 @@ class LogManager {
     return this.appName;
   }
 
-  getLoggerInternal(loggerPath: string) {
+  getLoggerInternal(loggerPath: string): Logger {
     if (!config.has('logging.loggers')) {
       throw new Error('Couldn\'t find loggers configuration!!! Your logging config is wrong!');
     }
@@ -247,9 +363,9 @@ class LogManager {
   }
 }
 
-const SINGLETON = new LogManager();
+const Manager = new LogManager();
 
-const baseLogger = SINGLETON.getLogger('ROOT');
+const baseLogger = Manager.getLogger('ROOT');
 process.on('unhandledRejection', (reason, promise) => {
 // eslint-disable-next-line no-underscore-dangle
   baseLogger.fatal(`Unhandled promise: ${reason} ${(promise && promise._trace && promise._trace.stack) ? promise._trace.stack : ''}`);
@@ -259,4 +375,5 @@ process.on('uncaughtException', (err) => {
   baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
 });
 
-export = SINGLETON;
+export default Manager;
+export { Manager as LogManager }

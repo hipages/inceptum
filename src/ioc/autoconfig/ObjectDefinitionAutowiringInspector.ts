@@ -1,16 +1,36 @@
-const { AbstractObjectDefinitionInspector } = require('../AbstractObjectDefinitionInspector');
-const { SingletonDefinition } = require('../objectdefinition/SingletonDefinition');
+import { BaseSingletonDefinition } from '../objectdefinition/BaseSingletonDefinition';
+import { ObjectDefinition } from '../objectdefinition/ObjectDefinition';
+import { AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionInspector';
+import { SingletonDefinition } from '../objectdefinition/SingletonDefinition';
+
+interface Autowirable {
+  autowire: AutowireInfo,
+}
+interface AutowireInfo {
+  constructorArgs: string[],
+}
 
 class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitionInspector {
-  interestedIn(objectDefinition) {
-    return (objectDefinition instanceof SingletonDefinition) && (objectDefinition.getProducedClass().autowire !== undefined);
+
+  private static getAutowired(objectDefinition: BaseSingletonDefinition<any>): AutowireInfo {
+    return objectDefinition.getProducedClass().hasOwnProperty('autowire') ?
+      (objectDefinition.getProducedClass() as any as Autowirable).autowire : undefined;
+  }
+
+  // tslint:disable-next-line:prefer-function-over-method
+  interestedIn(objectDefinition: ObjectDefinition<any>) {
+    if (!(objectDefinition instanceof BaseSingletonDefinition)) {
+      return false;
+    }
+    return ObjectDefinitionAutowiringInspector.getAutowired(objectDefinition) !== undefined;
   }
 
   /**
-   * @param {SingletonDefinition} objectDefinition singleton definition
+   * @param {BaseSingletonDefinition} objectDefinition singleton definition
    */
-  doInspect(objectDefinition) {
-    const autowire = objectDefinition.getProducedClass().autowire;
+  // tslint:disable-next-line:prefer-function-over-method
+  doInspect(objectDefinition: BaseSingletonDefinition<any>) {
+    const autowire = ObjectDefinitionAutowiringInspector.getAutowired(objectDefinition);
     if (autowire.constructorArgs) {
       autowire.constructorArgs.forEach((val) => {
         switch (val.substr(0, 1)) {

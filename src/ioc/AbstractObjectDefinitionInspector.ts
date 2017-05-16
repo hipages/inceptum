@@ -1,22 +1,28 @@
-const { ObjectDefinitionInspector } = require('./ObjectDefinitionInspector');
+import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
+import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
 
-class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
+type NameOrRegexp = string | RegExp;
+
+export abstract class AbstractObjectDefinitionInspector implements ObjectDefinitionInspector {
+  namePatterns: NameOrRegexp[];
+  inspectAll: boolean;
+  relevantClasses: Function[];
+
   constructor() {
-    super();
-    this.anyClass = [];
+    this.relevantClasses = [];
     this.namePatterns = [];
     this.inspectAll = false;
   }
 
-  addInterestedClass(clazz) {
-    this.anyClass.push(clazz);
+  addInterestedClass(clazz: Function) {
+    this.relevantClasses.push(clazz);
   }
 
-  addNamePattern(nameOrRegex) {
+  addNamePattern(nameOrRegex: NameOrRegexp) {
     this.namePatterns.push(nameOrRegex);
   }
 
-  inspect(objectDefinition) {
+  inspect(objectDefinition: ObjectDefinition<any>) {
     if (this.interestedIn(objectDefinition)) {
       return this.doInspect(objectDefinition);
     }
@@ -28,17 +34,19 @@ class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
    * @param objectDefinition ObjectDefinition The object definition to possibly modify
    * @return boolean Whether it's interested or not in this ObjectDefinition
    */
-  interestedIn(objectDefinition) {
+  interestedIn(objectDefinition: ObjectDefinition<any>) {
     if (this.inspectAll) {
       return true;
     }
-    const relevantClass = this.anyClass.find((clazz) => objectDefinition.getProducedClass() === clazz);
+    const relevantClass = this.relevantClasses.find((clazz) => objectDefinition.getProducedClass() === clazz);
     if (relevantClass) {
       return true;
     }
     const relevantPattern = this.namePatterns.find((nameOrPattern) => {
       if (nameOrPattern instanceof RegExp) {
-        if (nameOrPattern.test(objectDefinition.getName())) return true;
+        if (nameOrPattern.test(objectDefinition.getName())) {
+          return true;
+        }
       } else if (nameOrPattern === objectDefinition.getName()) {
         return true;
       }
@@ -50,19 +58,15 @@ class AbstractObjectDefinitionInspector extends ObjectDefinitionInspector {
     return false;
   }
 
+  setInspectAll(inspectAll: boolean) {
+    this.inspectAll = inspectAll;
+  }
+
   /**
    * If the {@link interestedIn} method returns true, this one will be called to provide
    * the modified version of the bean definition.
    * @param {ObjectDefinition} objectDefinition The object definition to possibly modify
    * @return ObjectDefinition The modified ObjectDefinition
    */
-  doInspect(objectDefinition) {
-    throw new Error(`Unimplemented modify(${typeof objectDefinition})`);
-  }
-
-  setInspectAll(inspectAll) {
-    this.inspectAll = inspectAll;
-  }
+  abstract doInspect(objectDefinition: ObjectDefinition<any>);
 }
-
-module.exports = { AbstractObjectDefinitionInspector };

@@ -1,5 +1,5 @@
 
-class ObjectDefinitionInspector {
+export interface ObjectDefinitionInspector {
   /**
    * Called for every object definition to be inspected.
    * It can modify the ObjectDefinition
@@ -7,9 +7,5 @@ class ObjectDefinitionInspector {
    * @return null or undefined if there's not change to be maded to the ObjectDefinition
    * or the new ObjectDefinition to use.
    */
-  inspect(objectDefinition) {
-    throw new Error(`Unimplemented inspect(${typeof objectDefinition})`);
-  }
+  inspect(objectDefinition),
 }
-
-module.exports = { ObjectDefinitionInspector };
