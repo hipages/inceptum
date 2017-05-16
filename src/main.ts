@@ -12,8 +12,6 @@ class MyClass {
 }
 
 const myInstance = new PreinstantiatedSingletonDefinition<MyClass>(new MyClass());
-myInstance.getInstance().then((i) => {
-  i.
-})
+
 
 myLogger.info('This is a test');

@@ -56,6 +56,7 @@
   "devDependencies": {
     "@types/bunyan": "0.0.36",
     "@types/bunyan-prettystream": "0.1.30",
+    "@types/mysql": "0.0.33",
     "@types/node": "^7.0.18",
     "co-mocha": "^1.1.2",
     "doubleagent": "^1.1.0",
