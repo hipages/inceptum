@@ -174,6 +174,10 @@ class StringifyTransform extends stream.Transform {
 }
 
 class LogManager {
+
+  static setAppName;
+  static getLogger;
+
   private static beSmartOnThePath(thePath: string): string {
     // Let's see if we can find an ancestor called 'src'
     const srcLoc = thePath.indexOf(`${path.sep}src${path.sep}`);

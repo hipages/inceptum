@@ -72,7 +72,7 @@ class MysqlTransaction {
       });
   }
 
-  query(sql, ...bindArrs) {
+  query(sql: string, ...bindArrs: any[]) {
     return runQueryPrivate.call(this, sql, bindArrs);
   }
 
@@ -83,7 +83,7 @@ class MysqlTransaction {
 }
 
 interface ConnectionPool {
-  getConnection(cb: (err: Error, connection: mysql.IConnection) => void);
+  getConnection(cb: (err: Error, connection: mysql.IConnection) => void): void;
   end(): void
 }
 

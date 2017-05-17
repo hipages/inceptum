@@ -1,15 +1,21 @@
-const prometheus = require('prom-client');
+import * as Prometheus from 'prom-client';
+import LogManager from '../log/LogManager';
 const { Context } = require('../ioc/Context');
 const { PreinstantiatedSingletonDefinition } = require('../ioc/objectdefinition/PreinstantiatedSingletonDefinition');
-const logger = require('../log/LogManager').getLogger(__filename);
+const logger = LogManager.getLogger(__filename);
 
+
+type Metric = Prometheus.Counter | Prometheus.Gauge | Prometheus.Summary | Prometheus.Histogram
 
 class MetricsService {
+
+  metricsCache: Map<string, Metric>;
+
   constructor() {
     this.metricsCache = new Map();
   }
 
-  getOrCreate(name, creator) {
+  getOrCreate(name, creator: () => Metric) {
     if (this.metricsCache.has(name)) {
       return this.metricsCache.get(name);
     }
@@ -19,14 +25,15 @@ class MetricsService {
   }
 
   counter(metricName, labels = [], metricHelp) {
-    return this.getOrCreate(`Counter:${metricName}:${labels.join(';')}`, () => new prometheus.Counter(metricName, metricHelp || metricName, labels));
+    return this.getOrCreate(`Counter:${metricName}:${labels.join(';')}`, () => new Prometheus.Counter(metricName, metricHelp || metricName, labels));
   }
   gauge(metricName, labels = [], metricHelp) {
-    return this.getOrCreate(`Gauge:${metricName}:${labels.join(';')}`, () => new prometheus.Gauge(metricName, metricHelp || metricName, labels));
+    return this.getOrCreate(`Gauge:${metricName}:${labels.join(';')}`, () => new Prometheus.Gauge(metricName, metricHelp || metricName, labels));
   }
 
   /**
    * Get a histogram to update
+   * // TODO Should this be summary?
    * @param metricName
    * @param labels
    * @param metricHelp
@@ -34,7 +41,7 @@ class MetricsService {
    */
   histogram(metricName, labels = [], metricHelp) {
     return this.getOrCreate(`Histogram:${metricName}:${labels.join(';')}`,
-      () => new prometheus.Summary(metricName, metricHelp || metricName, labels, {
+      () => new Prometheus.Summary(metricName, metricHelp || metricName, labels, {
         percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
       }));
   }
@@ -43,8 +50,8 @@ class MetricsService {
 const SINGLETON = new MetricsService();
 
 class MetricsManager {
-  static setup(appName) {
-    const defaultMetrics = prometheus.defaultMetrics;
+  static setup(jobName) {
+    const defaultMetrics = Prometheus.defaultMetrics;
 
     // Skip `osMemoryHeap` probe, and probe every 5th second.
     const defaultInterval = defaultMetrics(['osMemoryHeap'], 10000);
@@ -54,9 +61,9 @@ class MetricsManager {
       Context.hasConfig('metrics.gateway.active') &&
       Context.getConfig('metrics.gateway.active')
     ) {
-      const gateway = new prometheus.Pushgateway(Context.getConfig('metrics.gateway.hostport'), { timeout: 2000 });
+      const gateway = new Prometheus.Pushgateway(Object.assign(Context.getConfig('metrics.gateway.hostport'), { timeout: 2000 }));
       const tags = {
-        appName
+        jobName
       };
       const interval = setInterval(() => {
         gateway.pushAdd(tags, (err) => {

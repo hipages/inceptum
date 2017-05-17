@@ -1,4 +1,4 @@
-import LogManager = require('./log/LogManager')
+import LogManager from './log/LogManager';
 import { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 
 LogManager.setAppName('TestApp');

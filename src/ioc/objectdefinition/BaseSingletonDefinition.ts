@@ -293,7 +293,7 @@ export class BaseSingletonDefinition<T> extends SingletonDefinition<T> {
     });
   }
 
-  protected getCopyInstance(): ObjectDefinition<T> {
+  public getCopyInstance(): ObjectDefinition<T> {
     return new BaseSingletonDefinition<T>(this.clazz, this.name, this.logger);
   }
 

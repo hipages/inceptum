@@ -2,7 +2,7 @@
 import { suite, test, slow, timeout } from "mocha-typescript";
 
 const { Context } = require('../../src/ioc/Context');
-const { Lifecycle } = require('../../src/ioc/Lifecycle');
+import { Lifecycle, LifecycleState } from '../../src/ioc/Lifecycle';
 const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
 const { PromiseUtil } = require('../../src/util/PromiseUtil');
 const demand = require('must');
@@ -57,8 +57,8 @@ suite('ioc/Context', () => {
       const childContext = new Context('child context', parentContext);
       return childContext.lcStart()
         .then(() => {
-          childContext.getStatus().must.be.equal(Lifecycle.STATES.STARTED);
-          parentContext.getStatus().must.be.equal(Lifecycle.STATES.STARTED);
+          childContext.getStatus().must.be.equal(LifecycleState.STARTED);
+          parentContext.getStatus().must.be.equal(LifecycleState.STARTED);
         })
         .then(() => childContext.lcStop());
     });
@@ -68,8 +68,8 @@ suite('ioc/Context', () => {
       return childContext.lcStart()
         .then(() => childContext.lcStop())
         .then(() => {
-          childContext.getStatus().must.be.equal(Lifecycle.STATES.STOPPED);
-          parentContext.getStatus().must.be.equal(Lifecycle.STATES.STOPPED);
+          childContext.getStatus().must.be.equal(LifecycleState.STOPPED);
+          parentContext.getStatus().must.be.equal(LifecycleState.STOPPED);
         });
     });
     test('Parent objects are available in the child context', () => {

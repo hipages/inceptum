@@ -175,7 +175,7 @@ export abstract class Lifecycle extends EventEmitter {
   }
 
   copy(): Lifecycle {
-    return new Lifecycle(this.name, this.logger);
+    return this.constructor(this.name, this.logger);
   }
 
   getStatus(): LifecycleState {
