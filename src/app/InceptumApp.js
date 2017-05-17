@@ -41,6 +41,9 @@ class InceptumApp {
   getConfig(key, defaultValue) {
     return Context.getConfig(key, defaultValue);
   }
+  hasConfig(key) {
+    return Context.hasConfig(key);
+  }
 }
 
 module.exports = { InceptumApp };
