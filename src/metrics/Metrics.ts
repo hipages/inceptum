@@ -1,13 +1,13 @@
 import * as Prometheus from 'prom-client';
 import LogManager from '../log/LogManager';
-const { Context } = require('../ioc/Context');
-const { PreinstantiatedSingletonDefinition } = require('../ioc/objectdefinition/PreinstantiatedSingletonDefinition');
+import { Context } from '../ioc/Context';
+import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 const logger = LogManager.getLogger(__filename);
 
 
 type Metric = Prometheus.Counter | Prometheus.Gauge | Prometheus.Summary | Prometheus.Histogram
 
-export class MetricsService {
+export class MetricsServiceImpl {
 
   metricsCache: Map<string, Metric>;
 
@@ -39,15 +39,15 @@ export class MetricsService {
    * @param metricHelp
    * @return {Summary}
    */
-  histogram(metricName, labels = [], metricHelp) {
+  histogram(metricName: string, labels: Array<string> = [], metricHelp?: any) {
     return this.getOrCreate(`Histogram:${metricName}:${labels.join(';')}`,
       () => new Prometheus.Summary(metricName, metricHelp || metricName, labels, {
         percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
       }));
   }
-}
+}``
 
-export const SINGLETON = new MetricsService();
+export const MetricsService = new MetricsServiceImpl();
 
 export class MetricsManager {
   static setup(jobName) {
@@ -92,6 +92,6 @@ export class MetricsManager {
   static registerSingletons(appName, context) {
     MetricsManager.setup(appName);
     // eslint-disable-next-line no-use-before-define
-    context.registerDefinition(new PreinstantiatedSingletonDefinition(SINGLETON, 'MetricsService'));
+    context.registerDefinition(new PreinstantiatedSingletonDefinition(MetricsService, 'MetricsService'));
   }
 }

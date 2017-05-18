@@ -1,9 +1,9 @@
-require('./util/BluePatch');
-const { Context } = require('./ioc/Context');
-const LogManager = require('./log/LogManager');
-const { PromiseUtil } = require('./util/PromiseUtil');
-const { InceptumApp } = require('./app/InceptumApp');
-const { PreinstantiatedSingletonDefinition } = require('./ioc/objectdefinition/PreinstantiatedSingletonDefinition');
+import './util/BluePatch';
+import { Context } from './ioc/Context';
+import LogManager from './log/LogManager';
+import { PromiseUtil } from './util/PromiseUtil';
+import { InceptumApp } from './app/InceptumApp';
+import { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 
 
 module.exports = {

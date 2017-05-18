@@ -2,7 +2,7 @@ import * as mysql from 'mysql';
 import { PromiseUtil } from '../util/PromiseUtil';
 import LogManager from '../log/LogManager';
 import { Transaction, TransactionManager } from '../transaction//TransactionManager';
-const { MetricsService } = require('../metrics/Metrics');
+import { MetricsService } from '../metrics/Metrics';
 const log = LogManager.getLogger(__filename);
 
 function runQueryOnPool(connection: mysql.IConnection, sql: string, bindsArr: Array<any>): Promise<any> {

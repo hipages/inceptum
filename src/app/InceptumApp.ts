@@ -8,7 +8,7 @@ import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDef
 import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
 import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 
-class InceptumApp {
+export class InceptumApp {
 
 
   context: Context;
@@ -48,5 +48,3 @@ class InceptumApp {
     return Context.getConfig(key, defaultValue);
   }
 }
-
-module.exports = { InceptumApp };
