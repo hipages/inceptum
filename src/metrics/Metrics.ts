@@ -7,7 +7,7 @@ const logger = LogManager.getLogger(__filename);
 
 type Metric = Prometheus.Counter | Prometheus.Gauge | Prometheus.Summary | Prometheus.Histogram
 
-class MetricsService {
+export class MetricsService {
 
   metricsCache: Map<string, Metric>;
 
@@ -47,9 +47,9 @@ class MetricsService {
   }
 }
 
-const SINGLETON = new MetricsService();
+export const SINGLETON = new MetricsService();
 
-class MetricsManager {
+export class MetricsManager {
   static setup(jobName) {
     const defaultMetrics = Prometheus.defaultMetrics;
 
@@ -95,5 +95,3 @@ class MetricsManager {
     context.registerDefinition(new PreinstantiatedSingletonDefinition(SINGLETON, 'MetricsService'));
   }
 }
-
-module.exports = { MetricsManager, MetricsService: SINGLETON };

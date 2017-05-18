@@ -1,14 +1,20 @@
-const { MetricsManager } = require('../metrics/Metrics');
-const { Context } = require('../ioc/Context');
-const co = require('co');
-const LogManager = require('../log/LogManager');
-const { MysqlConfigManager } = require('../mysql/MysqlConfigManager');
-const { PreinstantiatedSingletonDefinition } = require('../ioc/objectdefinition/PreinstantiatedSingletonDefinition');
-const { ObjectDefinitionAutowiringInspector } = require('../ioc/autoconfig/ObjectDefinitionAutowiringInspector');
-const { ObjectDefinitionStartStopMethodsInspector } = require('../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');
-const { ObjectDefinitionLazyLoadingInspector } = require('../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector');
+import { MetricsManager } from '../metrics/Metrics';
+import { Context } from '../ioc/Context';
+import co from 'co';
+import LogManager, { Logger } from '../log/LogManager';
+import { MysqlConfigManager } from '../mysql/MysqlConfigManager';
+import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
+import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDefinitionAutowiringInspector';
+import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
+import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 
 class InceptumApp {
+
+
+  context: Context;
+  appName: string;
+  logger: Logger;
+
   /**
    * Creates a new Inceptum App
    */

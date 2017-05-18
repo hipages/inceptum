@@ -1,7 +1,7 @@
-const { AbstractObjectDefinitionInspector } = require('../AbstractObjectDefinitionInspector');
-const { SingletonDefinition } = require('../objectdefinition/SingletonDefinition');
+import {AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionInspector';
+import { SingletonDefinition } from '../objectdefinition/SingletonDefinition';
 
-class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDefinitionInspector {
+export class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDefinitionInspector {
   interestedIn(objectDefinition) {
     return (objectDefinition instanceof SingletonDefinition)
       && (objectDefinition.getProducedClass().startMethod !== undefined
@@ -22,5 +22,3 @@ class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDefinition
     }
   }
 }
-
-module.exports = { ObjectDefinitionStartStopMethodsInspector };
