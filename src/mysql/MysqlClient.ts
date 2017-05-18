@@ -3,7 +3,7 @@ import { PromiseUtil } from '../util/PromiseUtil';
 import LogManager from '../log/LogManager';
 import { Transaction, TransactionManager } from '../transaction//TransactionManager';
 import { MetricsService } from '../metrics/Metrics';
-const log = LogManager.getLogger(__filename);
+const log = LogManager.getLogger();
 
 function runQueryOnPool(connection: mysql.IConnection, sql: string, bindsArr: Array<any>): Promise<any> {
   // console.log(sql);

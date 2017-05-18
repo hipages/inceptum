@@ -2,7 +2,7 @@ import LogManager from './log/LogManager';
 import { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 
 LogManager.setAppName('TestApp');
-const myLogger = LogManager.getLogger(__filename);
+const myLogger = LogManager.getLogger();
 
 class MyClass {
   // tslint:disable-next-line:prefer-function-over-method

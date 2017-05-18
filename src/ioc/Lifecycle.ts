@@ -79,7 +79,7 @@ export abstract class Lifecycle extends EventEmitter {
   constructor(name, logger) {
     super();
     this.name = name;
-    this.logger = logger || LogManager.getLogger(__filename);
+    this.logger = logger || LogManager.getLogger();
     this.status = LifecycleState.NOT_STARTED;
   }
 

@@ -26,7 +26,7 @@ export class Context extends Lifecycle {
   private parentContext: Context;
 
   constructor(name: string, parentContext?: Context, logger?: Logger) {
-    super(name, logger || LogManager.getLogger(__filename));
+    super(name, logger || LogManager.getLogger());
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();
