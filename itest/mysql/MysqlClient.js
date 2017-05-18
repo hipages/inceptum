@@ -11,21 +11,25 @@ myClient.initialise();
 
 describe('MysqlClient', () => {
   describe('Basic queries', () => {
-    it('Gets all 3 records', () => myClient.runInTransaction(true, (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1'))
+    it('Gets all 3 records', 
+    () => myClient.runInTransaction(true, (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1'))
         .then((rows) => {
           rows.length.must.be.equal(3);
-          console.log(rows);
-        }));
-    it('Gets all 3 records inside', () => myClient.runInTransaction(true,
+          console.log(rows.length);
+        })
+     );
+    it('Gets all 3 records inside', (done) => myClient.runInTransaction(true,
       (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1')
         .then((rows) => {
           rows.length.must.be.equal(3);
           console.log(rows);
+          done();
         })
     ));
-    it('Gets all 3 records twice', () => myClient.runInTransaction(true,
+    it('Gets all 3 records twice', (done) => myClient.runInTransaction(true,
       (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1')
         .then((rows) => {
+          console.log('HERE');
           rows.length.must.be.equal(3);
           console.log(rows);
         })
@@ -33,6 +37,7 @@ describe('MysqlClient', () => {
         .then((rows) => {
           rows.length.must.be.equal(3);
           console.log(rows);
+          done();
         })
     ));
   });

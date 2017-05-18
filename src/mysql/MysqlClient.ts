@@ -38,7 +38,7 @@ function getConnectionPromise(connectionPool: mysql.IPool): Promise<mysql.IConne
 function runQueryPrivate(sql: string, bindsArr: Array<any>): Promise<any> {
   return PromiseUtil.try(() => {
     if (!this.connection) {
-      return getConnectionPromise(this.myslqClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
+      return getConnectionPromise(this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
     }
     return this.connection;
   })
@@ -198,7 +198,10 @@ export class MysqlClient {
         transaction.markError(err);
         throw err;
       })
-      .finally(() => mysqlTransaction.end());
+      .finally((result) => {
+        mysqlTransaction.end()
+        return Promise.resolve(result); // TODO This weird?
+      });
   }
 
   shutdown() {
