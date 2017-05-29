@@ -4,6 +4,7 @@ const { Lifecycle } = require('../../src/ioc/Lifecycle');
 const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
 const { PromiseUtil } = require('../../src/util/PromiseUtil');
 const demand = require('must');
+const logger = require('../../src/log/LogManager').getLogger(__filename);
 
 class A {
   constructor(val) {
@@ -19,6 +20,12 @@ class B {
   }
   shutdown() {
     // console.log('Shutting down instance of B');
+  }
+  delayedStart() {
+    logger.info('Starting delayed start');
+    return new Promise((resolve) => {
+      setTimeout(() => { logger.info('Delaya done'); resolve(); }, 100);
+    });
   }
 }
 
@@ -344,6 +351,27 @@ describe('ioc/Context', () => {
           a.val.must.be.equal(b);
         })
         .then(() => myContext.lcStop());
+    });
+    it('can manage diamond dependencies', () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(B).startFunction('delayedStart'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A1').setPropertyByValue().setPropertyByRef('b', 'B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2').setPropertyByRef('b', 'B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'Final').setPropertyByRef('a1', 'A1').setPropertyByRef('a2', 'A2'));
+      return myContext.lcStart()
+        .then(() => myContext.getObjectByName('Final'))
+        .then((final) => {
+          demand(final).is.not.undefined();
+          demand(final.a1).is.not.undefined();
+          demand(final.a2).is.not.undefined();
+          demand(final.a1.b).is.not.undefined();
+          demand(final.a2.b).is.not.undefined();
+          final.a1.b.must.be.equal(final.a2.b);
+        })
+        .then(() => myContext.lcStop(), (err) => {
+          myContext.lcStop();
+          throw err;
+        });
     });
     it('throws an exception when the circular dependency is in the constructor', () => {
       const myContext = new Context('test1');
