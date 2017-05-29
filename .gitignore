@@ -37,3 +37,4 @@ Thumbs.db
 docs/_site
 dist/
 .vscode
+dist

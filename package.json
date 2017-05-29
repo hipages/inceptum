@@ -26,6 +26,7 @@
     "test": "test"
   },
   "dependencies": {
+    "deep-assign": "2.0.0",
     "body-parser": "^1.15.2",
     "bunyan": "^1.8.5",
     "bunyan-prettystream": "0.1.3",
