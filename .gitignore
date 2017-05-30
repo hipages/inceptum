@@ -38,3 +38,5 @@ docs/_site
 dist/
 .vscode
 dist
+
+.nyc*

@@ -1,57 +1,160 @@
-import * as Prometheus from 'prom-client';
-import LogManager from '../log/LogManager';
+import * as prometheus from 'prom-client';
 import { Context } from '../ioc/Context';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
+import { LogManager } from '../log/LogManager';
 const logger = LogManager.getLogger(__filename);
 
+interface labelValues {
+	[key: string]: string|number
+}
 
-type Metric = Prometheus.Counter | Prometheus.Gauge | Prometheus.Summary | Prometheus.Histogram
+/**
+ * A counter is a cumulative metric that represents a single numerical value that only ever goes up
+ */
+export interface Counter {
 
-export class MetricsServiceImpl {
+	/**
+	 * Increment for given labels
+	 * @param labels Object with label keys and values
+	 * @param value The number to increment with
+	 */
+	inc(labels: labelValues, value?: number): void
 
-  metricsCache: Map<string, Metric>;
+	/**
+	 * Increment with value
+	 * @param value The value to increment with
+	 */
+	inc(value?: number): void
+}
+
+export interface Gauge {
+	/**
+	 * Increment gauge for given labels
+	 * @param labels Object with label keys and values
+	 * @param value The value to increment with
+	 */
+	inc(labels: labelValues, value?: number): void
+
+	/**
+	 * Increment gauge
+	 * @param value The value to increment with
+	 */
+	inc(value?: number): void
+
+	/**
+	 * Decrement gauge
+	 * @param labels Object with label keys and values
+	 * @param value Value to decrement with
+	 */
+	dec(labels: labelValues, value?: number): void
+
+	/**
+	 * Decrement gauge
+	 * @param value The value to decrement with
+	 */
+	dec(value?: number): void
+
+
+	/**
+	 * Set gauge value for labels
+	 * @param lables Object with label keys and values
+	 * @param value The value to set
+	 */
+	set(labels: labelValues, value: number): void
+
+	/**
+	 * Set gauge value
+	 * @param value The value to set
+	 */
+	set(value: number): void
+
+	/**
+	 * Set gauge value to current epoch time in ms
+	 * @param labels Object with label keys and values
+	 */
+	setToCurrentTime(labels?: labelValues): void
+
+	/**
+	 * Start a timer where the gauges value will be the duration in seconds
+	 * @param labels Object with label keys and values
+	 * @return Function to invoke when timer should be stopped
+	 */
+	startTimer(labels?: labelValues): (labels?: labelValues) => void
+}
+
+/**
+ * A summary samples observations
+ */
+export interface Histogram {
+	/**
+	 * Observe value in summary
+	 * @param value The value to observe
+	 */
+	observe(value: number): void
+	/**
+	 * Observe value for given labels
+	 * @param labels Object with label keys and values
+	 * @param value Value to observe
+	 */
+	observe(labels: labelValues, value: number): void
+	/**
+	 * Start a timer where the value in seconds will observed
+	 * @param labels Object with label keys and values
+	 * @return Function to invoke when timer should be stopped
+	 */
+	startTimer(labels?: labelValues): (labels?: labelValues) => void
+	/**
+	 * Reset all values in the summary
+	 */
+	reset(): void
+}
+
+class MetricsServiceInternal {
+  gaugeCache: Map<string, Gauge>;
+  counterCache: Map<string, Counter>;
+  histogramCache: Map<string, Histogram>;
 
   constructor() {
-    this.metricsCache = new Map();
+    this.counterCache = new Map<string, prometheus.Counter>();
+    this.gaugeCache = new Map<string, prometheus.Gauge>();
   }
 
-  getOrCreate(name, creator: () => Metric) {
-    if (this.metricsCache.has(name)) {
-      return this.metricsCache.get(name);
+  protected getOrCreate(map: Map<string, any>, name: string, creator: ()=>any) {
+    if (map.has(name)) {
+      return map.get(name);
     }
     const metric = creator();
-    this.metricsCache.set(name, metric);
+    map.set(name, metric);
     return metric;
   }
 
-  counter(metricName, labels = [], metricHelp) {
-    return this.getOrCreate(`Counter:${metricName}:${labels.join(';')}`, () => new Prometheus.Counter(metricName, metricHelp || metricName, labels));
+  counter(metricName, labels = [], metricHelp?: string): Counter {
+    return this.getOrCreate(this.counterCache, `Counter:${metricName}:${labels.join(';')}`, () => new prometheus.Counter(metricName, metricHelp || metricName, labels));
   }
-  gauge(metricName, labels = [], metricHelp) {
-    return this.getOrCreate(`Gauge:${metricName}:${labels.join(';')}`, () => new Prometheus.Gauge(metricName, metricHelp || metricName, labels));
+  gauge(metricName, labels = [], metricHelp?: string): Gauge {
+    return this.getOrCreate(this.gaugeCache, `Gauge:${metricName}:${labels.join(';')}`, () => new prometheus.Gauge(metricName, metricHelp || metricName, labels));
   }
 
   /**
    * Get a histogram to update
-   * // TODO Should this be summary?
    * @param metricName
    * @param labels
    * @param metricHelp
    * @return {Summary}
    */
-  histogram(metricName: string, labels: Array<string> = [], metricHelp?: any) {
-    return this.getOrCreate(`Histogram:${metricName}:${labels.join(';')}`,
-      () => new Prometheus.Summary(metricName, metricHelp || metricName, labels, {
+  histogram(metricName, labels = [], metricHelp?: string): Histogram {
+    return this.getOrCreate(this.histogramCache, `Histogram:${metricName}:${labels.join(';')}`,
+      () => new prometheus.Summary(metricName, metricHelp || metricName, labels, {
         percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
       }));
   }
-}``
+}
 
-export const MetricsService = new MetricsServiceImpl();
+export const MetricsService = new MetricsServiceInternal();
 
 export class MetricsManager {
-  static setup(jobName) {
-    const defaultMetrics = Prometheus.defaultMetrics;
+  static setup(appName: string) {
+    const defaultMetrics = prometheus.defaultMetrics;
 
     // Skip `osMemoryHeap` probe, and probe every 5th second.
     const defaultInterval = defaultMetrics(['osMemoryHeap'], 10000);
@@ -61,9 +164,10 @@ export class MetricsManager {
       Context.hasConfig('metrics.gateway.active') &&
       Context.getConfig('metrics.gateway.active')
     ) {
-      const gateway = new Prometheus.Pushgateway(Object.assign(Context.getConfig('metrics.gateway.hostport'), { timeout: 2000 }));
+      const gateway = new prometheus.Pushgateway(Context.getConfig('metrics.gateway.hostport'));
       const tags = {
-        jobName
+        jobName: 'msPush',
+        appName
       };
       const interval = setInterval(() => {
         gateway.pushAdd(tags, (err) => {
@@ -89,9 +193,11 @@ export class MetricsManager {
     }
   }
 
-  static registerSingletons(appName, context) {
+  static registerSingletons(appName: string, context: Context) {
     MetricsManager.setup(appName);
     // eslint-disable-next-line no-use-before-define
     context.registerDefinition(new PreinstantiatedSingletonDefinition(MetricsService, 'MetricsService'));
   }
 }
+
+// module.exports = { MetricsManager, MetricsService: SINGLETON };
