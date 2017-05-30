@@ -10,7 +10,7 @@ interface AutowireInfo {
   constructorArgs: string[],
 }
 
-class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitionInspector {
+export class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitionInspector {
 
   private static getAutowired(objectDefinition: BaseSingletonDefinition<any>): AutowireInfo {
     return objectDefinition.getProducedClass().hasOwnProperty('autowire') ?
@@ -68,5 +68,3 @@ class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitionInspec
     });
   }
 }
-
-module.exports = { ObjectDefinitionAutowiringInspector };

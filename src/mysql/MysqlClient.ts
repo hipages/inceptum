@@ -1,10 +1,12 @@
-const mysql = require('mysql');
-const { TransactionManager } = require('../transaction/TransactionManager');
-const { PromiseUtil } = require('../util/PromiseUtil');
-const log = require('../log/LogManager').getLogger(__filename);
-const { MetricsService } = require('../metrics/Metrics');
+import * as mysql from 'mysql';
+import { Transaction, TransactionManager } from '../transaction/TransactionManager';
+import { PromiseUtil } from '../util/PromiseUtil';
+import { LogManager } from '../log/LogManager';
+import { Histogram, MetricsService } from '../metrics/Metrics';
 
-function runQueryOnPool(connection, sql, bindsArr) {
+const log = LogManager.getLogger(__filename);
+
+function runQueryOnPool(connection, sql: string, bindsArr: any[]) {
   // console.log(sql);
   log.debug(`sql: ${sql} ${(bindsArr && (bindsArr.length > 0)) ? `| ${bindsArr}` : ''}`);
   if (!Array.isArray(bindsArr)) {
@@ -46,12 +48,14 @@ function runQueryPrivate(sql, bindsArr) {
 }
 
 class MysqlTransaction {
+  transaction: Transaction;
+  myslqClient: MysqlClient;
   /**
    *
    * @param {MysqlClient} myslqClient
    * @param transaction
    */
-  constructor(myslqClient, transaction) {
+  constructor(myslqClient: MysqlClient, transaction: Transaction) {
     this.myslqClient = myslqClient;
     this.transaction = transaction;
   }
@@ -81,6 +85,11 @@ class MysqlTransaction {
 }
 
 class MetricsAwareConnectionPoolWrapper {
+  instance: any;
+  numConnections: number;
+  enqueueTimes: any[];
+  durationHistogram: Histogram;
+  active: number;
   constructor(instance, name) {
     this.instance = instance;
     this.active = 0;
@@ -128,7 +137,17 @@ class MetricsAwareConnectionPoolWrapper {
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
-class MysqlClient {
+export class MysqlClient {
+  connectionPoolCreator: (config: any) => MetricsAwareConnectionPoolWrapper;
+  enable57Mode: boolean;
+  slavePool: any;
+  masterPool: any;
+  name: string;
+  configuration: {
+    master?: any
+    slave?: any
+    enable57Mode?: boolean
+  };
   constructor() {
     this.configuration = {};
     this.name = 'NotSet';
@@ -205,10 +224,10 @@ class MysqlClient {
     }
     throw new Error('Couldn\'t find an appropriate connection pool');
   }
-}
 
-MysqlClient.startMethod = 'initialise';
-MysqlClient.stopMethod = 'shutdown';
+  static startMethod:string = 'initialise';
+  static stopMethod:string = 'shutdown';
+}
 
 const TestUtil = { runQueryOnPool };
 

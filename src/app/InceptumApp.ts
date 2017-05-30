@@ -1,18 +1,21 @@
-const { MetricsManager } = require('../metrics/Metrics');
-const { Context } = require('../ioc/Context');
-const co = require('co');
-const LogManager = require('../log/LogManager');
-const { MysqlConfigManager } = require('../mysql/MysqlConfigManager');
-const { PreinstantiatedSingletonDefinition } = require('../ioc/objectdefinition/PreinstantiatedSingletonDefinition');
-const { ObjectDefinitionAutowiringInspector } = require('../ioc/autoconfig/ObjectDefinitionAutowiringInspector');
-const { ObjectDefinitionStartStopMethodsInspector } = require('../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector');
-const { ObjectDefinitionLazyLoadingInspector } = require('../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector');
+import * as co from 'co';
+import { Context } from '../ioc/Context';
+import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
+import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDefinitionAutowiringInspector';
+import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
+import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
+import { MetricsManager } from '../metrics/Metrics';
+import { Logger, LogManager } from '../log/LogManager';
+import { MysqlConfigManager } from '../mysql/MysqlConfigManager';
 
 class InceptumApp {
+  logger: Logger;
+  context: Context;
+  appName: string;
   /**
    * Creates a new Inceptum App
    */
-  constructor(logger) {
+  constructor(logger: Logger) {
     this.appName = Context.getConfig('app.name', 'TestApp');
     LogManager.setAppName(this.appName);
     this.context = new Context(Context.getConfig('app.context.name', 'BaseContext'));
@@ -24,24 +27,24 @@ class InceptumApp {
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
     this.logger = logger || LogManager.getLogger(__filename);
   }
-  start() {
+  start(): Promise<void> {
     const self = this;
     process.on('SIGINT', () => {
       co(self.stop().then(() => process.exit()));
     });
     return this.context.lcStart();
   }
-  stop() {
+  stop(): Promise<void> {
     this.logger.info('Shutting down app');
     return this.context.lcStop();
   }
-  getContext() {
+  getContext(): Context {
     return this.context;
   }
-  getConfig(key, defaultValue) {
+  getConfig(key, defaultValue): any {
     return Context.getConfig(key, defaultValue);
   }
-  hasConfig(key) {
+  hasConfig(key): boolean {
     return Context.hasConfig(key);
   }
 }

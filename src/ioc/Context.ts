@@ -189,7 +189,7 @@ export class Context extends Lifecycle {
    * @throws {Error} If the given key doesn't exist and a default value is not provided
    * @see {@link Context.hasConfig}
    */
-  static getConfig(key: string, defaultValue?: any) {
+  static getConfig(key: string, defaultValue?: any): any {
     if (!config.has(key) && defaultValue !== undefined) {
       return defaultValue;
     }
@@ -197,7 +197,7 @@ export class Context extends Lifecycle {
   }
 
   // tslint:disable-next-line:prefer-function-over-method
-  getConfig(key: string, defaultValue?: any) {
+  getConfig(key: string, defaultValue?: any): any {
     return Context.getConfig(key, defaultValue);
   }
 
@@ -206,12 +206,12 @@ export class Context extends Lifecycle {
    * @param key
    * @return {*}
    */
-  static hasConfig(key: string) {
+  static hasConfig(key: string): boolean {
     return config.has(key);
   }
 
   // tslint:disable-next-line:prefer-function-over-method
-  hasConfig(key: string) {
+  hasConfig(key: string): boolean {
     return Context.hasConfig(key);
   }
 
