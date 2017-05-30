@@ -1,14 +1,14 @@
-import * as co from 'co';
 import { Context } from '../ioc/Context';
+import co from 'co';
+import LogManager, { Logger } from '../log/LogManager';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDefinitionAutowiringInspector';
 import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
 import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 import { MetricsManager } from '../metrics/Metrics';
-import { Logger, LogManager } from '../log/LogManager';
 import { MysqlConfigManager } from '../mysql/MysqlConfigManager';
 
-class InceptumApp {
+export class InceptumApp {
   logger: Logger;
   context: Context;
   appName: string;
@@ -48,5 +48,3 @@ class InceptumApp {
     return Context.hasConfig(key);
   }
 }
-
-module.exports = { InceptumApp };

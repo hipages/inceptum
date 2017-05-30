@@ -3,15 +3,17 @@ export class TransactionError extends Error {
 }
 
 export class Transaction {
-  rollbackListeners: any[];
-  commitListeners: any[];
-  error: any;
-  finished: boolean;
-  began: boolean;
-  readonly: boolean;
+
   static idInc: number;
   
   id: number;
+  readonly: Boolean;
+  began: Boolean;
+  finished: Boolean;
+  error: Error;
+  commitListeners: Array<(Transaction) => Promise<any>>;
+  rollbackListeners: Array<(Transaction) => Promise<any>>;
+
   constructor(readonly: boolean) {
     this.id = Transaction.idInc++;
     this.readonly = readonly;
@@ -85,6 +87,7 @@ export class Transaction {
     // }
   }
 }
+
 Transaction.idInc = 1;
 
 export class TransactionManager {

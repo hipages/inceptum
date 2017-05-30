@@ -1,2 +1,3 @@
 --recursive
 --require itest/helper
+--compilers ts:ts-node/register

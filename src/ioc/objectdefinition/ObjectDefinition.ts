@@ -49,7 +49,7 @@ export abstract class ObjectDefinition<T> extends Lifecycle {
   // Information methods
   // ************************************
 
-  getProducedClass(): Function {
+  getProducedClass(): any { // TODO figure out how to to static interfaces for startMethod, stopMethod
     return this.clazz;
   }
 

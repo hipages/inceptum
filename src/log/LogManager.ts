@@ -174,6 +174,10 @@ class StringifyTransform extends stream.Transform {
 }
 
 class LogManager {
+
+  static setAppName;
+  static getLogger;
+
   private static beSmartOnThePath(thePath: string): string {
     // Let's see if we can find an ancestor called 'src'
     const srcLoc = thePath.indexOf(`${path.sep}src${path.sep}`);
@@ -242,12 +246,14 @@ class LogManager {
   private streamCache: Map<string, bunyan.Stream> = new Map();
   private appName: string;
 
-  getLogger(filePath: string): Logger {
-    if (filePath.substr(0, 1) !== '/') {
+  getLogger(filePath?: string): Logger {
+    const thePath = filePath || _getCallerFile();
+
+    if (thePath.substr(0, 1) !== '/') {
       // It's not a full file path.
-      return this.getLoggerInternal(filePath);
+      return this.getLoggerInternal(thePath);
     }
-    return this.getLoggerInternal(LogManager.beSmartOnThePath(filePath));
+    return this.getLoggerInternal(LogManager.beSmartOnThePath(thePath));
   }
 
   setAppName(appName: string): void {
@@ -374,6 +380,40 @@ process.on('unhandledRejection', (reason, promise) => {
 process.on('uncaughtException', (err) => {
   baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
 });
+
+declare class Error {
+  static prepareStackTrace: any;
+  stack: Array<StackLine>;
+  constructor(message?: string);
+}
+
+declare interface StackLine {
+  getFileName: () => string;
+}
+
+function _getCallerFile() {
+    var originalFunc = Error.prepareStackTrace;
+
+    var callerfile;
+    try {
+        var err = new Error();
+        var currentfile;
+
+        Error.prepareStackTrace = function (err, stack) { return stack; };
+
+        currentfile = err.stack.shift().getFileName();
+
+        while (err.stack.length) {
+            callerfile = err.stack.shift().getFileName();
+
+            if(currentfile !== callerfile) break;
+        }
+    } catch (e) {}
+
+    Error.prepareStackTrace = originalFunc; 
+
+    return callerfile;
+}
 
 export default Manager;
 export { Manager as LogManager }
