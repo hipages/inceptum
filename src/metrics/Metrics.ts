@@ -4,7 +4,7 @@ import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/Prei
 import { LogManager } from '../log/LogManager';
 const logger = LogManager.getLogger(__filename);
 
-interface labelValues {
+export interface labelValues {
 	[key: string]: string|number
 }
 
@@ -109,7 +109,7 @@ export interface Histogram {
 	reset(): void
 }
 
-class MetricsServiceInternal {
+export class MetricsServiceInternal {
   gaugeCache: Map<string, Gauge>;
   counterCache: Map<string, Counter>;
   histogramCache: Map<string, Histogram>;

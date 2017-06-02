@@ -1,7 +1,7 @@
 import * as mysql from 'mysql';
 import { Transaction, TransactionManager } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
-import LogManager from '../log/LogManager';
+import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 
 const log = LogManager.getLogger();
@@ -46,9 +46,19 @@ function runQueryPrivate(sql: string, bindsArr: Array<any>): Promise<any> {
     .then((connection) => runQueryOnPool(connection, `/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr));
 }
 
+function runQueryAssocPrivate(sql: string, bindsObj: object): Promise<any> {
+  if (sql.indexOf('::') < 0 || !bindsObj) {
+    return runQueryPrivate.call(this, sql, []);
+  }
+  sql.replace(/::(\w)+::/g, (substr, key) => {
+    if (bindsObj.hasOwnProperty(key)) {
+      return bindsObj[key];
+    }
+    return substr;
+  });
+}
 
-
-class MysqlTransaction {
+export class MysqlTransaction {
   transaction: Transaction;
   mysqlClient: MysqlClient;
 
@@ -71,8 +81,12 @@ class MysqlTransaction {
       });
   }
 
-  query(sql: string, ...bindArrs: any[]) {
+  query(sql: string, ...bindArrs: any[]): Promise<any> {
     return runQueryPrivate.call(this, sql, bindArrs);
+  }
+
+  queryAssoc(sql: string, bindObj: object): Promise<any> {
+    return runQueryAssocPrivate.call(this, sql, bindObj);
   }
 
   end(): void {
@@ -81,7 +95,7 @@ class MysqlTransaction {
 
 }
 
-interface ConnectionPool {
+export interface ConnectionPool {
   getConnection(cb: (err: Error, connection: mysql.IConnection) => void): void;
   end(): void
 }
@@ -136,7 +150,7 @@ class MetricsAwareConnectionPoolWrapper implements ConnectionPool {
   }
 }
 
-interface ConfigurationObject {
+export interface ConfigurationObject {
   enable57Mode?: boolean,
   master?: mysql.IPoolConfig,
   slave?: mysql.IPoolConfig

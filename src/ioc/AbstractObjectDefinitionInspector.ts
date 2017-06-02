@@ -1,7 +1,7 @@
 import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
 import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
 
-type NameOrRegexp = string | RegExp;
+export type NameOrRegexp = string | RegExp;
 
 export abstract class AbstractObjectDefinitionInspector implements ObjectDefinitionInspector {
   namePatterns: NameOrRegexp[];

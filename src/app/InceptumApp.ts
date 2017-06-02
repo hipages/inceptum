@@ -1,6 +1,6 @@
 import { Context } from '../ioc/Context';
 import co from 'co';
-import LogManager, { Logger } from '../log/LogManager';
+import { LogManager, Logger } from '../log/LogManager';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDefinitionAutowiringInspector';
 import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
@@ -15,7 +15,7 @@ export class InceptumApp {
   /**
    * Creates a new Inceptum App
    */
-  constructor(logger: Logger) {
+  constructor(logger?: Logger) {
     this.appName = Context.getConfig('app.name', 'TestApp');
     LogManager.setAppName(this.appName);
     this.context = new Context(Context.getConfig('app.context.name', 'BaseContext'));

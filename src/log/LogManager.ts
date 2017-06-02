@@ -173,7 +173,7 @@ class StringifyTransform extends stream.Transform {
   }
 }
 
-class LogManager {
+export class LogManagerInternal {
 
   static setAppName;
   static getLogger;
@@ -235,7 +235,7 @@ class LogManager {
         os.tmpdir();
     const finalPath = path.resolve(basePath, thePath);
     if (!fs.existsSync(path.dirname(finalPath))) {
-      LogManager.mkdirpSync(path.dirname(finalPath), 0o766);
+      LogManagerInternal.mkdirpSync(path.dirname(finalPath), 0o766);
     }
     // eslint-disable-next-line no-console
     // tslint:disable-next-line:no-console
@@ -247,13 +247,14 @@ class LogManager {
   private appName: string;
 
   getLogger(filePath?: string): Logger {
+    console.log(`Got here with filePath: ${filePath}`);
     const thePath = filePath || _getCallerFile();
 
     if (thePath.substr(0, 1) !== '/') {
       // It's not a full file path.
       return this.getLoggerInternal(thePath);
     }
-    return this.getLoggerInternal(LogManager.beSmartOnThePath(thePath));
+    return this.getLoggerInternal(LogManagerInternal.beSmartOnThePath(thePath));
   }
 
   setAppName(appName: string): void {
@@ -290,7 +291,7 @@ class LogManager {
       (streamName) =>
         this.getStreamConfig(
           streamName,
-          LogManager.getEffectiveLevel(loggerName, streamName, streamNames[streamName],
+          LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName],
           ),
         ),
     );
@@ -347,7 +348,7 @@ class LogManager {
           {
             const levelStringifyTransform = new LevelStringifyTransform();
             levelStringifyTransform.pipe(new StringifyTransform()).pipe(new RotatingFileStream({
-              path: LogManager.resolvePath(streamConfig.path),
+              path: LogManagerInternal.resolvePath(streamConfig.path),
               period: streamConfig.period || '1d',
               count: streamConfig.count || 14,
             }));
@@ -357,7 +358,7 @@ class LogManager {
         case 'redis':
           {
             const levelStringifyTransform = new LevelStringifyTransform();
-            levelStringifyTransform.pipe(LogManager.getRedisStream(streamConfig));
+            levelStringifyTransform.pipe(LogManagerInternal.getRedisStream(streamConfig));
             this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
@@ -369,9 +370,9 @@ class LogManager {
   }
 }
 
-const Manager = new LogManager();
+export const LogManager = new LogManagerInternal();
 
-const baseLogger = Manager.getLogger('ROOT');
+const baseLogger = LogManager.getLogger('ROOT');
 process.on('unhandledRejection', (reason, promise) => {
 // eslint-disable-next-line no-underscore-dangle
   baseLogger.fatal(`Unhandled promise: ${reason} ${(promise && promise._trace && promise._trace.stack) ? promise._trace.stack : ''}`);
@@ -381,39 +382,33 @@ process.on('uncaughtException', (err) => {
   baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
 });
 
-declare class Error {
+declare class Error2 {
   static prepareStackTrace: any;
-  stack: Array<StackLine>;
+  structuredStackTrace: Array<StackLine>;
   constructor(message?: string);
 }
 
-declare interface StackLine {
+interface StackLine {
   getFileName: () => string;
 }
 
 function _getCallerFile() {
-    var originalFunc = Error.prepareStackTrace;
-
-    var callerfile;
+    var callerFile;
     try {
         var err = new Error();
-        var currentfile;
+        const unused = err.stack.length;
+        const typedError = err as any as Error2;
+        const structuredStackTrace = typedError.structuredStackTrace;
+        const currentFile = structuredStackTrace.shift().getFileName();
+        while (structuredStackTrace.length) {
+            callerFile = structuredStackTrace.shift().getFileName();
+            console.log(`Caller file ${callerFile}`);
 
-        Error.prepareStackTrace = function (err, stack) { return stack; };
-
-        currentfile = err.stack.shift().getFileName();
-
-        while (err.stack.length) {
-            callerfile = err.stack.shift().getFileName();
-
-            if(currentfile !== callerfile) break;
+            if(currentFile !== callerFile) break;
         }
-    } catch (e) {}
-
-    Error.prepareStackTrace = originalFunc; 
-
-    return callerfile;
+    } catch (e) {
+      console.log(e);
+    }
+    
+    return callerFile;
 }
-
-export default Manager;
-export { Manager as LogManager }
