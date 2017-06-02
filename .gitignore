@@ -35,8 +35,8 @@ Thumbs.db
 #dotenv
 .env
 docs/_site
-
+dist/
 .vscode
 dist
 
-.nyc_output
+.nyc*

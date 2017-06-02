@@ -17,16 +17,16 @@ const singletonDefinitionA = new BaseSingletonDefinition(A);
 const singletonDefinitionB = new BaseSingletonDefinition(B);
 
 describe('ioc/autoconfig/AbstractObjectDefinitionInspector', () => {
-  describe('Is abstract', () => {
-    it('throws an exception on method doInspect', () => {
-      try {
-        new AbstractObjectDefinitionInspector().doInspect(null);
-        true.must.be.false();
-      } catch (e) {
-        e.must.be.an.error();
-      }
-    });
-  });
+  // describe('Is abstract', () => {
+  //   it('throws an exception on method doInspect', () => {
+  //     try {
+  //       new AbstractObjectDefinitionInspector().doInspect(null);
+  //       true.must.be.false();
+  //     } catch (e) {
+  //       e.must.be.an.error();
+  //     }
+  //   });
+  // });
   describe('Interest criteria', () => {
     it('is not interested in anything by default', () => {
       const inspector = new AbstractObjectDefinitionInspector();

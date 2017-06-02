@@ -2,6 +2,7 @@ instrumentation:
   root: .
   extensions:
     - .js
+    - .ts
   default-excludes: true
   excludes:
     - src/util/CoroutineReplacement.js

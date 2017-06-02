@@ -1,8 +1,9 @@
-const { BaseSingletonDefinition } = require('../ioc/objectdefinition/BaseSingletonDefinition');
-const { MysqlClient } = require('./MysqlClient');
+import { Context } from '../ioc/Context';
+import { MysqlClient } from './MysqlClient';
+import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 
-class MysqlConfigManager {
-  static registerSingletons(context) {
+export class MysqlConfigManager {
+  static registerSingletons(context: Context) {
     if (!context.hasConfig('mysql')) {
       // No Mysql configured. Skipping
       return;
@@ -16,5 +17,3 @@ class MysqlConfigManager {
     });
   }
 }
-
-module.exports = { MysqlConfigManager };

@@ -1,2 +1,4 @@
 --recursive
 --require test/helper
+--compilers ts:ts-node/register
+--full-trace
