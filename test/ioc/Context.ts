@@ -6,7 +6,8 @@ import { Lifecycle, LifecycleState } from '../../src/ioc/Lifecycle';
 const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
 const { PromiseUtil } = require('../../src/util/PromiseUtil');
 const demand = require('must');
-const logger = require('../../src/log/LogManager').getLogger(__filename);
+import LogManager from '../../src/log/LogManager';
+const logger = LogManager.getLogger();
 
 class A {
   private val;

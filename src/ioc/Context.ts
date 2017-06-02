@@ -255,7 +255,7 @@ export class Context extends Lifecycle {
   // Get Bean Definition Functions
   // ************************************
 
-  getDefinitionByName(objectName) {
+  getDefinitionByName(objectName):ObjectDefinition<any> {
     const val = this.objectDefinitions.get(objectName);
     if (val) {
       return val;
@@ -266,7 +266,7 @@ export class Context extends Lifecycle {
     throw new IoCException(`No object definition with name ${objectName} registered in the context`);
   }
 
-  getDefinitionByType(className) {
+  getDefinitionByType(className): ObjectDefinition<any> {
     const resp = this.getDefinitionsByType(className);
     if (resp.length > 1) {
       throw new IoCException(
@@ -275,7 +275,7 @@ export class Context extends Lifecycle {
     return resp[0];
   }
 
-  getDefinitionsByType(className, failOnMissing = true) {
+  getDefinitionsByType(className, failOnMissing = true): Array<ObjectDefinition<any>> {
     const resp = new Map();
     if (this.parentContext) {
       this.parentContext.getDefinitionsByType(className, false).forEach(

@@ -8,6 +8,7 @@ export abstract class ObjectDefinition<T> extends Lifecycle {
   instance: T;
   lazyLoading: boolean;
   clazz: Function;
+  
   constructor(clazz: Function, name: string, logger: Logger) {
     super(name || clazz.name, logger || LogManager.getLogger(__filename));
     this.clazz = clazz;
