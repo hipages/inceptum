@@ -38,3 +38,5 @@ docs/_site
 
 .vscode
 dist
+
+.nyc_output
