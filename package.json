@@ -1,6 +1,6 @@
 {
   "name": "inceptum",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
