@@ -1,5 +1,6 @@
 
-global.Promise.prototype.finally = function (f) {
+global.Promise.prototype.finally = function(f) {
+  // tslint:disable-next-line:no-invalid-this
   return this.then(
     (r) =>
       f()
@@ -10,10 +11,11 @@ global.Promise.prototype.finally = function (f) {
           throw r;
         }, () => {
           throw r;
-        })
+        }),
     );
 };
 
-global.Promise.prototype.spread = function (f) {
+global.Promise.prototype.spread = function(f) {
+  // tslint:disable-next-line:no-invalid-this
   return this.then((argArr) => f(...argArr));
 };

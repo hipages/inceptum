@@ -2,6 +2,7 @@ import {AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionIns
 import { SingletonDefinition } from '../objectdefinition/SingletonDefinition';
 
 export class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDefinitionInspector {
+  // tslint:disable-next-line:prefer-function-over-method
   interestedIn(objectDefinition) {
     return (objectDefinition instanceof SingletonDefinition)
       && (objectDefinition.getProducedClass().startMethod !== undefined
@@ -11,6 +12,7 @@ export class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDef
   /**
    * @param {SingletonDefinition} objectDefinition singleton definition
    */
+  // tslint:disable-next-line:prefer-function-over-method
   doInspect(objectDefinition) {
     const startMethodName = objectDefinition.getProducedClass().startMethod;
     if (startMethodName) {

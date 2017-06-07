@@ -88,7 +88,7 @@ export class BaseSingletonDefinition<T> extends SingletonDefinition<T> {
   private propertiesToSetDefinitions: CallDefinition[] = [];
 
   constructor(clazz, name?, logger?) {
-    super(clazz, name, logger || LogManager.getLogger(__filename));
+    super(clazz, name, logger || LogManager.getLogger());
     this.propertiesToSetDefinitions = [];
     this.startFunctionName = null;
     this.shutdownFunctionName = null;

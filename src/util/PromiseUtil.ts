@@ -1,7 +1,7 @@
 
 export abstract class PromiseUtil {
   static try(f): Promise<any> {
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
       try {
         resolve(f());
       } catch (e) {

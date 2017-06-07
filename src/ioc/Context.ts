@@ -123,7 +123,7 @@ export class Context extends Lifecycle {
       if (singleton instanceof ObjectDefinition) {
         this.registerDefinition(singleton);
       } else if (singleton instanceof Function) {
-        this.registerDefinition(new BaseSingletonDefinition(singleton));
+        this.registerDefinition(new BaseSingletonDefinition<any>(singleton));
       } else {
         throw new IoCException(
           `Not sure how to convert input into SingletonDefinition: ${singleton}`);
@@ -135,7 +135,6 @@ export class Context extends Lifecycle {
     Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       let expectedClass = path.basename(file);
       expectedClass = expectedClass.substr(0, expectedClass.length - 3);
-      // eslint-disable-next-line global-require
       const loaded = require(file);
       if (loaded) {
         if ((typeof loaded === 'object') && !(loaded instanceof Function) && loaded[expectedClass] && loaded[expectedClass].constructor) {
@@ -254,7 +253,7 @@ export class Context extends Lifecycle {
   // Get Bean Definition Functions
   // ************************************
 
-  getDefinitionByName(objectName):ObjectDefinition<any> {
+  getDefinitionByName(objectName): ObjectDefinition<any> {
     const val = this.objectDefinitions.get(objectName);
     if (val) {
       return val;

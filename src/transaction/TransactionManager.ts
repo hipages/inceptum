@@ -5,7 +5,7 @@ export class TransactionError extends Error {
 export class Transaction {
 
   static idInc: number;
-  
+
   id: number;
   readonly: Boolean;
   began: Boolean;

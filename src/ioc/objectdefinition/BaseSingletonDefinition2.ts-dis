@@ -206,17 +206,17 @@ export class BaseSingletonDefinition2<T> extends SingletonDefinition<T> {
       return instance;
     })
     .then((instance) => {
-      this.
+      // this.
       return instance;
-    })
+    });
 
 
-    // console.log(`Getting instance of ${this.getName()}`);
-    const postLoad = new Set();
-    return this.getInstanceWithTrace([this.getName()], postLoad)
-      .then((instance) =>
-        PromiseUtil.map(Array.from(postLoad.values()), (d) => d.getInstance())
-          .then(() => instance));
+    // // console.log(`Getting instance of ${this.getName()}`);
+    // const postLoad = new Set();
+    // return this.getInstanceWithTrace([this.getName()], postLoad)
+    //   .then((instance) =>
+    //     PromiseUtil.map(Array.from(postLoad.values()), (d) => d.getInstance())
+    //       .then(() => instance));
   }
 
   getJustInstantiatedInstance(): Promise<T> {

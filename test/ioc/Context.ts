@@ -1,5 +1,5 @@
 // Test...
-import { suite, test, slow, timeout } from "mocha-typescript";
+import { suite, test, slow, timeout } from 'mocha-typescript';
 
 const { Context } = require('../../src/ioc/Context');
 import { Lifecycle, LifecycleState } from '../../src/ioc/Lifecycle';

@@ -2,7 +2,7 @@ import { AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionIn
 import { SingletonDefinition } from '../objectdefinition/SingletonDefinition';
 
 interface LazyInfoProvider {
-  lazy: boolean
+  lazy: boolean,
 }
 
 export class ObjectDefinitionLazyLoadingInspector extends AbstractObjectDefinitionInspector {
@@ -15,6 +15,7 @@ export class ObjectDefinitionLazyLoadingInspector extends AbstractObjectDefiniti
     return (objectDefinition.getProducedClass() as any as LazyInfoProvider).lazy;
   }
 
+  // tslint:disable-next-line:prefer-function-over-method
   interestedIn(objectDefinition) {
     if (!(objectDefinition instanceof SingletonDefinition)) {
       return false;
@@ -25,6 +26,7 @@ export class ObjectDefinitionLazyLoadingInspector extends AbstractObjectDefiniti
   /**
    * @param {SingletonDefinition} objectDefinition singleton definition
    */
+  // tslint:disable-next-line:prefer-function-over-method
   doInspect(objectDefinition) {
     objectDefinition.withLazyLoading(ObjectDefinitionLazyLoadingInspector.getLazy(objectDefinition));
   }

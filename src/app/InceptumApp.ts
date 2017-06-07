@@ -1,5 +1,5 @@
-import { Context } from '../ioc/Context';
 import co from 'co';
+import { Context } from '../ioc/Context';
 import { LogManager, Logger } from '../log/LogManager';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import { ObjectDefinitionAutowiringInspector } from '../ioc/autoconfig/ObjectDefinitionAutowiringInspector';
@@ -25,7 +25,7 @@ export class InceptumApp {
     this.context.addObjectDefinitionInspector(new ObjectDefinitionLazyLoadingInspector());
     MysqlConfigManager.registerSingletons(this.context);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
-    this.logger = logger || LogManager.getLogger(__filename);
+    this.logger = logger || LogManager.getLogger();
   }
   start(): Promise<void> {
     const self = this;
@@ -41,9 +41,11 @@ export class InceptumApp {
   getContext(): Context {
     return this.context;
   }
+  // tslint:disable-next-line:prefer-function-over-method
   getConfig(key, defaultValue): any {
     return Context.getConfig(key, defaultValue);
   }
+  // tslint:disable-next-line:prefer-function-over-method
   hasConfig(key): boolean {
     return Context.hasConfig(key);
   }

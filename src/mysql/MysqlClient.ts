@@ -12,19 +12,19 @@ function runQueryOnPool(connection: mysql.IConnection, sql: string, bindsArr: Ar
     bindsArr = [];
   }
 
-  return new Promise((resolve, reject) =>
+  return new Promise<any>((resolve, reject) =>
     connection.query(sql, bindsArr, (err, rows) => {
       if (err) {
         log.error({ err }, `SQL error for ${sql}`);
         return reject(err);
       }
       return resolve(rows);
-    })
+    }),
   );
 }
 
 function getConnectionPromise(connectionPool: mysql.IPool): Promise<mysql.IConnection> {
-  return new Promise((resolve, reject) => {
+  return new Promise<any>((resolve, reject) => {
     connectionPool.getConnection((err, connection) => {
       if (err) {
         reject(err);
@@ -37,17 +37,23 @@ function getConnectionPromise(connectionPool: mysql.IPool): Promise<mysql.IConne
 
 function runQueryPrivate(sql: string, bindsArr: Array<any>): Promise<any> {
   return PromiseUtil.try(() => {
+    // tslint:disable-next-line:no-invalid-this
     if (!this.connection) {
+      // tslint:disable-next-line:no-invalid-this
       return getConnectionPromise(this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
     }
+    // tslint:disable-next-line:no-invalid-this
     return this.connection;
   })
+    // tslint:disable-next-line:no-invalid-this
     .then((connection) => { this.connection = connection; return connection; })
+    // tslint:disable-next-line:no-invalid-this
     .then((connection) => runQueryOnPool(connection, `/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr));
 }
 
 function runQueryAssocPrivate(sql: string, bindsObj: object): Promise<any> {
   if (sql.indexOf('::') < 0 || !bindsObj) {
+    // tslint:disable-next-line:no-invalid-this
     return runQueryPrivate.call(this, sql, []);
   }
   sql.replace(/::(\w)+::/g, (substr, key) => {
@@ -90,14 +96,13 @@ export class MysqlTransaction {
   }
 
   end(): void {
-    this.transaction.end()
+    this.transaction.end();
   }
-
 }
 
 export interface ConnectionPool {
-  getConnection(cb: (err: Error, connection: mysql.IConnection) => void): void;
-  end(): void
+  getConnection(cb: (err: Error, connection: mysql.IConnection) => void): void,
+  end(): void,
 }
 
 class MetricsAwareConnectionPoolWrapper implements ConnectionPool {
@@ -107,7 +112,7 @@ class MetricsAwareConnectionPoolWrapper implements ConnectionPool {
   numConnections: number;
   enqueueTimes: Array<number>;
   durationHistogram: any; // todo
-  config: mysql.IPoolConfig
+  config: mysql.IPoolConfig;
 
   constructor(instance: mysql.IPool, name: string) {
     this.instance = instance;
@@ -153,15 +158,15 @@ class MetricsAwareConnectionPoolWrapper implements ConnectionPool {
 export interface ConfigurationObject {
   enable57Mode?: boolean,
   master?: mysql.IPoolConfig,
-  slave?: mysql.IPoolConfig
+  slave?: mysql.IPoolConfig,
 }
 
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
 export class MysqlClient {
-  static startMethod:string = 'initialise';
-  static stopMethod:string = 'shutdown';
+  static startMethod = 'initialise';
+  static stopMethod = 'shutdown';
 
   configuration: ConfigurationObject;
   name: string;
@@ -211,7 +216,7 @@ export class MysqlClient {
         throw err;
       })
       .finally((result) => {
-        mysqlTransaction.end()
+        mysqlTransaction.end();
         return Promise.resolve(result); // TODO This weird?
       });
   }
@@ -224,6 +229,7 @@ export class MysqlClient {
       this.slavePool.end();
     }
   }
+  // tslint:disable-next-line:prefer-function-over-method
   getFullPoolConfig(partial: mysql.IPoolConfig): mysql.IPoolConfig {
     const full = {
       host: 'localhost',
@@ -235,7 +241,7 @@ export class MysqlClient {
       acquireTimeout: 1000, // 1 second
       waitForConnections: true,
       queueLimit: 10,
-      connectTimeout: 3000 // 3 seconds should be more than enough
+      connectTimeout: 3000, // 3 seconds should be more than enough
     };
     Object.assign(full, partial);
     return full;

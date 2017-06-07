@@ -2,10 +2,10 @@ import * as prometheus from 'prom-client';
 import { Context } from '../ioc/Context';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import { LogManager } from '../log/LogManager';
-const logger = LogManager.getLogger(__filename);
+const logger = LogManager.getLogger();
 
-export interface labelValues {
-	[key: string]: string|number
+export interface LabelValues {
+  [key: string]: string|number,
 }
 
 /**
@@ -13,100 +13,100 @@ export interface labelValues {
  */
 export interface Counter {
 
-	/**
-	 * Increment for given labels
-	 * @param labels Object with label keys and values
-	 * @param value The number to increment with
-	 */
-	inc(labels: labelValues, value?: number): void
+  /**
+   * Increment for given labels
+   * @param labels Object with label keys and values
+   * @param value The number to increment with
+   */
+  inc(labels: LabelValues, value?: number): void,
 
-	/**
-	 * Increment with value
-	 * @param value The value to increment with
-	 */
-	inc(value?: number): void
+  /**
+   * Increment with value
+   * @param value The value to increment with
+   */
+  inc(value?: number): void,
 }
 
 export interface Gauge {
-	/**
-	 * Increment gauge for given labels
-	 * @param labels Object with label keys and values
-	 * @param value The value to increment with
-	 */
-	inc(labels: labelValues, value?: number): void
+  /**
+   * Increment gauge for given labels
+   * @param labels Object with label keys and values
+   * @param value The value to increment with
+   */
+  inc(labels: LabelValues, value?: number): void,
 
-	/**
-	 * Increment gauge
-	 * @param value The value to increment with
-	 */
-	inc(value?: number): void
+  /**
+   * Increment gauge
+   * @param value The value to increment with
+   */
+  inc(value?: number): void,
 
-	/**
-	 * Decrement gauge
-	 * @param labels Object with label keys and values
-	 * @param value Value to decrement with
-	 */
-	dec(labels: labelValues, value?: number): void
+  /**
+   * Decrement gauge
+   * @param labels Object with label keys and values
+   * @param value Value to decrement with
+   */
+  dec(labels: LabelValues, value?: number): void,
 
-	/**
-	 * Decrement gauge
-	 * @param value The value to decrement with
-	 */
-	dec(value?: number): void
+  /**
+   * Decrement gauge
+   * @param value The value to decrement with
+   */
+  dec(value?: number): void,
 
 
-	/**
-	 * Set gauge value for labels
-	 * @param lables Object with label keys and values
-	 * @param value The value to set
-	 */
-	set(labels: labelValues, value: number): void
+  /**
+   * Set gauge value for labels
+   * @param lables Object with label keys and values
+   * @param value The value to set
+   */
+  set(labels: LabelValues, value: number): void,
 
-	/**
-	 * Set gauge value
-	 * @param value The value to set
-	 */
-	set(value: number): void
+  /**
+   * Set gauge value
+   * @param value The value to set
+   */
+  set(value: number): void,
 
-	/**
-	 * Set gauge value to current epoch time in ms
-	 * @param labels Object with label keys and values
-	 */
-	setToCurrentTime(labels?: labelValues): void
+  /**
+   * Set gauge value to current epoch time in ms
+   * @param labels Object with label keys and values
+   */
+  setToCurrentTime(labels?: LabelValues): void,
 
-	/**
-	 * Start a timer where the gauges value will be the duration in seconds
-	 * @param labels Object with label keys and values
-	 * @return Function to invoke when timer should be stopped
-	 */
-	startTimer(labels?: labelValues): (labels?: labelValues) => void
+  /**
+   * Start a timer where the gauges value will be the duration in seconds
+   * @param labels Object with label keys and values
+   * @return Function to invoke when timer should be stopped
+   */
+  startTimer(labels?: LabelValues): (labels?: LabelValues) => void,
 }
 
 /**
  * A summary samples observations
  */
 export interface Histogram {
-	/**
-	 * Observe value in summary
-	 * @param value The value to observe
-	 */
-	observe(value: number): void
-	/**
-	 * Observe value for given labels
-	 * @param labels Object with label keys and values
-	 * @param value Value to observe
-	 */
-	observe(labels: labelValues, value: number): void
-	/**
-	 * Start a timer where the value in seconds will observed
-	 * @param labels Object with label keys and values
-	 * @return Function to invoke when timer should be stopped
-	 */
-	startTimer(labels?: labelValues): (labels?: labelValues) => void
-	/**
-	 * Reset all values in the summary
-	 */
-	reset(): void
+  /**
+   * Observe value in summary
+   * @param value The value to observe
+   */
+  observe(value: number): void,
+  /**
+   * Observe value for given labels
+   * @param labels Object with label keys and values
+   * @param value Value to observe
+   */
+  observe(labels: LabelValues, value: number): void,
+  /**
+   * Start a timer where the value in seconds will observed
+   * @param labels Object with label keys and values
+   * @return Function to invoke when timer should be stopped
+   */
+  startTimer(labels?: LabelValues): (labels?: LabelValues) => void,
+  /**
+   * Reset all values in the summary
+   */
+  reset(): void,
 }
 
 export class MetricsServiceInternal {
@@ -119,7 +119,8 @@ export class MetricsServiceInternal {
     this.gaugeCache = new Map<string, prometheus.Gauge>();
   }
 
-  protected getOrCreate(map: Map<string, any>, name: string, creator: ()=>any) {
+  // tslint:disable-next-line:prefer-function-over-method
+  protected getOrCreate(map: Map<string, any>, name: string, creator: () => any) {
     if (map.has(name)) {
       return map.get(name);
     }
@@ -145,7 +146,7 @@ export class MetricsServiceInternal {
   histogram(metricName, labels = [], metricHelp?: string): Histogram {
     return this.getOrCreate(this.histogramCache, `Histogram:${metricName}:${labels.join(';')}`,
       () => new prometheus.Summary(metricName, metricHelp || metricName, labels, {
-        percentiles: [0.5, 0.75, 0.9, 0.99, 0.999]
+        percentiles: [0.5, 0.75, 0.9, 0.99, 0.999],
       }));
   }
 }
@@ -167,7 +168,7 @@ export class MetricsManager {
       const gateway = new prometheus.Pushgateway(Context.getConfig('metrics.gateway.hostport'));
       const tags = {
         jobName: 'msPush',
-        appName
+        appName,
       };
       const interval = setInterval(() => {
         gateway.pushAdd(tags, (err) => {
@@ -182,9 +183,9 @@ export class MetricsManager {
           if (err) {
             logger.error({ err }, 'There was an error trying to push stats one last time. Will try to delete anyway');
           }
-          gateway.delete(tags, (err) => {
-            if (err) {
-              logger.error({ err }, `There was an error deleting stats for ${JSON.stringify(tags)} ` +
+          gateway.delete(tags, (err2) => {
+            if (err2) {
+              logger.error({ err2 }, `There was an error deleting stats for ${JSON.stringify(tags)} ` +
                 `from the metrics gateway: ${Context.getConfig('metrics.gateway.hostport')}`);
             }
           });

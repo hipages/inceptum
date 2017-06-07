@@ -1,6 +1,6 @@
+import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import { Context } from '../ioc/Context';
 import { MysqlClient } from './MysqlClient';
-import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 
 export class MysqlConfigManager {
   static registerSingletons(context: Context) {
@@ -10,7 +10,7 @@ export class MysqlConfigManager {
     }
     const confs = context.getConfig('mysql');
     Object.keys(confs).forEach((key) => {
-      const clientSingleton = new BaseSingletonDefinition(MysqlClient, key);
+      const clientSingleton = new BaseSingletonDefinition<any>(MysqlClient, key);
       clientSingleton.setPropertyByValue('name', key);
       clientSingleton.setPropertyByValue('configuration', confs[key]);
       context.registerSingletons(clientSingleton);

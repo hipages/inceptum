@@ -1,5 +1,4 @@
-import { Context } from 'vm';
-import EventEmitter = require('events');
+import { EventEmitter } from 'events';
 import { Logger, LogManager } from '../log/LogManager';
 
 export class LifecycleState {
@@ -112,8 +111,8 @@ export abstract class Lifecycle extends EventEmitter {
       });
   }
 
-  lcStop() {
-    return new Promise(
+  lcStop(): Promise<void> {
+    return new Promise<void>(
       (resolve, reject) => {
         if (!this.setStatus(LifecycleState.STOPPING)) {
           reject(new Error(`Can't stop object ${this.name}. It's on state ${this.status}`));

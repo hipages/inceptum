@@ -8,13 +8,14 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import stringify = require('json-stringify-safe');
+import { ExtendedError } from '../util/ErrorUtil';
 
-export interface Logger {
+export abstract class Logger {
     /**
      * Returns a boolean: is the `trace` level enabled?
      * This is equivalent to `log.isTraceEnabled()` or `log.isEnabledFor(TRACE)` in log4j.
      */
-    trace(): boolean,
+    abstract trace(): boolean;
     /**
      * The first field can optionally be a "fields" object, which
      * is merged into the log record.
@@ -23,18 +24,18 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    trace(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract trace(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
     /**
      * Uses `util.format` for msg formatting.
      */
-    trace(format: string | number, ...params: any[]): void,
+    abstract trace(format: string | number, ...params: any[]): void;
 
     /**
      * Returns a boolean: is the `debug` level enabled?
      * This is equivalent to `log.isDebugEnabled()` or `log.isEnabledFor(DEBUG)` in log4j.
      */
-    debug(): boolean,
+    abstract debug(): boolean;
 
     /**
      * Special case to log an `Error` instance to the record.
@@ -42,17 +43,17 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    debug(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract debug(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
     /**
      * Uses `util.format` for msg formatting.
      */
-    debug(format: string | number, ...params: any[]): void,
+    abstract debug(format: string | number, ...params: any[]): void;
 
     /**
      * Returns a boolean: is the `info` level enabled?
      * This is equivalent to `log.isInfoEnabled()` or `log.isEnabledFor(INFO)` in log4j.
      */
-    info(): boolean,
+    abstract info(): boolean;
 
     /**
      * Special case to log an `Error` instance to the record.
@@ -60,18 +61,18 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    info(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract info(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
     /**
      * Uses `util.format` for msg formatting.
      */
-    info(format: string | number, ...params: any[]): void,
+    abstract info(format: string | number, ...params: any[]): void;
 
     /**
      * Returns a boolean: is the `warn` level enabled?
      * This is equivalent to `log.isWarnEnabled()` or `log.isEnabledFor(WARN)` in log4j.
      */
-    warn(): boolean,
+    abstract warn(): boolean;
 
     /**
      * Special case to log an `Error` instance to the record.
@@ -79,18 +80,18 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    warn(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract warn(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
     /**
      * Uses `util.format` for msg formatting.
      */
-    warn(format: string | number, ...params: any[]): void,
+    abstract warn(format: string | number, ...params: any[]): void;
 
     /**
      * Returns a boolean: is the `error` level enabled?
      * This is equivalent to `log.isErrorEnabled()` or `log.isEnabledFor(ERROR)` in log4j.
      */
-    error(): boolean,
+    abstract error(): boolean;
 
     /**
      * Special case to log an `Error` instance to the record.
@@ -98,18 +99,18 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    error(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract error(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
     /**
      * Uses `util.format` for msg formatting.
      */
-    error(format: string | number, ...params: any[]): void,
+    abstract error(format: string | number, ...params: any[]): void;
 
     /**
      * Returns a boolean: is the `fatal` level enabled?
      * This is equivalent to `log.isFatalEnabled()` or `log.isEnabledFor(FATAL)` in log4j.
      */
-    fatal(): boolean,
+    abstract fatal(): boolean;
 
     /**
      * Special case to log an `Error` instance to the record.
@@ -117,12 +118,12 @@ export interface Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    fatal(error: Error | Buffer | Object, format?: any, ...params: any[]): void,
+    abstract fatal(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
     /**
      * Uses `util.format` for msg formatting.
      */
-    fatal(format: string | number, ...params: any[]): void,
+    abstract fatal(format: string | number, ...params: any[]): void;
 }
 
 class LevelStringifyTransform extends stream.Transform {
@@ -184,7 +185,7 @@ export class LogManagerInternal {
     if (srcLoc >= 0) {
       return thePath.substr(srcLoc + 5);
     }
-    const builtLoc = thePath.indexOf(`${path.sep}built${path.sep}`);
+    const builtLoc = thePath.indexOf(`${path.sep}dist${path.sep}`);
     if (builtLoc >= 0) {
       return thePath.substr(builtLoc + 7);
     }
@@ -192,7 +193,7 @@ export class LogManagerInternal {
       const fromCwd = thePath.substr(process.cwd().length);
       return (fromCwd.startsWith(path.sep)) ? fromCwd.substr(1) : fromCwd;
     }
-    return '';
+    return thePath;
   }
   private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): string {
     let overrideEnv = `LOG_${loggerName}_${streamName}`
@@ -247,9 +248,8 @@ export class LogManagerInternal {
   private appName: string;
 
   getLogger(filePath?: string): Logger {
-    console.log(`Got here with filePath: ${filePath}`);
-    const thePath = filePath || _getCallerFile();
-
+    // console.log(`Got here with filePath: ${filePath}`);
+    const thePath = removeExtension(filePath || _getCallerFile());
     if (thePath.substr(0, 1) !== '/') {
       // It's not a full file path.
       return this.getLoggerInternal(thePath);
@@ -382,33 +382,28 @@ process.on('uncaughtException', (err) => {
   baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
 });
 
-declare class Error2 {
-  static prepareStackTrace: any;
-  structuredStackTrace: Array<StackLine>;
-  constructor(message?: string);
-}
-
-interface StackLine {
-  getFileName: () => string;
-}
-
 function _getCallerFile() {
-    var callerFile;
-    try {
-        var err = new Error();
-        const unused = err.stack.length;
-        const typedError = err as any as Error2;
-        const structuredStackTrace = typedError.structuredStackTrace;
-        const currentFile = structuredStackTrace.shift().getFileName();
-        while (structuredStackTrace.length) {
-            callerFile = structuredStackTrace.shift().getFileName();
-            console.log(`Caller file ${callerFile}`);
-
-            if(currentFile !== callerFile) break;
-        }
-    } catch (e) {
-      console.log(e);
+  let callerFile;
+  const err = new ExtendedError('Getting Stack');
+  const structuredStackTrace = err.getStructuredStackTrace();
+  if (structuredStackTrace) {
+    // console.log(structuredStackTrace.map((cs) => cs.getFileName()));
+    const currentFile = structuredStackTrace.shift().getFileName();
+    callerFile = currentFile;
+    while (structuredStackTrace.length && currentFile === callerFile) {
+        callerFile = structuredStackTrace.shift().getFileName();
     }
-    
+    if (!callerFile) {
+      return '/na';
+    }
     return callerFile;
+  }
+  return '/na';
+}
+
+function removeExtension(thePath: string) {
+  if (['.js', '.ts'].indexOf(thePath.substr(-3)) > 0) {
+    return thePath.substring(0, thePath.length - 3);
+  }
+  return thePath;
 }
