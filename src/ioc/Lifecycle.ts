@@ -9,9 +9,6 @@ export class LifecycleState {
   public static STOPPING = new LifecycleState('STOPPING', 10000);
   public static STOPPED  = new LifecycleState('STOPPED', 10001);
 
-  static fromValue(val) {
-    return LifecycleState.all.find((v) => v.getValue() === val);
-  }
   static getStatesBefore(val: LifecycleState): LifecycleState[] {
     return LifecycleState.all.filter((state) => state.getValue() < val.getValue());
   }
@@ -136,13 +133,13 @@ export abstract class Lifecycle extends EventEmitter {
   setStatus(newStatus: LifecycleState, eventPayload?: Object): boolean {
     if (newStatus.getValue() < this.status.getValue()) {
       throw new LifecycleException(
-        `Can't revert on the status chain. Object "${this.name}" can't go from ${LifecycleState.fromValue(this.status)} to ${LifecycleState.fromValue(newStatus)}`);
+        `Can't revert on the status chain. Object "${this.name}" can't go from ${this.status} to ${newStatus}`);
     }
     if (newStatus.getValue() === this.status.getValue()) {
       return false;
     }
     if (this.logger) {
-      this.logger.debug(`Switching state for object ${this.name} from ${LifecycleState.fromValue(this.status)} to ${LifecycleState.fromValue(newStatus)}`);
+      this.logger.debug(`Switching state for object ${this.name} from ${this.status} to ${newStatus}`);
     }
     this.status = newStatus;
     this.emit(newStatus.getName(), this.name, eventPayload);

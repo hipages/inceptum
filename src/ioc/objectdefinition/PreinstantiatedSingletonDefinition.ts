@@ -1,3 +1,4 @@
+import {LifecycleState} from '../Lifecycle';
 import { Logger, LogManager } from '../../log/LogManager';
 import { SingletonDefinition } from './SingletonDefinition';
 
@@ -12,6 +13,7 @@ export class PreinstantiatedSingletonDefinition<T> extends SingletonDefinition<T
   }
 
   getInstance() {
+    this.setStatus(LifecycleState.STARTED);
     return Promise.resolve(this.instance);
   }
 
