@@ -5,10 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "clean": "rm -rf dist",
     "test": "NODE_ENV=test nyc mocha",
     "itest": "NODE_ENV=test mocha itest",
     "lint": "tslint -p . --type-check",
-    "docs": "jsdoc -c jsdocconf.json -t ./node_modules/ink-docstrap/template -R README.md -r -d docs/api"
+    "docs": "jsdoc -c jsdocconf.json -t ./node_modules/ink-docstrap/template -R README.md -r -d docs/api",
+    "prepublishOnly": "npm run clean && tsc && npm test && npm run lint"
   },
   "repository": {
     "type": "git",
