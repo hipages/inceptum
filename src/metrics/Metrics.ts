@@ -115,8 +115,9 @@ export class MetricsServiceInternal {
   histogramCache: Map<string, Histogram>;
 
   constructor() {
-    this.counterCache = new Map<string, prometheus.Counter>();
-    this.gaugeCache = new Map<string, prometheus.Gauge>();
+    this.counterCache = new Map<string, Counter>();
+    this.gaugeCache = new Map<string, Gauge>();
+    this.histogramCache = new Map<string, Histogram>();
   }
 
   // tslint:disable-next-line:prefer-function-over-method
