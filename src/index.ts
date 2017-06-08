@@ -1,3 +1,5 @@
+import './util/BluePatch';
+
 export { Context } from './ioc/Context';
 export { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 
