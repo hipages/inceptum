@@ -18,12 +18,12 @@
     "url": "git+https://github.com/hipages/inceptum.git"
   },
   "engine": {
-    "node": ">6.0.0"
+    "node": ">7.0.0"
   },
   "files": [
     "dist"
   ],
-  "author": "",
+  "author": "Hipages",
   "license": "Apache-2.0",
   "directories": {
     "lib": "dist",
@@ -51,7 +51,6 @@
     "moment": "^2.15.1",
     "mysql": "^2.11.1",
     "node-dogstatsd": "0.0.6",
-    "nyc": "^10.3.2",
     "prom-client": "7.1.0",
     "redis": "2.6.5",
     "source-map-support": "^0.4.15",
@@ -75,6 +74,7 @@
     "mocha-typescript": "1.1.2",
     "must": "^0.13.2",
     "sinon": "1.17.7",
+    "nyc": "^10.3.2",
     "ts-node": "3.0.4",
     "tslint": "^5.4.3",
     "tslint-config-shopify": "^2.0.0",
