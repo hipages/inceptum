@@ -10,7 +10,8 @@
     "itest": "NODE_ENV=test nyc mocha itest",
     "lint": "tslint -p . --type-check",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
-    "precommit": "npm run lint"
+    "precommit": "npm run lint",
+    "prepush": "node .checkpush.js"
   },
   "repository": {
     "type": "git",
