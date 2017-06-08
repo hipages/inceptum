@@ -402,7 +402,7 @@ function _getCallerFile() {
 }
 
 function removeExtension(thePath: string) {
-  if (['.js', '.ts'].indexOf(thePath.substr(-3)) > 0) {
+  if (['.js', '.ts'].indexOf(thePath.substr(-3)) >= 0) {
     return thePath.substring(0, thePath.length - 3);
   }
   return thePath;
