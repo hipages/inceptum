@@ -27,8 +27,7 @@ $ mkdir project-name
 $ cd project-name
 $ git init
 $ git remote add typescript-base git@github.com:hipages/typescript-base.git
-$ git fetch typescript-base
-$ git merge typescript-base/master
+$ git pull typescript-base master
 $ vi package.json  # Edit the necessary elements of the project definition
 $ yarn install # Or npm install... whatever you prefer... I prefer yarn
 ```
@@ -41,8 +40,7 @@ If you have an existing typescript project there'll be a one-time pain of mergin
 ```
 $ cd project-name
 $ git remote add typescript-base git@github.com:hipages/typescript-base.git
-$ git fetch typescript-base
-$ git merge --allow-unrelated-histories typescript-base/master
+$ git pull --allow-unrelated-histories typescript-base master
 $ # Resolve all the conflicts... which there will be
 $ git commit -a -m "Moved to typescript-base"
 $ yarn install # Or npm install... whatever you prefer... I prefer yarn
@@ -54,8 +52,7 @@ Ok, you did what you had to do and now you've realised that we decided to do som
 
 ```
 $ cd project-name
-$ git fetch typescript-base
-$ git merge typescript-base/master
+$ git pull typescript-base master
 ```
 
 Chances are that that's all you'll need to do. In case there's a conflict... fix it :P
