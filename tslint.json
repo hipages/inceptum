@@ -1,0 +1,7 @@
+{
+  "extends": "tslint-config-shopify",
+  "rules": {
+    "no-require-imports" : false,
+    "member-ordering": [ false ]
+  }
+}
