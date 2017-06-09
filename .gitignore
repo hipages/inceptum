@@ -34,7 +34,6 @@ Thumbs.db
 
 #dotenv
 .env
-docs/
 dist/
 .vscode
 dist
