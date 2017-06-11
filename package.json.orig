@@ -1,0 +1,74 @@
+{
+  "name": "YOURNAME",
+  "version": "0.0.1",
+  "description": "YOURDESCRIPTION",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "test": "NODE_ENV=test nyc mocha",
+    "itest": "NODE_ENV=test nyc mocha itest",
+    "lint": "tslint -p . --type-check",
+    "docsapi": "typedoc --out docs/api --theme node_modules/typedoc-clarity-theme/bin  .",
+    "docssite": "cd docs & jekyll build",
+    "docs": "npm run docsapi & npm run docssite",
+    "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
+    "precommit": "npm run lint",
+    "prepush": "node .checkpush.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "YOURGITREPO"
+  },
+  "engine": {
+    "node": ">7.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "author": "Hipages",
+  "license": "Apache-2.0",
+  "directories": {
+    "lib": "dist",
+    "test": "test"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/node": "7.0.23",
+    "@types/source-map-support": "^0.2.28",
+    "co-mocha": "^1.1.2",
+    "doubleagent": "^1.1.0",
+    "husky": "^0.11.6",
+    "mocha": "^2.5.3",
+    "mocha-lcov-reporter": "^1.2.0",
+    "mocha-typescript": "1.1.2",
+    "must": "^0.13.2",
+    "nyc": "^10.3.2",
+    "ts-node": "3.0.4",
+    "tslint": "^5.4.3",
+    "tslint-config-shopify": "^2.0.0",
+    "typedoc": "^0.7.1",
+    "typedoc-clarity-theme": "^1.1.0",
+    "typescript": "2.3.2"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
+  }
+}
