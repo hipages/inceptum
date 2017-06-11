@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "test": "NODE_ENV=test nyc -a -n 'src/**/*.ts' -x '**/*.d.ts' --reporter=lcov mocha",
+    "test": "NODE_ENV=test nyc --reporter=lcov mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "nyc report --reporter=text-lcov > coverage/coverage.lcov && codecov -f coverage/coverage.lcov",
     "lint": "tslint -p . --type-check",
