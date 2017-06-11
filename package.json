@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist docs/api docs/_site",
     "test": "NODE_ENV=test nyc --reporter=lcov mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
