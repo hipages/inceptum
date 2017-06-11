@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>inceptum | inceptum</title>
+	<title>Gauge | inceptum</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -912,48 +912,335 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
+		<li class=" tsd-kind-class tsd-parent-kind-external-module">
+			<a href="../classes/_metrics_metrics_.metricsmanager.html" class="tsd-kind-icon">Metrics<wbr>Manager</a>
+		</li>
+		<li class=" tsd-kind-class tsd-parent-kind-external-module">
+			<a href="../classes/_metrics_metrics_.metricsserviceinternal.html" class="tsd-kind-icon">Metrics<wbr>Service<wbr>Internal</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+			<a href="_metrics_metrics_.counter.html" class="tsd-kind-icon">Counter</a>
+		</li>
+		<li class="current tsd-kind-interface tsd-parent-kind-external-module">
+			<a href="_metrics_metrics_.gauge.html" class="tsd-kind-icon">Gauge</a>
+			<ul>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="_metrics_metrics_.gauge.html#dec" class="tsd-kind-icon">dec</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="_metrics_metrics_.gauge.html#inc" class="tsd-kind-icon">inc</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="_metrics_metrics_.gauge.html#set" class="tsd-kind-icon">set</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="_metrics_metrics_.gauge.html#settocurrenttime" class="tsd-kind-icon">set<wbr>ToCurrent<wbr>Time</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-interface">
+					<a href="_metrics_metrics_.gauge.html#starttimer" class="tsd-kind-icon">start<wbr>Timer</a>
+				</li>
+			</ul>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+			<a href="_metrics_metrics_.histogram.html" class="tsd-kind-icon">Histogram</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+			<a href="_metrics_metrics_.labelvalues.html" class="tsd-kind-icon">Label<wbr>Values</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-external-module">
+			<a href="../modules/_metrics_metrics_.html#metricsservice" class="tsd-kind-icon">Metrics<wbr>Service</a>
+		</li>
+		<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+			<a href="../modules/_metrics_metrics_.html#logger" class="tsd-kind-icon">logger</a>
+		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<div class="tsd-panel tsd-typography">
-			<h1 id="inceptum-enterprise-node-js-framework">Inceptum – Enterprise Node.js Framework</h1>
-			<p><a href="https://travis-ci.org/hipages/inceptum"><img src="https://travis-ci.org/hipages/inceptum.svg?branch=master" alt="Build Status"></a>
-			<a href="https://codecov.io/gh/hipages/inceptum"><img src="https://codecov.io/gh/hipages/inceptum/branch/master/graph/badge.svg" alt="codecov"></a></p>
-		</div>
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<span class="target">Gauge</span>
+				</li>
+			</ul>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>External modules</h3>
+						<h3>Methods</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-external-module"><a href="modules/_app_inceptumapp_.html" class="tsd-kind-icon">"app/<wbr>Inceptum<wbr>App"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_index_.html" class="tsd-kind-icon">"index"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_abstractobjectdefinitioninspector_.html" class="tsd-kind-icon">"ioc/<wbr>Abstract<wbr>Object<wbr>Definition<wbr>Inspector"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_context_.html" class="tsd-kind-icon">"ioc/<wbr>Context"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_iocexception_.html" class="tsd-kind-icon">"ioc/<wbr>IoCException"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_lifecycle_.html" class="tsd-kind-icon">"ioc/<wbr>Lifecycle"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_objectdefinitioninspector_.html" class="tsd-kind-icon">"ioc/<wbr>Object<wbr>Definition<wbr>Inspector"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_autoconfig_objectdefinitionautowiringinspector_.html" class="tsd-kind-icon">"ioc/autoconfig/<wbr>Object<wbr>Definition<wbr>Autowiring<wbr>Inspector"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_autoconfig_objectdefinitionlazyloadinginspector_.html" class="tsd-kind-icon">"ioc/autoconfig/<wbr>Object<wbr>Definition<wbr>Lazy<wbr>Loading<wbr>Inspector"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_autoconfig_objectdefinitionstartstopmethodsinspector_.html" class="tsd-kind-icon">"ioc/autoconfig/<wbr>Object<wbr>Definition<wbr>Start<wbr>Stop<wbr>Methods<wbr>Inspector"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_objectdefinition_basesingletondefinition_.html" class="tsd-kind-icon">"ioc/objectdefinition/<wbr>Base<wbr>Singleton<wbr>Definition"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_objectdefinition_objectdefinition_.html" class="tsd-kind-icon">"ioc/objectdefinition/<wbr>Object<wbr>Definition"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_objectdefinition_preinstantiatedsingletondefinition_.html" class="tsd-kind-icon">"ioc/objectdefinition/<wbr>Preinstantiated<wbr>Singleton<wbr>Definition"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_ioc_objectdefinition_singletondefinition_.html" class="tsd-kind-icon">"ioc/objectdefinition/<wbr>Singleton<wbr>Definition"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_log_logmanager_.html" class="tsd-kind-icon">"log/<wbr>Log<wbr>Manager"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_metrics_metrics_.html" class="tsd-kind-icon">"metrics/<wbr>Metrics"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_mysql_mysqlclient_.html" class="tsd-kind-icon">"mysql/<wbr>Mysql<wbr>Client"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_mysql_mysqlconfigmanager_.html" class="tsd-kind-icon">"mysql/<wbr>Mysql<wbr>Config<wbr>Manager"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_transaction_transactionmanager_.html" class="tsd-kind-icon">"transaction/<wbr>Transaction<wbr>Manager"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_util_bluepatch_.html" class="tsd-kind-icon">"util/<wbr>Blue<wbr>Patch"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_util_errorutil_.html" class="tsd-kind-icon">"util/<wbr>Error<wbr>Util"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_util_promiseutil_.html" class="tsd-kind-icon">"util/<wbr>Promise<wbr>Util"</a></li>
-							<li class="tsd-kind-external-module"><a href="modules/_util_testutil_.html" class="tsd-kind-icon">"util/<wbr>Test<wbr>Util"</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_metrics_metrics_.gauge.html#dec" class="tsd-kind-icon">dec</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_metrics_metrics_.gauge.html#inc" class="tsd-kind-icon">inc</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_metrics_metrics_.gauge.html#set" class="tsd-kind-icon">set</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_metrics_metrics_.gauge.html#settocurrenttime" class="tsd-kind-icon">set<wbr>ToCurrent<wbr>Time</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-interface"><a href="_metrics_metrics_.gauge.html#starttimer" class="tsd-kind-icon">start<wbr>Timer</a></li>
 						</ul>
 					</section>
 				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Methods</h2>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="dec" class="tsd-anchor"></a>
+				<h3>dec</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">dec<span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a>, value<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">dec<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L49">metrics/Metrics.ts:49</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Decrement gauge</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Object with label keys and values</p>
+								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Value to decrement with</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L55">metrics/Metrics.ts:55</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Decrement gauge</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to decrement with</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="inc" class="tsd-anchor"></a>
+				<h3>inc</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">inc<span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a>, value<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">inc<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L36">metrics/Metrics.ts:36</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Increment gauge for given labels</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Object with label keys and values</p>
+								</div>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to increment with</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L42">metrics/Metrics.ts:42</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Increment gauge</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to increment with</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="set" class="tsd-anchor"></a>
+				<h3>set</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">set<span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a>, value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					<li class="tsd-signature tsd-kind-icon">set<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L63">metrics/Metrics.ts:63</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Set gauge value for labels</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+							</li>
+							<li>
+								<h5>value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to set</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L69">metrics/Metrics.ts:69</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Set gauge value</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>value: <span class="tsd-signature-type">number</span></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>The value to set</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="settocurrenttime" class="tsd-anchor"></a>
+				<h3>set<wbr>ToCurrent<wbr>Time</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">set<wbr>ToCurrent<wbr>Time<span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">?: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L75">metrics/Metrics.ts:75</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Set gauge value to current epoch time in ms</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Object with label keys and values</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-interface">
+				<a name="starttimer" class="tsd-anchor"></a>
+				<h3>start<wbr>Timer</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
+					<li class="tsd-signature tsd-kind-icon">start<wbr>Timer<span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">?: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/hipages/inceptum/blob/e950c21/src/metrics/Metrics.ts#L82">metrics/Metrics.ts:82</a></li>
+							</ul>
+						</aside>
+						<div class="tsd-comment tsd-typography">
+							<div class="lead">
+								<p>Start a timer where the gauges value will be the duration in seconds</p>
+							</div>
+						</div>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+								<div class="tsd-comment tsd-typography">
+									<p>Object with label keys and values</p>
+								</div>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">function</span></h4>
+						<p>Function to invoke when timer should be stopped</p>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-siganture">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>labels<span class="tsd-signature-symbol">?: </span><a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5><span class="tsd-flag ts-flagOptional">Optional</span> labels: <a href="_metrics_metrics_.labelvalues.html" class="tsd-signature-type">LabelValues</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
