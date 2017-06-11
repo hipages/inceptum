@@ -1,11 +1,11 @@
 // Test...
+import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 
-const { Context } = require('../../src/ioc/Context');
+import { Context } from '../../src/ioc/Context';
 import { Lifecycle, LifecycleState } from '../../src/ioc/Lifecycle';
-const { BaseSingletonDefinition } = require('../../src/ioc/objectdefinition/BaseSingletonDefinition');
-const { PromiseUtil } = require('../../src/util/PromiseUtil');
-const demand = require('must');
+import { BaseSingletonDefinition } from '../../src/ioc/objectdefinition/BaseSingletonDefinition';
+import { PromiseUtil } from '../../src/util/PromiseUtil';
 import { LogManager } from '../../src/log/LogManager';
 const logger = LogManager.getLogger();
 
@@ -29,7 +29,7 @@ class B {
   delayedStart() {
     logger.info('Starting delayed start');
     return new Promise((resolve) => {
-      setTimeout(() => { logger.info('Delaya done'); resolve(); }, 100);
+      setTimeout(() => { logger.info('Delaya done'); resolve(); }, 10);
     });
   }
 }
@@ -87,7 +87,7 @@ suite('ioc/Context', () => {
       return childContext.lcStart()
         .then(() => childContext.getObjectByName('A'))
         .then((a) => {
-          demand(a).is.not.falsy();
+          a.must.not.be.falsy();
           a.must.be.instanceOf(A);
         })
         .then(() => childContext.lcStop());
@@ -121,7 +121,7 @@ suite('ioc/Context', () => {
       myContext.getDefinitionByName('ThrowOnInstantiate').withLazyLoading(false);
       return myContext.lcStart()
         .then(() => {
-          demand(true).be.false();
+          true.must.be.false();
         })
         .catch((e) => {
           e.must.be.an.error('Exception instantiating');
@@ -132,8 +132,8 @@ suite('ioc/Context', () => {
     test('can\'t register an object definition that is not one', () => {
       const myContext = new Context('test1');
       try {
-        myContext.registerDefinition('not an object definition');
-        demand(true).be.false();
+        myContext.registerDefinition('not an object definition' as any);
+          true.must.be.false();
       } catch (e) {
         e.must.be.an.error('Provided input for registration is not an instance of ObjectDefinition');
       }
@@ -143,7 +143,7 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(A);
       try {
         myContext.registerSingletons(A);
-        demand(true).be.false();
+        true.must.be.false();
       } catch (e) {
         e.must.be.an.error('Object definition with name A already exists in this context');
       }
@@ -156,7 +156,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByName('A'))
         .then((obj) => {
-          obj.must.not.be.undefined();
+          (obj === undefined).must.be.false();
         })
         .then(() => myContext.lcStop());
     });
@@ -166,7 +166,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByType('A'))
         .then((obj) => {
-          obj.must.not.be.undefined();
+          (obj === undefined).must.be.false();
         })
         .then(() => myContext.lcStop());
     });
@@ -203,7 +203,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByName('A'))
         .then((a) => {
-          a.must.not.be.undefined();
+          (a === undefined).must.be.false();
           (a.val).must.be.equal('the value');
         })
         .then(() => myContext.lcStop());
@@ -214,9 +214,9 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByRef('A'));
       return myContext.lcStart()
         .then(() => PromiseUtil.mapSeries(['A', 'B'], (l) => myContext.getObjectByName(l)))
-        .spread((a, b) => {
-          a.must.not.be.undefined();
-          b.must.not.be.undefined();
+        .then(([a, b]) => {
+          (a === undefined).must.be.false();
+          (b === undefined).must.be.false();
           b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
@@ -230,8 +230,8 @@ suite('ioc/Context', () => {
         .then((arr) => {
           const a = arr[0];
           const b = arr[1];
-          a.must.not.be.undefined();
-          b.must.not.be.undefined();
+          (a === undefined).must.be.false();
+          (b === undefined).must.be.false();
           b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
@@ -244,7 +244,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByName('A'))
         .then((a) => {
-          demand(a).is.not.undefined();
+          (a === undefined).must.be.false();
           a.must.be.an.instanceOf(A);
         })
         .then(() => myContext.lcStop());
@@ -255,7 +255,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByType('A'))
         .then((a) => {
-          demand(a).is.not.undefined();
+          (a === undefined).must.be.false();
           a.must.be.an.instanceOf(A);
         })
         .then(() => myContext.lcStop());
@@ -266,7 +266,7 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectsByType('A'))
         .then((a) => {
-          demand(a).is.not.undefined();
+          (a === undefined).must.be.false();
           a.must.be.an.array();
           a.length.must.be.equal(1);
           a[0].must.be.an.instanceOf(A);
@@ -279,14 +279,14 @@ suite('ioc/Context', () => {
       const myContext = new Context('test1');
       myContext.registerSingletons(A);
       const a = myContext.getDefinitionByName('A');
-      demand(a).is.not.undefined();
+      (a === undefined).must.be.false();
       a.must.be.an.instanceOf(BaseSingletonDefinition);
     });
     test('getting by type', () => {
       const myContext = new Context('test1');
       myContext.registerSingletons(A);
       const a = myContext.getDefinitionByType('A');
-      demand(a).is.not.undefined();
+      (a === undefined).must.be.false();
       a.must.be.an.instanceOf(BaseSingletonDefinition);
     });
     test('getting by type array', () => {
@@ -294,15 +294,15 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(A);
       myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2'));
       const a = myContext.getDefinitionsByType('A');
-      demand(a).is.not.undefined();
+      (a === undefined).must.be.false();
       a.must.be.an.array();
       a.length.must.equal(2);
       a[0].must.be.an.instanceOf(BaseSingletonDefinition);
       a[0].getProducedClass().must.equal(A);
-      demand(a[0].getName() === 'A' || a[0].getName() === 'A2').is.true();
+      (a[0].getName() === 'A' || a[0].getName() === 'A2').must.be.true();
       a[1].must.be.an.instanceOf(BaseSingletonDefinition);
       a[1].getProducedClass().must.equal(A);
-      demand(a[1].getName() === 'A' || a[1].getName() === 'A2').is.true();
+      (a[1].getName() === 'A' || a[1].getName() === 'A2').must.be.true();
     });
   });
   suite('objects with parameters set', () => {
@@ -312,7 +312,8 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => myContext.getObjectByName('A'))
         .then((a) => {
-          a.must.not.be.undefined();
+          (a === undefined).must.be.false();
+          (a.val === undefined).must.be.false();
           a.val.must.be.equal('the value');
         })
         .then(() => myContext.lcStop());
@@ -323,9 +324,10 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
       return myContext.lcStart()
         .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
-        .spread((a, b) => {
-          a.must.not.be.undefined();
-          b.must.not.be.undefined();
+        .then(([a, b]) => {
+          (a === undefined).must.be.false();
+          (b === undefined).must.be.false();
+          (b.a === undefined).must.be.false();
           b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
@@ -336,9 +338,10 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByType('a', 'A'));
       return myContext.lcStart()
         .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
-        .spread((a, b) => {
-          a.must.not.be.undefined();
-          b.must.not.be.undefined();
+        .then(([a, b]) => {
+          (a === undefined).must.be.false();
+          (b === undefined).must.be.false();
+          (b.a === undefined).must.be.false();
           b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
@@ -347,39 +350,45 @@ suite('ioc/Context', () => {
   suite('wiring', () => {
     test('can manage circular dependencies', () => {
       const myContext = new Context('test1');
-      myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByRef('B'));
-      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByRef('a', 'A'));
+      myContext.registerSingletons(new BaseSingletonDefinition<A>(A).constructorParamByRef('B'));
+      myContext.registerSingletons(new BaseSingletonDefinition<B>(B).setPropertyByRef('a', 'A'));
       return myContext.lcStart()
-        .then(() => PromiseUtil.mapSeries(['A', 'B'], (n) => myContext.getObjectByName(n)))
-        .spread((a, b) => {
-          a.must.not.be.undefined();
-          b.must.not.be.undefined();
-          b.a.must.be.equal(a);
+        .then(() => PromiseUtil.map(['A', 'B'], (n) => myContext.getObjectByName(n)))
+        .then(([a, b]) => {
+          (a === undefined).must.be.false();
+          (b === undefined).must.be.false();
+          (a.val === undefined).must.be.false();
           a.val.must.be.equal(b);
+          return [a, b];
+        })
+        .then((v) => PromiseUtil.sleepPromise<any>(20, v))
+        .then(([a, b]) => {
+          b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
     });
-    // test('can manage diamond dependencies', () => {
-    //   const myContext = new Context('test1');
-    //   myContext.registerSingletons(new BaseSingletonDefinition(B).startFunction('delayedStart'));
-    //   myContext.registerSingletons(new BaseSingletonDefinition(A, 'A1').setPropertyByValue().setPropertyByRef('b', 'B'));
-    //   myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2').setPropertyByRef('b', 'B'));
-    //   myContext.registerSingletons(new BaseSingletonDefinition(A, 'Final').setPropertyByRef('a1', 'A1').setPropertyByRef('a2', 'A2'));
-    //   return myContext.lcStart()
-    //     .then(() => myContext.getObjectByName('Final'))
-    //     .then((final) => {
-    //       demand(final).is.not.undefined();
-    //       demand(final.a1).is.not.undefined();
-    //       demand(final.a2).is.not.undefined();
-    //       demand(final.a1.b).is.not.undefined();
-    //       demand(final.a2.b).is.not.undefined();
-    //       final.a1.b.must.be.equal(final.a2.b);
-    //     })
-    //     .then(() => myContext.lcStop(), (err) => {
-    //       myContext.lcStop();
-    //       throw err;
-    //     });
-    // });
+    test('can manage diamond dependencies', () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(B).startFunction('delayedStart'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A1').setPropertyByRef('b', 'B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2').setPropertyByRef('b', 'B'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'Final').setPropertyByRef('a1', 'A1').setPropertyByRef('a2', 'A2'));
+      return myContext.lcStart()
+        .then(() => myContext.getObjectByName('Final'))
+        .then((final) => PromiseUtil.sleepPromise(50, final))
+        .then((final) => {
+          (final === undefined).must.be.false();
+          (final.a1 === undefined).must.be.false();
+          (final.a2 === undefined).must.be.false();
+          (final.a1.b === undefined).must.be.false();
+          (final.a2.b === undefined).must.be.false();
+          final.a1.b.must.be.equal(final.a2.b);
+        })
+        .then(() => myContext.lcStop(), (err) => {
+          myContext.lcStop();
+          throw err;
+        });
+    });
     test('throws an exception when the circular dependency is in the constructor', () => {
       const myContext = new Context('test1');
       myContext.registerSingletons(new BaseSingletonDefinition(A).constructorParamByRef('B'));
@@ -400,7 +409,7 @@ suite('ioc/Context', () => {
     test('throws an exception when in any state other than NOT_STARTED', () => {
       const myContext = new Context('test1');
       return myContext.lcStart()
-        .then(() => myContext.clone())
+        .then(() => myContext.clone('copy'))
         .catch((err) => err.must.be.an.error(/Operation requires state to be/))
         .then(() => myContext.lcStop());
     });
@@ -413,9 +422,9 @@ suite('ioc/Context', () => {
       return myContext.lcStart()
         .then(() => clonedContext.lcStart())
         .then(() => PromiseUtil.mapSeries([myContext, clonedContext], (c) => c.getObjectByName('A')))
-        .spread((a, copyA) => {
-          a.must.not.be.undefined();
-          copyA.must.not.be.undefined();
+        .then(([a, copyA]) => {
+          (a === undefined).must.be.false();
+          (copyA === undefined).must.be.false();
           copyA.must.be.an.instanceOf(A);
           a.val.must.be.equal(copyA.val);
         })
@@ -443,7 +452,7 @@ suite('ioc/Context', () => {
         .then(() => otherContext.lcStart())
         .then(() => myContext.getObjectByName('A'))
         .then((a) => {
-          a.must.not.be.undefined();
+          (a === undefined).must.be.false();
           a.val.must.be.equal('the value');
         })
         .then(() => myContext.lcStop())
@@ -462,7 +471,7 @@ suite('ioc/Context', () => {
         .then(() => otherContext.lcStart())
         .then(() => myContext.getObjectByName('A'))
         .then((a) => {
-          a.must.not.be.undefined();
+          (a === undefined).must.be.false();
           a.val.must.be.equal('X');
         })
         .then(() => myContext.lcStop())

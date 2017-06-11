@@ -24,5 +24,10 @@ export abstract class PromiseUtil {
     }
     return p.then(() => result);
   }
+  static sleepPromise<H>(ms, returnVal?: H): Promise<H> {
+    return new Promise<H>((resolve) => {
+      setTimeout(() => { resolve(returnVal); }, ms);
+    });
+  }
 }
 

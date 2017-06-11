@@ -11,6 +11,7 @@ pids
 
 # Coverage directory used by tools like istanbul
 coverage
+icoverage
 
 # Dependency directories
 node_modules

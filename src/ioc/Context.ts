@@ -54,17 +54,16 @@ export class Context extends Lifecycle {
 
   protected doStart(): Promise<void> {
     this.applyObjectDefinitionModifiers();
-    const nonLazyObjectsPending = new Set();
-    return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) => {
-      nonLazyObjectsPending.add(objectDefinition.getName());
-      objectDefinition.onStateOnce(LifecycleState.STARTED, () => nonLazyObjectsPending.delete(objectDefinition.getName()));
-      return objectDefinition.getInstance();
-    }).catch((err) => {
+    return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()),
+      (objectDefinition) => objectDefinition.getInstance())
+      .catch((err) => {
       this.getLogger().error(
         { err },
         'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context');
       return this.lcStop().then(() => { throw err; });
-    }).then(() => { if (nonLazyObjectsPending.size !== 0) { throw new Error(`There are some objects pending initialisation`); } } );
+    }).then(() => {
+      this.getLogger().debug(`Context ${this.getName()} started`);
+    });
   }
 
   protected doStop(): Promise<void> {
