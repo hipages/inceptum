@@ -10,7 +10,7 @@
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
     "lint": "tslint -p . --type-check",
-    "docsapi": "typedoc --out docs/api --theme node_modules/typedoc-clarity-theme/bin  .",
+    "docsapi": "typedoc --out docs/_site/api --theme node_modules/typedoc-clarity-theme/bin  .",
     "docssite": "jekyll build -s docs -p docs/_plugins --layouts docs/_layouts -d docs/_site",
     "docsserve": "jekyll serve -s docs -p docs/_plugins --layouts docs/_layouts -d docs/_site",
     "docs": "npm run docssite & npm run docsapi",
