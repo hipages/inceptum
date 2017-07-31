@@ -12,7 +12,7 @@ export class ObjectDefinitionLazyLoadingInspector extends AbstractObjectDefiniti
   }
 
   private static getLazy(objectDefinition: SingletonDefinition<any>): boolean {
-    return (objectDefinition.getProducedClass() as any as LazyInfoProvider).lazy;
+    return (objectDefinition.getProducedClass()).lazy;
   }
 
   // tslint:disable-next-line:prefer-function-over-method

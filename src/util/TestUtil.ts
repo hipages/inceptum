@@ -51,7 +51,8 @@ export class MyProxyHandler<T extends Object> implements ProxyHandler<T> {
 }
 
 export function mock<H extends Object>(clazz: Function, target?: H): H {
-  return new Proxy<H>(target ? target : {} as H, new MyProxyHandler<H>(clazz));
+  const o = {};
+  return new Proxy<H>(target ? target : o as H, new MyProxyHandler<H>(clazz));
 }
 
 export class ResponseCapture {

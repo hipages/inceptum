@@ -6,3 +6,4 @@ export { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/Prein
 export { InceptumApp } from './app/InceptumApp';
 export * from './log/LogManager';
 export { ExtendedError } from './util/ErrorUtil';
+export { MysqlTransaction, MysqlClient } from './mysql/MysqlClient';

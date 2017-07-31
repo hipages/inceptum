@@ -14,7 +14,7 @@ export class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitio
 
   private static getAutowired(objectDefinition: BaseSingletonDefinition<any>): AutowireInfo {
     return objectDefinition.getProducedClass().hasOwnProperty('autowire') ?
-      (objectDefinition.getProducedClass() as any as Autowirable).autowire : undefined;
+      (objectDefinition.getProducedClass()).autowire : undefined;
   }
 
   // tslint:disable-next-line:prefer-function-over-method
