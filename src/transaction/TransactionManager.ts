@@ -13,6 +13,7 @@ export class Transaction {
   error: Error;
   commitListeners: Array<(Transaction) => Promise<any>>;
   rollbackListeners: Array<(Transaction) => Promise<any>>;
+  endListeners: Array<(Transaction) => Promise<any>>;
 
   constructor(readonly: boolean) {
     this.id = Transaction.idInc++;
@@ -22,6 +23,7 @@ export class Transaction {
     this.error = null;
     this.commitListeners = [];
     this.rollbackListeners = [];
+    this.endListeners = [];
   }
   begin() {
     if (this.began) {
@@ -47,26 +49,35 @@ export class Transaction {
     }
     this.rollbackListeners.push(f);
   }
+  addEndListener(f) {
+    if (!f || !(f instanceof Function)) {
+      throw new TransactionError('Provided input to addEndListener is not a function');
+    }
+    this.endListeners.push(f);
+  }
 
   /**
    * @return {Promise} A promise that executes all the callbacks necessary
    */
-  end() {
+  async end(): Promise<void> {
     if (!this.began) {
       // console.log('Transaction never got started, so can\'t be finished');
-      return Promise.reject(new TransactionError('Transaction never got started, so can\'t be finished'));
+      throw new TransactionError('Transaction never got started, so can\'t be finished');
     }
     if (this.finished) {
       // console.log('Transaction is already finished');
-      return Promise.reject(new TransactionError('Transaction is already finished'));
+      throw new TransactionError('Transaction is already finished');
     }
     this.finished = true;
     if (this.error) {
       // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
-      return this.callListeners(this.rollbackListeners);
+      await this.callListeners(this.rollbackListeners);
+    } else {
+      await this.callListeners(this.commitListeners);
     }
-    return this.callListeners(this.commitListeners);
+    await this.callListeners(this.endListeners);
   }
+
   canDo(readonly) {
     return !this.readonly || readonly;
   }

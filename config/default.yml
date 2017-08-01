@@ -33,7 +33,7 @@ metrics:
   gateway:
     active: 0
 
-MySQL:
+mysql:
   MysqlClient: # this is the name of the object that will be exposed in the context
     master:
       host: localhost
@@ -51,6 +51,37 @@ MySQL:
       database: testDb
       charset: utf8
       connectionLimit: 10
+
+postgres:
+  PostgresClient:
+    master:
+      user: postgres
+      database: postgres
+      password:
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      # reapIntervalMillis: number;
+      # returnToHead?: boolean;
+      application_name: test
+      # Promise?: PromiseConstructorLik
+    slave:
+      user: postgres
+      database: postgres
+      password:
+      port: 5432
+      host: localhost
+      max: 5
+      min: 1
+      refreshIdle: true
+      idleTimeoutMillis: 20000
+      # reapIntervalMillis: number;
+      # returnToHead?: boolean;
+      application_name: test
+      # Promise?: PromiseConstructorLik
 
 Context:
   ActiveProfiles: development

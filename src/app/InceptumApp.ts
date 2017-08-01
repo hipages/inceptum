@@ -7,6 +7,7 @@ import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/Obj
 import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 import { MetricsManager } from '../metrics/Metrics';
 import { MysqlConfigManager } from '../mysql/MysqlConfigManager';
+import { PostgresConfigManager } from '../postgres/PostgresConfigManager';
 
 export class InceptumApp {
   logger: Logger;
@@ -24,6 +25,7 @@ export class InceptumApp {
     this.context.addObjectDefinitionInspector(new ObjectDefinitionStartStopMethodsInspector());
     this.context.addObjectDefinitionInspector(new ObjectDefinitionLazyLoadingInspector());
     MysqlConfigManager.registerSingletons(this.context);
+    PostgresConfigManager.registerSingletons(this.context);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
     this.logger = logger || LogManager.getLogger();
   }

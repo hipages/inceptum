@@ -1,6 +1,6 @@
-const { MysqlClient } = require('../../src/mysql/MysqlClient');
+const { PostgresClient } = require('../../src/postgres/PostgresClient');
 
-const myClient = new MysqlClient();
+const myClient = new PostgresClient();
 myClient.name = 'TestClient';
 myClient.configuration = {
   Verbose: true,
@@ -9,10 +9,10 @@ myClient.configuration = {
 
 myClient.initialise();
 
-describe('MysqlClient', () => {
+describe('PostgresClient', () => {
   describe('Basic queries', () => {
     it('Gets all 3 records', 
-    () => myClient.runInTransaction(true, (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1'))
+    () => myClient.runInTransaction(true, (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1 as TT'))
         .then((rows) => {
           rows.length.must.be.equal(3);
         })
@@ -41,11 +41,11 @@ describe('MysqlClient', () => {
       try {
         const rows = await myClient.runInTransaction(true, (mysqlTransaction) => {
           holder.transaction = mysqlTransaction;
-          return mysqlTransaction.query('SELECT FROM table1')
+          return mysqlTransaction.query('SELECT * FROM table2')
         })
         true.must.equal(false);
       } catch(cause) {
-        cause.must.be.an.error(/You have an error in your SQL syntax/);
+        cause.must.be.an.error(/relation "table2" does not exist/);
         holder.transaction.isRolledBack().must.be.true();
       }
     });
