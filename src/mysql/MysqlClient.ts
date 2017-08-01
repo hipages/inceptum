@@ -6,6 +6,7 @@ import { Transaction, TransactionManager } from '../transaction/TransactionManag
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
+import { DBClient } from '../db/DBClient';
 
 const log = LogManager.getLogger();
 
@@ -193,7 +194,7 @@ export interface MySQLConfigurationObject extends ConfigurationObject<MySQLPoolC
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
-export class MysqlClient {
+export class MysqlClient extends DBClient {
   static startMethod = 'initialise';
   static stopMethod = 'shutdown';
 
@@ -205,6 +206,7 @@ export class MysqlClient {
   connectionPoolCreator: (config: MySQLPoolConfig) => ConnectionPool<mysql.IConnection>;
 
   constructor() {
+    super();
     this.configuration = {};
     this.name = 'NotSet';
     this.masterPool = null;
@@ -234,7 +236,7 @@ export class MysqlClient {
    * @param {Function} func A function that returns a promise that will execute all the queries wanted in this transaction
    * @returns {Promise} A promise that will execute the whole transaction
    */
-  runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>) {
+  runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> {
     const transaction = TransactionManager.newTransaction(readonly);
     const mysqlTransaction = new MysqlTransaction(this, transaction);
     return mysqlTransaction.begin()

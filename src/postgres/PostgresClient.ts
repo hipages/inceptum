@@ -1,4 +1,5 @@
 import * as pg from 'pg';
+import { DBClient } from '../db/DBClient';
 import { DBTransaction } from '../db/DBTransaction';
 import { ConnectionPool } from '../db/ConnectionPool';
 import { ConfigurationObject, PoolConfig } from '../db/ConfigurationObject';
@@ -116,7 +117,7 @@ export interface PostgresConfigurationObject extends ConfigurationObject<Postgre
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
-export class PostgresClient {
+export class PostgresClient extends DBClient {
   static startMethod = 'initialise';
   static stopMethod = 'shutdown';
 
@@ -127,6 +128,7 @@ export class PostgresClient {
   connectionPoolCreator: (config: PostgresPoolConfig) => ConnectionPool<pg.Client>;
 
   constructor() {
+    super();
     this.configuration = {};
     this.name = 'NotSet';
     this.masterPool = null;
@@ -154,7 +156,7 @@ export class PostgresClient {
    * @param {Function} func A function that returns a promise that will execute all the queries wanted in this transaction
    * @returns {Promise} A promise that will execute the whole transaction
    */
-  runInTransaction(readonly: boolean, func: (transaction: PostgresTransaction) => Promise<any>) {
+  public runInTransaction(readonly: boolean, func: (transaction: PostgresTransaction) => Promise<any>): Promise<any> {
     const transaction = TransactionManager.newTransaction(readonly);
     const mysqlTransaction = new PostgresTransaction(this, transaction);
     return mysqlTransaction.begin()
