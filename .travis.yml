@@ -13,8 +13,8 @@ install:
   - yarn install
   - mysql -e 'CREATE DATABASE testdb; CREATE TABLE testdb.table1 (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(20) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'
   - mysql -e 'INSERT INTO testdb.table1 (name) VALUES ("User 1"),("User 2"),("User 3");'
-  - psql -c 'CREATE TABLE postgres.table1 (name varchar(20) not null);'  -U postgres
-  - psql -c 'INSERT INTO postgres.table1 VALUES ("User 1"),("User 2"),("User 3");'  -U postgres
+  - psql -c 'CREATE TABLE table1 (name varchar(20) not null);'  -U postgres
+  - psql -c 'INSERT INTO table1 VALUES ("User 1"),("User 2"),("User 3");'  -U postgres
 
 script:
   - npm test
