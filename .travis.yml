@@ -6,12 +6,14 @@ git: { depth: 3 }
 
 service:
   - mysql
+  - postgres
 
 install:
   - npm install -g yarn
   - yarn install
   - mysql -e 'CREATE DATABASE testdb; CREATE TABLE testdb.table1 (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(20) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'
   - mysql -e 'INSERT INTO testdb.table1 (name) VALUES ("User 1"),("User 2"),("User 3");'
+  - psql -c 'CREATE TABLE table1 (`name' varchar(20) not null); INSERT INTO table1 VALUES ("User 1"),("User 2"),("User 3");'  -U postgres
 
 script:
   - npm test
