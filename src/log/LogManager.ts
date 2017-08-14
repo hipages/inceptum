@@ -195,7 +195,7 @@ export class LogManagerInternal {
     }
     return thePath;
   }
-  private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): string {
+  private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): bunyan.LogLevel {
     let overrideEnv = `LOG_${loggerName}_${streamName}`
       .replace('/[^a-zA-z0-9_]+/', '_')
       .replace('/[_]{2,}', '_');
@@ -208,7 +208,7 @@ export class LogManagerInternal {
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
-    return configuredLevel;
+    return configuredLevel as bunyan.LogLevel;
   }
 
   private static mkdirpSync(thePath: string, mode: number): boolean {
@@ -244,7 +244,7 @@ export class LogManagerInternal {
     return finalPath;
   }
 
-  private streamCache: Map<string, bunyan.Stream> = new Map();
+  private streamCache: Map<string, (bunyan.Stream | LevelStringifyTransform)> = new Map();
   private appName: string;
 
   getLogger(filePath?: string): Logger {
@@ -298,7 +298,7 @@ export class LogManagerInternal {
     return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, _app: this.appName });
   }
 
-  getStreamConfig(streamName: string, level: string) {
+  getStreamConfig(streamName: string, level: bunyan.LogLevel) {
     const configKey = `logging.streams.${streamName}`;
     if (!config.has(configKey)) {
       throw new Error(`Couldn't find stream with name ${streamName}`);
@@ -366,7 +366,7 @@ export class LogManagerInternal {
           throw new Error('Unknown log stream type');
       }
     }
-    return this.streamCache.get(streamName);
+    return this.streamCache.get(streamName) as bunyan.Stream;
   }
 }
 

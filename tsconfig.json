@@ -9,6 +9,10 @@
     "declaration": true,
     "experimentalDecorators": true
   },
+  "types": [
+    "mocha",
+    "must"
+  ],
   "include": [
     "./src/**/*"
   ]

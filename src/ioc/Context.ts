@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as config from 'config';
+import Config, { ConfigAdapater } from '../config/ConfigProvider';
 import { Logger, LogManager } from '../log/LogManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { Lifecycle, LifecycleState } from './Lifecycle';
@@ -12,20 +13,27 @@ import { IoCException } from './IoCException';
 import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
 import { BaseSingletonDefinition } from './objectdefinition/BaseSingletonDefinition';
 import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
-
 /**
  * A context used by IoC to register and request objects from.
  * This is the main class for the inversion of control framework. It serves as a registry where you can
  * add {ObjectDefinition}s and request instances from them.
  */
+
+export interface ContextOptions {
+  logger?: Logger,
+  config?: Config,
+}
+
 export class Context extends Lifecycle {
   private objectDefinitionInspector: ObjectDefinitionInspector[];
   private startedObjects: Map<any, any>;
   private objectDefinitions: Map<string, ObjectDefinition<any>>;
   private parentContext: Context;
+  private config: Config;
 
-  constructor(name: string, parentContext?: Context, logger?: Logger) {
-    super(name, logger || LogManager.getLogger());
+  constructor(name: string, parentContext?: Context, options: ContextOptions = {}) {
+    super(name, options.logger || LogManager.getLogger());
+    this.config = options.config || new Config();
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();
@@ -38,8 +46,7 @@ export class Context extends Lifecycle {
 
   lcStart(): Promise<void> {
     if (this.parentContext) {
-      return this.parentContext.lcStart()
-        .then(() => super.lcStart());
+      return this.parentContext.lcStart().then(() => super.lcStart());
     }
     return super.lcStart();
   }
@@ -54,21 +61,29 @@ export class Context extends Lifecycle {
 
   protected doStart(): Promise<void> {
     this.applyObjectDefinitionModifiers();
-    return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()),
-      (objectDefinition) => objectDefinition.getInstance())
+    return PromiseUtil.map(Array.from(this.objectDefinitions.values()).filter((o) => !o.isLazy()), (objectDefinition) =>
+      objectDefinition.getInstance(),
+    )
       .catch((err) => {
-      this.getLogger().error(
-        { err },
-        'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context');
-      return this.lcStop().then(() => { throw err; });
-    }).then(() => {
-      this.getLogger().debug(`Context ${this.getName()} started`);
-    });
+        this.getLogger().error(
+          { err },
+          'There was an error starting context. At least one non-lazy object threw an exception during startup. Stopping context',
+        );
+        return this.lcStop().then(() => {
+          throw err;
+        });
+      })
+      .then(() => {
+        this.getLogger().debug(`Context ${this.getName()} started`);
+      });
   }
 
-  protected doStop(): Promise<void> {
-    return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) => startedObject.lcStop())
-      .then(() => { /* donothing */ });
+  protected doStop(): Promise<any> {
+    return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) =>
+      startedObject.lcStop(),
+    ).then(() => {
+      /* donothing */
+    });
   }
 
   // ************************************
@@ -77,7 +92,7 @@ export class Context extends Lifecycle {
 
   clone(name) {
     this.assertState(LifecycleState.NOT_STARTED);
-    const copy = new Context(name, this.parentContext, this.logger);
+    const copy = new Context(name, this.parentContext, { logger: this.logger, config: this.config });
     this.objectDefinitions.forEach((objectDefinition) => copy.registerDefinition(objectDefinition.copy()));
     return copy;
   }
@@ -106,14 +121,18 @@ export class Context extends Lifecycle {
       throw new IoCException('Provided input for registration is not an instance of ObjectDefinition');
     }
     if (!overwrite && this.objectDefinitions.has(objectDefinition.getName())) {
-      throw new IoCException(`Object definition with name ${objectDefinition.getName()} already exists in this context`);
+      throw new IoCException(
+        `Object definition with name ${objectDefinition.getName()} already exists in this context`,
+      );
     }
     if (this.parentContext && this.parentContext.objectDefinitions.has(objectDefinition.getName())) {
       throw new IoCException(`Parent context already has an object definition with name ${objectDefinition.getName()}`);
     }
     this.objectDefinitions.set(objectDefinition.getName(), objectDefinition);
     objectDefinition.setContext(this);
-    objectDefinition.onStateOnce(LifecycleState.STARTED, () => this.startedObjects.set(objectDefinition.getName(), objectDefinition));
+    objectDefinition.onStateOnce(LifecycleState.STARTED, () =>
+      this.startedObjects.set(objectDefinition.getName(), objectDefinition),
+    );
     objectDefinition.onStateOnce(LifecycleState.STOPPED, () => this.startedObjects.delete(objectDefinition.getName()));
   }
 
@@ -124,8 +143,7 @@ export class Context extends Lifecycle {
       } else if (singleton instanceof Function) {
         this.registerDefinition(new BaseSingletonDefinition<any>(singleton));
       } else {
-        throw new IoCException(
-          `Not sure how to convert input into SingletonDefinition: ${singleton}`);
+        throw new IoCException(`Not sure how to convert input into SingletonDefinition: ${singleton}`);
       }
     });
   }
@@ -136,7 +154,12 @@ export class Context extends Lifecycle {
       expectedClass = expectedClass.substr(0, expectedClass.length - 3);
       const loaded = require(file);
       if (loaded) {
-        if ((typeof loaded === 'object') && !(loaded instanceof Function) && loaded[expectedClass] && loaded[expectedClass].constructor) {
+        if (
+          typeof loaded === 'object' &&
+          !(loaded instanceof Function) &&
+          loaded[expectedClass] &&
+          loaded[expectedClass].constructor
+        ) {
           this.registerSingletons(loaded[expectedClass]);
         } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
           this.registerSingletons(loaded);
@@ -186,16 +209,8 @@ export class Context extends Lifecycle {
    * @throws {Error} If the given key doesn't exist and a default value is not provided
    * @see {@link Context.hasConfig}
    */
-  static getConfig(key: string, defaultValue?: any): any {
-    if (!config.has(key) && defaultValue !== undefined) {
-      return defaultValue;
-    }
-    return config.get(key);
-  }
-
-  // tslint:disable-next-line:prefer-function-over-method
   getConfig(key: string, defaultValue?: any): any {
-    return Context.getConfig(key, defaultValue);
+    return this.config.getConfig(key, defaultValue);
   }
 
   /**
@@ -203,17 +218,8 @@ export class Context extends Lifecycle {
    * @param key
    * @return {*}
    */
-  static hasConfig(key: string): boolean {
-    return config.has(key);
-  }
-
-  // tslint:disable-next-line:prefer-function-over-method
   hasConfig(key: string): boolean {
-    return Context.hasConfig(key);
-  }
-
-  static getConfigSources() {
-    return config.util.getConfigSources();
+    return this.config.hasConfig(key);
   }
 
   // ************************************
@@ -266,8 +272,7 @@ export class Context extends Lifecycle {
   getDefinitionByType(className): ObjectDefinition<any> {
     const resp = this.getDefinitionsByType(className);
     if (resp.length > 1) {
-      throw new IoCException(
-        `Found more than one object definition in the context that produces a ${className}`);
+      throw new IoCException(`Found more than one object definition in the context that produces a ${className}`);
     }
     return resp[0];
   }
@@ -275,11 +280,12 @@ export class Context extends Lifecycle {
   getDefinitionsByType(className, failOnMissing = true): Array<ObjectDefinition<any>> {
     const resp = new Map();
     if (this.parentContext) {
-      this.parentContext.getDefinitionsByType(className, false).forEach(
-        (objectDefinition) => resp.set(objectDefinition.getName(), objectDefinition));
+      this.parentContext
+        .getDefinitionsByType(className, false)
+        .forEach((objectDefinition) => resp.set(objectDefinition.getName(), objectDefinition));
     }
     this.objectDefinitions.forEach((objectDefinition) => {
-      if ((objectDefinition.getProducedClass().name === className) && objectDefinition.autowireCandidate) {
+      if (objectDefinition.getProducedClass().name === className && objectDefinition.autowireCandidate) {
         resp.set(objectDefinition.getName(), objectDefinition);
       }
     });

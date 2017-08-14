@@ -155,18 +155,18 @@ export class MetricsServiceInternal {
 export const MetricsService = new MetricsServiceInternal();
 
 export class MetricsManager {
-  static setup(appName: string) {
+  static setup(appName: string, context: Context) {
     const defaultMetrics = prometheus.defaultMetrics;
 
     // Skip `osMemoryHeap` probe, and probe every 5th second.
     const defaultInterval = defaultMetrics(['osMemoryHeap'], 10000);
     process.on('exit', () => { clearInterval(defaultInterval); });
 
-    if (Context.hasConfig('metrics.gateway') &&
-      Context.hasConfig('metrics.gateway.active') &&
-      Context.getConfig('metrics.gateway.active')
+    if (context.hasConfig('metrics.gateway') &&
+      context.hasConfig('metrics.gateway.active') &&
+      context.getConfig('metrics.gateway.active')
     ) {
-      const gateway = new prometheus.Pushgateway(Context.getConfig('metrics.gateway.hostport'));
+      const gateway = new prometheus.Pushgateway(context.getConfig('metrics.gateway.hostport'));
       const tags = {
         jobName: 'msPush',
         appName,
@@ -174,7 +174,7 @@ export class MetricsManager {
       const interval = setInterval(() => {
         gateway.pushAdd(tags, (err) => {
           if (err) {
-            logger.error({ err }, `There was an error pushing stats to the metrics gateway: ${Context.getConfig('metrics.gateway.hostport')}`);
+            logger.error({ err }, `There was an error pushing stats to the metrics gateway: ${context.getConfig('metrics.gateway.hostport')}`);
           }
         });
       });
@@ -187,7 +187,7 @@ export class MetricsManager {
           gateway.delete(tags, (err2) => {
             if (err2) {
               logger.error({ err2 }, `There was an error deleting stats for ${JSON.stringify(tags)} ` +
-                `from the metrics gateway: ${Context.getConfig('metrics.gateway.hostport')}`);
+                `from the metrics gateway: ${context.getConfig('metrics.gateway.hostport')}`);
             }
           });
         });
@@ -196,7 +196,7 @@ export class MetricsManager {
   }
 
   static registerSingletons(appName: string, context: Context) {
-    MetricsManager.setup(appName);
+    MetricsManager.setup(appName, context);
     // eslint-disable-next-line no-use-before-define
     context.registerDefinition(new PreinstantiatedSingletonDefinition(MetricsService, 'MetricsService'));
   }
