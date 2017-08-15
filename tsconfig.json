@@ -2,13 +2,17 @@
   "compilerOptions": {
     "outDir": "./dist",
     "allowJs": false,
-    "target": "es6",
+    "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
     "sourceMap": true,
     "declaration": true,
     "experimentalDecorators": true
   },
+  "types": [
+    "mocha",
+    "must"
+  ],
   "include": [
     "./src/**/*"
   ]
