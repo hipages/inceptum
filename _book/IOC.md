@@ -1,2 +1,0 @@
-##Inversion of Control (IOC)
-
