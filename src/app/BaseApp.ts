@@ -4,7 +4,7 @@ import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/Prei
 import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
 import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 import { LifecycleState } from '../ioc/Lifecycle';
-import Config, {ConfigAdapater} from '../config/ConfigProvider';
+import Config, { ConfigAdapater } from '../config/ConfigProvider';
 
 export type PluginLifecycleMethodName = 'willStart' | 'didStart' | 'willStop' | 'didStop';
 export type PluginLifecycleMethod = (app: BaseApp, pluginContext?: Map<String, any>) => Promise<void> | void;
@@ -55,7 +55,7 @@ export default class BaseApp {
   private appName: string;
 
   private plugins: PluginImplemenation[] = [];
-  private pluginContext: Map<String, any>;
+  private pluginContext: Map<String, any> = new Map();
 
   /**
    * Creates a new Inceptum App
@@ -66,6 +66,14 @@ export default class BaseApp {
     this.logger = logger;
     this.context = new Context(config.getConfig('app.context.name', 'BaseContext'), null, options);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
+  }
+
+  public use(...plugins: PluginImplemenation[]) {
+    return this.register(...plugins);
+  }
+
+  public addDirectory(path) {
+    return this.getContext().registerSingletonsInDir(path);
   }
 
   public register(...plugins: PluginImplemenation[]) {
@@ -83,7 +91,11 @@ export default class BaseApp {
   private runLifecycleMethodOnPlugins(method: PluginLifecycleMethodName) {
     return this.plugins.reduce(async (previous, plugin) => {
       await previous;
-      return plugin[method] ? plugin[method](this, this.pluginContext) : Promise.resolve();
+      if (plugin[method]) {
+        this.logger.debug(`${method}:${plugin.name}`);
+        return plugin[method](this, this.pluginContext);
+      }
+      return Promise.resolve();
     }, Promise.resolve());
   }
 

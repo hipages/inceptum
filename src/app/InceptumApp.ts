@@ -15,7 +15,7 @@ export class InceptumApp extends BaseApp {
   /**
    * Creates a new Inceptum App
    */
-  constructor(options) {
+  constructor(options = {}) {
     super(options);
     // Standard IOC plugins.
     this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin());

@@ -1,3 +1,5 @@
+// tslint:disable:jsdoc-format
+
 import * as config from 'config';
 import * as bunyan from 'bunyan';
 import PrettyStream = require('bunyan-prettystream');
@@ -11,12 +13,12 @@ import stringify = require('json-stringify-safe');
 import { ExtendedError } from '../util/ErrorUtil';
 
 export abstract class Logger {
-    /**
+  /**
      * Returns a boolean: is the `trace` level enabled?
      * This is equivalent to `log.isTraceEnabled()` or `log.isEnabledFor(TRACE)` in log4j.
      */
-    abstract trace(): boolean;
-    /**
+  abstract trace(): boolean;
+  /**
      * The first field can optionally be a "fields" object, which
      * is merged into the log record.
      * Special case to log an `Error` instance to the record.
@@ -24,106 +26,106 @@ export abstract class Logger {
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract trace(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  abstract trace(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
-    /**
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract trace(format: string | number, ...params: any[]): void;
+  abstract trace(format: string | number, ...params: any[]): void;
 
-    /**
-     * Returns a boolean: is the `debug` level enabled?
-     * This is equivalent to `log.isDebugEnabled()` or `log.isEnabledFor(DEBUG)` in log4j.
-     */
-    abstract debug(): boolean;
+  /**
+  * Returns a boolean: is the `debug` level enabled?
+  * This is equivalent to `log.isDebugEnabled()` or `log.isEnabledFor(DEBUG)` in log4j.
+  */
+  abstract debug(): boolean;
 
-    /**
+  /**
      * Special case to log an `Error` instance to the record.
      * This adds an `err` field with exception details
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract debug(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
-    /**
+  abstract debug(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract debug(format: string | number, ...params: any[]): void;
+  abstract debug(format: string | number, ...params: any[]): void;
 
-    /**
+  /**
      * Returns a boolean: is the `info` level enabled?
      * This is equivalent to `log.isInfoEnabled()` or `log.isEnabledFor(INFO)` in log4j.
      */
-    abstract info(): boolean;
+  abstract info(): boolean;
 
-    /**
+  /**
      * Special case to log an `Error` instance to the record.
      * This adds an `err` field with exception details
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract info(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  abstract info(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
-    /**
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract info(format: string | number, ...params: any[]): void;
+  abstract info(format: string | number, ...params: any[]): void;
 
-    /**
+  /**
      * Returns a boolean: is the `warn` level enabled?
      * This is equivalent to `log.isWarnEnabled()` or `log.isEnabledFor(WARN)` in log4j.
      */
-    abstract warn(): boolean;
+  abstract warn(): boolean;
 
-    /**
+  /**
      * Special case to log an `Error` instance to the record.
      * This adds an `err` field with exception details
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract warn(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  abstract warn(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
-    /**
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract warn(format: string | number, ...params: any[]): void;
+  abstract warn(format: string | number, ...params: any[]): void;
 
-    /**
+  /**
      * Returns a boolean: is the `error` level enabled?
      * This is equivalent to `log.isErrorEnabled()` or `log.isEnabledFor(ERROR)` in log4j.
      */
-    abstract error(): boolean;
+  abstract error(): boolean;
 
-    /**
+  /**
      * Special case to log an `Error` instance to the record.
      * This adds an `err` field with exception details
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract error(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  abstract error(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
-    /**
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract error(format: string | number, ...params: any[]): void;
+  abstract error(format: string | number, ...params: any[]): void;
 
-    /**
+  /**
      * Returns a boolean: is the `fatal` level enabled?
      * This is equivalent to `log.isFatalEnabled()` or `log.isEnabledFor(FATAL)` in log4j.
      */
-    abstract fatal(): boolean;
+  abstract fatal(): boolean;
 
-    /**
+  /**
      * Special case to log an `Error` instance to the record.
      * This adds an `err` field with exception details
      * (including the stack) and sets `msg` to the exception
      * message or you can specify the `msg`.
      */
-    abstract fatal(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
+  abstract fatal(error: Error | Buffer | Object, format?: any, ...params: any[]): void;
 
-    /**
+  /**
      * Uses `util.format` for msg formatting.
      */
-    abstract fatal(format: string | number, ...params: any[]): void;
+  abstract fatal(format: string | number, ...params: any[]): void;
 }
 
 class LevelStringifyTransform extends stream.Transform {
@@ -175,7 +177,6 @@ class StringifyTransform extends stream.Transform {
 }
 
 export class LogManagerInternal {
-
   static setAppName;
   static getLogger;
 
@@ -191,20 +192,16 @@ export class LogManagerInternal {
     }
     if (thePath.startsWith(process.cwd())) {
       const fromCwd = thePath.substr(process.cwd().length);
-      return (fromCwd.startsWith(path.sep)) ? fromCwd.substr(1) : fromCwd;
+      return fromCwd.startsWith(path.sep) ? fromCwd.substr(1) : fromCwd;
     }
     return thePath;
   }
   private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): bunyan.LogLevel {
-    let overrideEnv = `LOG_${loggerName}_${streamName}`
-      .replace('/[^a-zA-z0-9_]+/', '_')
-      .replace('/[_]{2,}', '_');
+    let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
-    overrideEnv = `LOG_${loggerName}`
-      .replace('/[^a-zA-z0-9_]+/', '_')
-      .replace('/[_]{2,}', '_');
+    overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
@@ -221,19 +218,17 @@ export class LogManagerInternal {
     return false;
   }
 
-  private static getRedisStream(config: {key: string, host: string, port: number}): RedisTransport {
+  private static getRedisStream(redisConfig: RedisConfig): RedisTransport {
     return new RedisTransport({
-      container: config.key || 'phplog',
-      host: process.env.REDIS_HOST || config.host || '127.0.0.1',
-      port: process.env.REDIS_PORT || config.port || 6379,
+      container: redisConfig.key || 'phplog',
+      host: process.env.REDIS_HOST || redisConfig.host || '127.0.0.1',
+      port: process.env.REDIS_PORT || redisConfig.port || 6379,
       db: 0,
     });
   }
 
   private static resolvePath(thePath: string): string {
-    const basePath = process.env.LOG_DIR ||
-      (config.has('Logger.dir') && config.get('Logger.dir')) ||
-        os.tmpdir();
+    const basePath = process.env.LOG_DIR || (config.has('Logger.dir') && config.get('Logger.dir')) || os.tmpdir();
     const finalPath = path.resolve(basePath, thePath);
     if (!fs.existsSync(path.dirname(finalPath))) {
       LogManagerInternal.mkdirpSync(path.dirname(finalPath), 0o766);
@@ -244,7 +239,7 @@ export class LogManagerInternal {
     return finalPath;
   }
 
-  private streamCache: Map<string, (bunyan.Stream | LevelStringifyTransform)> = new Map();
+  private streamCache: Map<string, bunyan.Stream | LevelStringifyTransform> = new Map();
   private appName: string;
 
   getLogger(filePath?: string): Logger {
@@ -267,7 +262,7 @@ export class LogManagerInternal {
 
   getLoggerInternal(loggerPath: string): Logger {
     if (!config.has('logging.loggers')) {
-      throw new Error('Couldn\'t find loggers configuration!!! Your logging config is wrong!');
+      throw new Error("Couldn't find loggers configuration!!! Your logging config is wrong!");
     }
     const loggers = config.get('logging.loggers');
     const candidates = loggers.filter((logger) => loggerPath.startsWith(logger.name));
@@ -287,13 +282,11 @@ export class LogManagerInternal {
     const loggerConfig = candidates[0];
     const loggerName = loggerConfig.name;
     const streamNames = loggerConfig.streams;
-    const streams = Object.keys(streamNames).map(
-      (streamName) =>
-        this.getStreamConfig(
-          streamName,
-          LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName],
-          ),
-        ),
+    const streams = Object.keys(streamNames).map((streamName) =>
+      this.getStreamConfig(
+        streamName,
+        LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]),
+      ),
     );
     return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, _app: this.appName });
   }
@@ -347,11 +340,13 @@ export class LogManagerInternal {
         case 'file':
           {
             const levelStringifyTransform = new LevelStringifyTransform();
-            levelStringifyTransform.pipe(new StringifyTransform()).pipe(new RotatingFileStream({
-              path: LogManagerInternal.resolvePath(streamConfig.path),
-              period: streamConfig.period || '1d',
-              count: streamConfig.count || 14,
-            }));
+            levelStringifyTransform.pipe(new StringifyTransform()).pipe(
+              new RotatingFileStream({
+                path: LogManagerInternal.resolvePath(streamConfig.path),
+                period: streamConfig.period || '1d',
+                count: streamConfig.count || 14,
+              }),
+            );
             this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
@@ -370,12 +365,19 @@ export class LogManagerInternal {
   }
 }
 
+interface RedisConfig {
+  key: string,
+  host: string,
+  port: number,
+}
 export const LogManager = new LogManagerInternal();
 
 const baseLogger = LogManager.getLogger('ROOT');
 process.on('unhandledRejection', (reason, promise) => {
-// eslint-disable-next-line no-underscore-dangle
-  baseLogger.fatal(`Unhandled promise: ${reason} ${(promise && promise._trace && promise._trace.stack) ? promise._trace.stack : ''}`);
+  // eslint-disable-next-line no-underscore-dangle
+  baseLogger.fatal(
+    `Unhandled promise: ${reason} ${promise && promise._trace && promise._trace.stack ? promise._trace.stack : ''}`,
+  );
 });
 
 process.on('uncaughtException', (err) => {
@@ -391,7 +393,7 @@ function _getCallerFile() {
     const currentFile = structuredStackTrace.shift().getFileName();
     callerFile = currentFile;
     while (structuredStackTrace.length && currentFile === callerFile) {
-        callerFile = structuredStackTrace.shift().getFileName();
+      callerFile = structuredStackTrace.shift().getFileName();
     }
     if (!callerFile) {
       return '/na';

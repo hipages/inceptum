@@ -4,7 +4,7 @@ import BaseApp, { Plugin } from '../app/BaseApp';
 import { MysqlClient } from './MysqlClient';
 
 export default class MysqlPlugin implements Plugin {
-  name: 'MysqlPlugin';
+  name = 'MysqlPlugin';
 
   getName() {
     return this.name;

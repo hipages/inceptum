@@ -1,4 +1,4 @@
-import {LifecycleState} from '../Lifecycle';
+import { LifecycleState } from '../Lifecycle';
 import { Logger, LogManager } from '../../log/LogManager';
 import { SingletonDefinition } from './SingletonDefinition';
 

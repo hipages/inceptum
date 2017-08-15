@@ -1,4 +1,4 @@
-import {AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionInspector';
+import { AbstractObjectDefinitionInspector } from '../AbstractObjectDefinitionInspector';
 import { SingletonDefinition } from '../objectdefinition/SingletonDefinition';
 
 export class ObjectDefinitionStartStopMethodsInspector extends AbstractObjectDefinitionInspector {

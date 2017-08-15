@@ -142,6 +142,7 @@ export class Context extends Lifecycle {
         this.registerDefinition(singleton);
       } else if (singleton instanceof Function) {
         this.registerDefinition(new BaseSingletonDefinition<any>(singleton));
+        this.logger.debug(`Registering singleston ${singleton.name}`);
       } else {
         throw new IoCException(`Not sure how to convert input into SingletonDefinition: ${singleton}`);
       }
@@ -149,12 +150,14 @@ export class Context extends Lifecycle {
   }
 
   registerSingletonsInDir(dir) {
-    Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
+    Context.walkDirSync(dir).filter((file) => ['.js', '.ts'].includes(path.extname(file))).forEach((file) => {
       let expectedClass = path.basename(file);
       expectedClass = expectedClass.substr(0, expectedClass.length - 3);
       const loaded = require(file);
       if (loaded) {
-        if (
+        if (typeof loaded === 'object' && loaded.__esModule && loaded.default && loaded.default.constructor) {
+          this.registerSingletons(loaded.default);
+        } else if (
           typeof loaded === 'object' &&
           !(loaded instanceof Function) &&
           loaded[expectedClass] &&
