@@ -50,12 +50,12 @@ export interface AppOptions {
 }
 
 export default class BaseApp {
-  private logger: Logger;
-  private context: Context;
-  private appName: string;
+  protected logger: Logger;
+  protected context: Context;
+  protected appName: string;
 
-  private plugins: PluginImplemenation[] = [];
-  private pluginContext: Map<String, any> = new Map();
+  protected plugins: PluginImplemenation[] = [];
+  protected pluginContext: Map<String, any> = new Map();
 
   /**
    * Creates a new Inceptum App

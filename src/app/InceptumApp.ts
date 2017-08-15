@@ -19,12 +19,13 @@ export class InceptumApp extends BaseApp {
     super(options);
     // Standard IOC plugins.
     this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin());
-
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
+      this.logger.debug('Mysql Detected - Adding Plugin');
       this.register(new MysqlPlugin());
     }
     if (this.hasConfig('postgres')) {
+      this.logger.debug('Postgres Detected - Adding Plugin');
       this.register(new PostgresPlugin());
     }
   }

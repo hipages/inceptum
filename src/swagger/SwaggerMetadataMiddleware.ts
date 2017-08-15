@@ -1,4 +1,4 @@
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import { initializeMiddleware } from 'swagger-tools';
 
@@ -34,22 +34,22 @@ export default class SwaggerMetadataMiddleware {
       throw e1;
     }
   }
-  async register(expressApp) {
-    return initializeMiddleware(this.swagger, async (swaggerTools) => {
-      // this.logger.debug('Adding swagger middleware');
-      const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
-      const swaggerValidatorFunc = swaggerTools.swaggerValidator();
-      expressApp.use((req, res, next) => {
-        swaggerMetadataFunc(req, res, (err) => {
-          if (err) {
-            return next(err);
-          }
-          return next();
+  register(expressApp): Promise<void> {
+    return new Promise<void>((resolve) => {
+      initializeMiddleware(this.swagger, (swaggerTools) => {
+        // logger.debug('Adding swagger middleware');
+        const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
+        const swaggerValidatorFunc = swaggerTools.swaggerValidator();
+        expressApp.use((req, res, next) => {
+          swaggerMetadataFunc(req, res, (err) => {
+            if (err) { return next(err); }
+            return next();
+          });
         });
+        expressApp.use(swaggerValidatorFunc);
+        // logger.debug('Adding swagger middleware - Done');
+        resolve();
       });
-      expressApp.use(swaggerValidatorFunc);
-      // this.logger.debug('Adding swagger middleware - Done');
-      return expressApp;
     });
   }
 }

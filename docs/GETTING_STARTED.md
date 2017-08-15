@@ -1,45 +1,74 @@
 ## Creating a simple rest API
 
-
-## Config
-
-In this tutorial, we will be using inceptum-swagger to create a TODO API that talks to a mysql database. The starting point for 
-any inceptum app is the config file, usually stored in the config directory. You can find out more about how config with TOOD: HERE
-but for now, we're just going to use one file: `default.yml`;
-
-```yml
-# config/default.yml
-app:
-  name: My Todo App
-```
+In this tutorial, we will be using inceptum-swagger to create a TODO API that talks to a mysql database. 
 
 ## Setting up our app
+In this tutorial, we'll be using Typescript, because types are fun. All of this should work in plain javascript as well though!
+To make typescript work, we'll be just-in-time transpliling it with ts-node.
+
+```
+$ yarn global add ts-node
+```
+
+Now, lets add inceptum to our project...
+```
+$ yarn add inceptum
+```
+
+And use it to create our app:
 
 ```typescript
 // src/index.ts
-import Inceptum from 'inceptum';
+import { InceptumApp } from 'inceptum';
 
-const app = new Inceptum();
+const app = new InceptumAppn();
 app.start();
 ```
 
-You should see something like below:
+If you run `ts-node src/index.ts` you should see something like below.
 
-TODO SCREENSHOT
+![Local Image](./images/getting_started/gs1.png)
+
+It's complaining about not having any config, lets fix that!
+## Config 
+
+Lets create a file at `/config/default.yml`
+
+```yml
+app:
+  name: My Todo App
+  context:
+    name: BaseContext
+logging:
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+    mainLogFile:
+      type: file
+      path: main.log
+  loggers:
+    - name: ROOT
+      streams:
+        console: debug
+```
+
+ `ts-node src/index.ts` again... nice! Our app runs, but it doesn't actually do anything ...yet.
 
 ## Swagger And Routing
 
-Setting up the swagge plugin is easy! We just need to import the package and tell our App to use it.
+Setting up the swagger plugin is easy! We just need to import the package and tell our App to use it.
 Inceptum Web will set up our express server, and SwaggerPlugin will set up our routing via our swagger file.
 
 ```typescript
-// srcindex.ts
-import Inceptum from 'inceptum';
-import WebPlugin from 'inceptum-web';
-import SwaggerPlugin from 'inceptum-swagger';
+// src/index.ts
+import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
+import * as path from 'path';
 
+const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
 const app = new Inceptum();
-app.use(new WebPlugin(), new SwaggerPlugin())
+app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath))
 app.start();
 ```
 
@@ -47,7 +76,7 @@ We now need to set up our swagger file where we will define our routes. This see
 boilerplate 
 
 ```yml
-#swagger.yml
+# /config/swagger.yml
 swagger: "2.0"
 info:
   version: "0.0.1"
@@ -68,27 +97,45 @@ paths:
       description: Gets one todo by id
       x-inceptum-operation: get(id)
       parameters:
-        type: string
-        required: true
-        in: path
+       - name: id
+         type: string
+         required: true
+         in: path
       responses:
         "200":
           description: Success
           schema:
-            type: Object
+            type: object
 ```
 
 The intersting parts here are the custom attributes we've defind `x-inceptum-controller` and `x-inceptum-operation`.
 The attributes are basically defining what method we are going to call on what controller, as well as what paramaters
 were are going to pass to that method.
 
+Finally, we need to let inceptum know where to find out controllers. To do this, we can add the following line to our
+index.js.
+
+```typescript
+// src/index.ts
+import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
+import * as path from 'path';
+
+const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
+const app = new Inceptum();
+app.useDirectory(path.resolve(`${__dirname}/controller`));  // <--- Register our controllers
+app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath));
+app.start();
+```
+
+Here we are using node's built-in `path` module to point inceptum to our controllers located at `/src/controllers`
+
 We can now write our controller!
 
 ```typescript
-// src/controllers/DefaultController.ts
-class TodoController {
+// src/controllers/TodoController.ts
+export default class TodoController {
 
-  async get(key) {
+  async get(key, req, res) {
     return res.send({
       id: key,
       done: false
@@ -109,8 +156,6 @@ Now, if you start your app and go to `localhost:10100/todo/1234` in your browser
 
 Cool! But static data isn't really useful. Lets add a database!
 
-
-
 ## Adding a database 
 
 To add a database connection to our app, all we need to do is add the following to our config.yml. Inceptum will automatically 
@@ -119,7 +164,7 @@ create add MysqlPlugin() // TODO LINK to our application. It will be registered 
 ```yml
 #config.yml
 mysql: # Telling inceptum to add a new MysqlPlugin() to our app
-  MysqlClient: # IoC name
+  MainMysqlClient: # IoC name
     master:
       host: localhost
       port: 3306
@@ -176,44 +221,72 @@ To do this, we define a static property on our class to tell inceptum what depen
 
 
 ```typescript
-TodoService.autowire = {
-  mysql: 'mysqlClient'
-};
+export default class TodoService {
+
+  static autowire = {
+    mysql: 'MainMysqlClient',
+  };
+
+  getTodo(id) {
+    // TODO Implement me!
+  }
+}
+
 ```
 
 We can now use the client in our service like below:
 
 
 ```typescript
+// src/service/TodoService.ts
 export default class TodoService {
+  mysql: any;
+
+  static autowire = {
+    mysql: 'MainMysqlClient',
+  };
 
   async getTodo(id) {
-    return this.mysql.runInTransaction(true,  async (client) => {
-      const [todo] = client.query(`SELECT * FROM todos WHERE id = ?`, id);
+    return this.mysql.runInTransaction(true, async (client) => {
+      const [todo] = await client.query(`SELECT * FROM todos WHERE id = ?`, id);
       return todo;
     });
   }
 }
+```
 
-TodoService.autowire = {
-  mysql: 'mysqlClient'
-};
+Finally, we need to tell Inceptum that these service classes exist:
+
+```typescript
+// src/index.ts
+import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
+import * as path from 'path';
+
+const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
+const app = new Inceptum();
+app.useDirectory(path.resolve(`${__dirname}/controller`));
+app.useDirectory(path.resolve(`${__dirname}/service`)); // <--- Register our services
+app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath));
+app.start();
 ```
 
 Now, we need to wire up our service to our controller, we do this in a similar way to myself
 
 ```typescript
-// src/controllers/DefaultController.ts
+// src/controllers/TodoController.ts
 export default class TodoController {
+  service: any;
 
-  async get(id) {
+  static autowire = {
+    service: 'TodoService',
+  };
+
+  async get(id, req, res) {
     const todo = await this.service.getTodo(id);
     res.send(todo);
   }
 }
-
-TodoController.autowire = {
-  service: 'TodoService'
-};
-
 ```
+
+If we hit our endpoint now, you should see data straight out of your database in JSON form. Congrats! You have just created
+your first REST API powered by Inceptum!
