@@ -13,10 +13,8 @@ install:
   - mysql -e 'CREATE DATABASE testdb; CREATE TABLE testdb.table1 (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(20) NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'
   - mysql -e 'INSERT INTO testdb.table1 (name) VALUES ("User 1"),("User 2"),("User 3");'
   - psql -c 'Create database testdb;' -U postgres
-  - psql -c 'CREATE TABLE testdb.table1 (name varchar(20) not null);'  -U postgres
-  - psql -c "INSERT INTO testdb.table1 (name) VALUES ('User 1');"  -U postgres
-  - psql -c "INSERT INTO testdb.table1 (name) VALUES ('User 2')"  -U postgres
-  - psql -c "INSERT INTO testdb.table1 (name) VALUES ('User 3');"  -U postgres
+  - psql -d testdb -c 'CREATE TABLE table1 (name varchar(20) not null);'  -U postgres
+  - psql -d testdb -c "INSERT INTO table1 (name) VALUES ('User 1'),('User 2'),('User 2');"  -U postgres
 
 script:
   - npm test
