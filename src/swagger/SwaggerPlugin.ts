@@ -13,7 +13,7 @@ export class SwaggerPlugin implements Plugin {
 
   name = 'swagger-plugin';
   async willStart(app, context) {
-    const express = context.get('web-app');
+    const express = context.get('WebPlugin/APP');
 
     const CORSMiddleware = createCorsMiddlware({
       allowedOrigins: app.getConfig('app.cors.allowOrigin', '*'),
