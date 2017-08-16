@@ -4,7 +4,12 @@ In this tutorial, we will be using inceptum-swagger to create a TODO API that ta
 
 ## Setting up our app
 In this tutorial, we'll be using Typescript, because types are fun. All of this should work in plain javascript as well though!
-To make typescript work, we'll be just-in-time transpliling it with ts-node.
+
+We'll be basing our project off https://github.com/hipages/typescript-base, this provides a lot of the typescript configs
+and dotfiles we'll need.
+
+For this example, we'll be just-in-time transpliling it with ts-node. In production we would be pre compiling our code
+to javascript, but this will be ok this purposes of this tutorial.
 
 ```
 $ yarn global add ts-node
@@ -21,7 +26,7 @@ And use it to create our app:
 // src/index.ts
 import { InceptumApp } from 'inceptum';
 
-const app = new InceptumAppn();
+const app = new InceptumApp();
 app.start();
 ```
 
@@ -67,7 +72,7 @@ import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
 import * as path from 'path';
 
 const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
-const app = new Inceptum();
+const app = new InceptumApp();
 app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath))
 app.start();
 ```
@@ -76,7 +81,7 @@ We now need to set up our swagger file where we will define our routes. This see
 boilerplate 
 
 ```yml
-# /config/swagger.yml
+# /config/swagger.yaml
 swagger: "2.0"
 info:
   version: "0.0.1"
@@ -121,8 +126,8 @@ import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
 import * as path from 'path';
 
 const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
-const app = new Inceptum();
-app.useDirectory(path.resolve(`${__dirname}/controller`));  // <--- Register our controllers
+const app = new InceptumApp();
+app.addDirectory(path.resolve(`${__dirname}/controller`));  // <--- Register our controllers
 app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath));
 app.start();
 ```
@@ -263,9 +268,9 @@ import { InceptumApp, SwaggerPlugin, WebPlugin } from 'inceptum';
 import * as path from 'path';
 
 const swaggerPath = path.resolve(`${__dirname}/../config/swagger.yaml`);
-const app = new Inceptum();
-app.useDirectory(path.resolve(`${__dirname}/controller`));
-app.useDirectory(path.resolve(`${__dirname}/service`)); // <--- Register our services
+const app = new InceptumApp();
+app.addDirectory(path.resolve(`${__dirname}/controller`));
+app.addDirectory(path.resolve(`${__dirname}/service`)); // <--- Register our services
 app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath));
 app.start();
 ```

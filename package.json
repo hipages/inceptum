@@ -33,9 +33,11 @@
     "test": "test"
   },
   "dependencies": {
+    "@types/axios": "^0.14.0",
     "@types/bunyan": "1.8.0",
     "@types/mocha": "^2.2.41",
     "@types/pg": "^6.1.43",
+    "axios": "^0.16.2",
     "body-parser": "^1.15.2",
     "bunyan": "^1.8.10",
     "bunyan-prettystream": "0.1.3",
