@@ -49,13 +49,15 @@ export interface AppOptions {
   config?: ConfigAdapater,
 }
 
+export type PluginContext = Map<String | Symbol, any>;
+
 export default class BaseApp {
   protected logger: Logger;
   protected context: Context;
   protected appName: string;
 
   protected plugins: PluginImplemenation[] = [];
-  protected pluginContext: Map<String, any> = new Map();
+  protected pluginContext: PluginContext = new Map();
 
   /**
    * Creates a new Inceptum App
