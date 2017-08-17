@@ -159,38 +159,62 @@
                                 <section class="normal markdown-section">
                                 
                                 <h2 id="creating-a-simple-rest-api">Creating a simple rest API</h2>
-<h2 id="config">Config</h2>
-<p>In this tutorial, we will be using inceptum-swagger to create a TODO API that talks to a mysql database. The starting point for 
-any inceptum app is the config file, usually stored in the config directory. You can find out more about how config with TOOD: HERE
-but for now, we&apos;re just going to use one file: <code>default.yml</code>;</p>
-<pre><code class="lang-yml"><span class="hljs-comment"># config/default.yml</span>
-<span class="hljs-attr">app:</span>
-<span class="hljs-attr">  name:</span> My Todo App
-</code></pre>
+<p>In this tutorial, we will be using inceptum-swagger to create a TODO API that talks to a mysql database. </p>
 <h2 id="setting-up-our-app">Setting up our app</h2>
+<p>In this tutorial, we&apos;ll be using Typescript, because types are fun. All of this should work in plain javascript as well though!</p>
+<p>We&apos;ll be basing our project off <a href="https://github.com/hipages/typescript-base" target="_blank">https://github.com/hipages/typescript-base</a>, this provides a lot of the typescript configs
+and dotfiles we&apos;ll need.</p>
+<p>For this example, we&apos;ll be just-in-time transpliling it with ts-node. In production we would be pre compiling our code
+to javascript, but this will be ok this purposes of this tutorial.</p>
+<pre><code>$ yarn global add ts-node
+</code></pre><p>Now, lets add inceptum to our project...</p>
+<pre><code>$ yarn add inceptum
+</code></pre><p>And use it to create our app:</p>
 <pre><code class="lang-typescript"><span class="hljs-comment">// src/index.ts</span>
-<span class="hljs-keyword">import</span> Inceptum from <span class="hljs-string">&apos;inceptum&apos;</span>;
+<span class="hljs-keyword">import</span> { InceptumApp } from <span class="hljs-string">&apos;inceptum&apos;</span>;
 
-<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> Inceptum();
+<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> InceptumApp();
 app.start();
 </code></pre>
-<p>You should see something like below:</p>
-<p>TODO SCREENSHOT</p>
+<p>If you run <code>ts-node src/index.ts</code> you should see something like below.</p>
+<p><img src="images/getting_started/gs1.png" alt="Local Image"></p>
+<p>It&apos;s complaining about not having any config, lets fix that!</p>
+<h2 id="config">Config</h2>
+<p>Lets create a file at <code>/config/default.yml</code></p>
+<pre><code class="lang-yml"><span class="hljs-attr">app:</span>
+<span class="hljs-attr">  name:</span> My Todo App
+<span class="hljs-attr">  context:</span>
+<span class="hljs-attr">    name:</span> BaseContext
+<span class="hljs-attr">logging:</span>
+<span class="hljs-attr">  streams:</span>
+<span class="hljs-attr">    console:</span>
+<span class="hljs-attr">      type:</span> console
+<span class="hljs-attr">    myredis:</span>
+<span class="hljs-attr">      type:</span> redis
+<span class="hljs-attr">    mainLogFile:</span>
+<span class="hljs-attr">      type:</span> file
+<span class="hljs-attr">      path:</span> main.log
+<span class="hljs-attr">  loggers:</span>
+<span class="hljs-attr">    - name:</span> ROOT
+<span class="hljs-attr">      streams:</span>
+<span class="hljs-attr">        console:</span> debug
+</code></pre>
+<p> <code>ts-node src/index.ts</code> again... nice! Our app runs, but it doesn&apos;t actually do anything ...yet.</p>
 <h2 id="swagger-and-routing">Swagger And Routing</h2>
-<p>Setting up the swagge plugin is easy! We just need to import the package and tell our App to use it.
+<p>Setting up the swagger plugin is easy! We just need to import the package and tell our App to use it.
 Inceptum Web will set up our express server, and SwaggerPlugin will set up our routing via our swagger file.</p>
-<pre><code class="lang-typescript"><span class="hljs-comment">// srcindex.ts</span>
-<span class="hljs-keyword">import</span> Inceptum from <span class="hljs-string">&apos;inceptum&apos;</span>;
-<span class="hljs-keyword">import</span> WebPlugin from <span class="hljs-string">&apos;inceptum-web&apos;</span>;
-<span class="hljs-keyword">import</span> SwaggerPlugin from <span class="hljs-string">&apos;inceptum-swagger&apos;</span>;
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/index.ts</span>
+<span class="hljs-keyword">import</span> { InceptumApp, SwaggerPlugin, WebPlugin } from <span class="hljs-string">&apos;inceptum&apos;</span>;
+<span class="hljs-keyword">import</span> * as path from <span class="hljs-string">&apos;path&apos;</span>;
 
-<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> Inceptum();
-app.use(<span class="hljs-keyword">new</span> WebPlugin(), <span class="hljs-keyword">new</span> SwaggerPlugin())
+<span class="hljs-keyword">const</span> swaggerPath = path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/../config/swagger.yaml`</span>);
+<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> InceptumApp();
+app.use(<span class="hljs-keyword">new</span> WebPlugin(), <span class="hljs-keyword">new</span> SwaggerPlugin(swaggerPath))
 app.start();
 </code></pre>
 <p>We now need to set up our swagger file where we will define our routes. This seems pretty long, but most of it is just 
 boilerplate </p>
-<pre><code class="lang-yml"><span class="hljs-comment">#swagger.yml</span>
+<pre><code class="lang-yml"><span class="hljs-comment"># /config/swagger.yaml</span>
 <span class="hljs-attr">swagger:</span> <span class="hljs-string">&quot;2.0&quot;</span>
 <span class="hljs-attr">info:</span>
 <span class="hljs-attr">  version:</span> <span class="hljs-string">&quot;0.0.1&quot;</span>
@@ -211,23 +235,37 @@ boilerplate </p>
 <span class="hljs-attr">      description:</span> Gets one todo by id
 <span class="hljs-attr">      x-inceptum-operation:</span> get(id)
 <span class="hljs-attr">      parameters:</span>
-<span class="hljs-attr">        type:</span> string
-<span class="hljs-attr">        required:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">        in:</span> path
+<span class="hljs-attr">       - name:</span> id
+<span class="hljs-attr">         type:</span> string
+<span class="hljs-attr">         required:</span> <span class="hljs-literal">true</span>
+<span class="hljs-attr">         in:</span> path
 <span class="hljs-attr">      responses:</span>
         <span class="hljs-string">&quot;200&quot;</span>:
 <span class="hljs-attr">          description:</span> Success
 <span class="hljs-attr">          schema:</span>
-<span class="hljs-attr">            type:</span> Object
+<span class="hljs-attr">            type:</span> object
 </code></pre>
 <p>The intersting parts here are the custom attributes we&apos;ve defind <code>x-inceptum-controller</code> and <code>x-inceptum-operation</code>.
 The attributes are basically defining what method we are going to call on what controller, as well as what paramaters
 were are going to pass to that method.</p>
-<p>We can now write our controller!</p>
-<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/DefaultController.ts</span>
-<span class="hljs-keyword">class</span> TodoController {
+<p>Finally, we need to let inceptum know where to find out controllers. To do this, we can add the following line to our
+index.js.</p>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/index.ts</span>
+<span class="hljs-keyword">import</span> { InceptumApp, SwaggerPlugin, WebPlugin } from <span class="hljs-string">&apos;inceptum&apos;</span>;
+<span class="hljs-keyword">import</span> * as path from <span class="hljs-string">&apos;path&apos;</span>;
 
-  async <span class="hljs-keyword">get</span>(key) {
+<span class="hljs-keyword">const</span> swaggerPath = path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/../config/swagger.yaml`</span>);
+<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> InceptumApp();
+app.addDirectory(path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/controller`</span>));  <span class="hljs-comment">// &lt;--- Register our controllers</span>
+app.use(<span class="hljs-keyword">new</span> WebPlugin(), <span class="hljs-keyword">new</span> SwaggerPlugin(swaggerPath));
+app.start();
+</code></pre>
+<p>Here we are using node&apos;s built-in <code>path</code> module to point inceptum to our controllers located at <code>/src/controllers</code></p>
+<p>We can now write our controller!</p>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/TodoController.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoController {
+
+  async <span class="hljs-keyword">get</span>(key, req, res) {
     <span class="hljs-keyword">return</span> res.send({
       id: key,
       done: <span class="hljs-literal">false</span>
@@ -248,7 +286,7 @@ were are going to pass to that method.</p>
 create add MysqlPlugin() // TODO LINK to our application. It will be registered under the name <code>mysqlClient</code> to the IoC container.</p>
 <pre><code class="lang-yml"><span class="hljs-comment">#config.yml</span>
 <span class="hljs-attr">mysql:</span> <span class="hljs-comment"># Telling inceptum to add a new MysqlPlugin() to our app</span>
-<span class="hljs-attr">  MysqlClient:</span> <span class="hljs-comment"># IoC name</span>
+<span class="hljs-attr">  MainMysqlClient:</span> <span class="hljs-comment"># IoC name</span>
 <span class="hljs-attr">    master:</span>
 <span class="hljs-attr">      host:</span> localhost
 <span class="hljs-attr">      port:</span> <span class="hljs-number">3306</span>
@@ -292,39 +330,63 @@ transaction, like so:</p>
 </code></pre>
 <p>Here, we&apos;re going to tell inceptum that we want access to the mysql client we just set up in the service we just created.
 To do this, we define a static property on our class to tell inceptum what dependencies we want to be injected.</p>
-<pre><code class="lang-typescript">TodoService.autowire = {
-  mysql: <span class="hljs-string">&apos;mysqlClient&apos;</span>
-};
-</code></pre>
-<p>We can now use the client in our service like below:</p>
 <pre><code class="lang-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
 
+  <span class="hljs-keyword">static</span> autowire = {
+    mysql: <span class="hljs-string">&apos;MainMysqlClient&apos;</span>,
+  };
+
+  getTodo(id) {
+    <span class="hljs-comment">// TODO Implement me!</span>
+  }
+}
+</code></pre>
+<p>We can now use the client in our service like below:</p>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/service/TodoService.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
+  mysql: <span class="hljs-built_in">any</span>;
+
+  <span class="hljs-keyword">static</span> autowire = {
+    mysql: <span class="hljs-string">&apos;MainMysqlClient&apos;</span>,
+  };
+
   async getTodo(id) {
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.mysql.runInTransaction(<span class="hljs-literal">true</span>,  async (client) =&gt; {
-      <span class="hljs-keyword">const</span> [todo] = client.query(<span class="hljs-string">`SELECT * FROM todos WHERE id = ?`</span>, id);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.mysql.runInTransaction(<span class="hljs-literal">true</span>, async (client) =&gt; {
+      <span class="hljs-keyword">const</span> [todo] = await client.query(<span class="hljs-string">`SELECT * FROM todos WHERE id = ?`</span>, id);
       <span class="hljs-keyword">return</span> todo;
     });
   }
 }
+</code></pre>
+<p>Finally, we need to tell Inceptum that these service classes exist:</p>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/index.ts</span>
+<span class="hljs-keyword">import</span> { InceptumApp, SwaggerPlugin, WebPlugin } from <span class="hljs-string">&apos;inceptum&apos;</span>;
+<span class="hljs-keyword">import</span> * as path from <span class="hljs-string">&apos;path&apos;</span>;
 
-TodoService.autowire = {
-  mysql: <span class="hljs-string">&apos;mysqlClient&apos;</span>
-};
+<span class="hljs-keyword">const</span> swaggerPath = path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/../config/swagger.yaml`</span>);
+<span class="hljs-keyword">const</span> app = <span class="hljs-keyword">new</span> InceptumApp();
+app.addDirectory(path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/controller`</span>));
+app.addDirectory(path.resolve(<span class="hljs-string">`<span class="hljs-subst">${__dirname}</span>/service`</span>)); <span class="hljs-comment">// &lt;--- Register our services</span>
+app.use(<span class="hljs-keyword">new</span> WebPlugin(), <span class="hljs-keyword">new</span> SwaggerPlugin(swaggerPath));
+app.start();
 </code></pre>
 <p>Now, we need to wire up our service to our controller, we do this in a similar way to myself</p>
-<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/DefaultController.ts</span>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/TodoController.ts</span>
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoController {
+  service: <span class="hljs-built_in">any</span>;
 
-  async <span class="hljs-keyword">get</span>(id) {
+  <span class="hljs-keyword">static</span> autowire = {
+    service: <span class="hljs-string">&apos;TodoService&apos;</span>,
+  };
+
+  async <span class="hljs-keyword">get</span>(id, req, res) {
     <span class="hljs-keyword">const</span> todo = await <span class="hljs-keyword">this</span>.service.getTodo(id);
     res.send(todo);
   }
 }
-
-TodoController.autowire = {
-  service: <span class="hljs-string">&apos;TodoService&apos;</span>
-};
 </code></pre>
+<p>If we hit our endpoint now, you should see data straight out of your database in JSON form. Congrats! You have just created
+your first REST API powered by Inceptum!</p>
 
                                 
                                 </section>
@@ -364,7 +426,7 @@ TodoController.autowire = {
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.2","depth":1,"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"GETTING_STARTED.md","mtime":"2017-08-15T03:06:44.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-08-15T03:33:03.915Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.2","depth":1,"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"GETTING_STARTED.md","mtime":"2017-08-17T00:34:32.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-08-17T00:38:00.878Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
