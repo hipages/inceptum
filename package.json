@@ -1,17 +1,18 @@
 {
   "name": "inceptum",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "clean": "rm -rf dist docs && mkdir docs",
+    "clean": "rm -rf dist docs/_book && mkdir docs/_book",
     "test": "NODE_ENV=test nyc mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
     "lint": "tslint -p . --type-check",
     "docs": "gitbook serve docs",
     "deploy-docs": "gitbook build docs && gh-pages -d docs/_book",
+    "postpublish": "npm run deploy-docs",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
     "precommit": "npm run lint",
     "prepush": "node .checkpush.js"
