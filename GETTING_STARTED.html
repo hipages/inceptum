@@ -247,7 +247,7 @@ boilerplate </p>
 </code></pre>
 <p>The intersting parts here are the custom attributes we&apos;ve defind <code>x-inceptum-controller</code> and <code>x-inceptum-operation</code>.
 The attributes are basically defining what method we are going to call on what controller, as well as what paramaters
-were are going to pass to that method.</p>
+we are going to pass to that method.</p>
 <p>Finally, we need to let inceptum know where to find out controllers. To do this, we can add the following line to our
 index.js.</p>
 <pre><code class="lang-typescript"><span class="hljs-comment">// src/index.ts</span>
@@ -262,19 +262,19 @@ app.start();
 </code></pre>
 <p>Here we are using node&apos;s built-in <code>path</code> module to point inceptum to our controllers located at <code>/src/controllers</code></p>
 <p>We can now write our controller!</p>
-<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/TodoController.ts</span>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/controller/TodoController.ts</span>
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoController {
 
-  async <span class="hljs-keyword">get</span>(key, req, res) {
+  async <span class="hljs-keyword">get</span>(id, req, res) {
     <span class="hljs-keyword">return</span> res.send({
-      id: key,
+      id: id,
       done: <span class="hljs-literal">false</span>
     });
   }
 
 }
 </code></pre>
-<p>Now, if you start your app and go to <code>localhost:10100/todo/1234</code> in your browser you should receive the following JSON response:</p>
+<p>Now, if you start your app and go to <a href="http://localhost:10010/todo/1234" target="_blank"><code>http://localhost:10010/todo/1234</code></a> in your browser you should receive the following JSON response:</p>
 <pre><code class="lang-json">{
   &quot;id&quot;: 1234,
   &quot;done: false
@@ -283,8 +283,9 @@ app.start();
 <p>Cool! But static data isn&apos;t really useful. Lets add a database!</p>
 <h2 id="adding-a-database">Adding a database</h2>
 <p>To add a database connection to our app, all we need to do is add the following to our config.yml. Inceptum will automatically 
-create add MysqlPlugin() // TODO LINK to our application. It will be registered under the name <code>mysqlClient</code> to the IoC container.</p>
-<pre><code class="lang-yml"><span class="hljs-comment">#config.yml</span>
+create a <code>MysqlPlugin()</code> (// TODO LINK) to our application. It will be registered under the name <code>MainMysqlClient</code> to the IoC container.</p>
+<pre><code class="lang-yml"><span class="hljs-comment">#config/default.yml</span>
+<span class="hljs-comment"># ... other configs</span>
 <span class="hljs-attr">mysql:</span> <span class="hljs-comment"># Telling inceptum to add a new MysqlPlugin() to our app</span>
 <span class="hljs-attr">  MainMysqlClient:</span> <span class="hljs-comment"># IoC name</span>
 <span class="hljs-attr">    master:</span>
@@ -298,8 +299,10 @@ create add MysqlPlugin() // TODO LINK to our application. It will be registered 
 </code></pre>
 <p>You&apos;ll notice that we&apos;ve added a <code>master</code> conifg. We can also add a <code>slave</code> config that Inceptum will use if we want a read only
 transaction, like so:</p>
-<pre><code class="lang-yml"><span class="hljs-attr">mysql:</span>
-<span class="hljs-attr">  mysqlClient:</span> <span class="hljs-comment"># this is the name of the object that will be exposed in the context</span>
+<pre><code class="lang-yml"><span class="hljs-comment">#config/default.yml</span>
+<span class="hljs-comment"># ... other configs</span>
+<span class="hljs-attr">mysql:</span>
+<span class="hljs-attr">  MainMysqlClient:</span> <span class="hljs-comment"># this is the name of the object that will be exposed in the context</span>
 <span class="hljs-attr">    master:</span>
 <span class="hljs-attr">      host:</span> localhost
 <span class="hljs-attr">      port:</span> <span class="hljs-number">3306</span>
@@ -317,10 +320,12 @@ transaction, like so:</p>
 <span class="hljs-attr">      charset:</span> utf8
 <span class="hljs-attr">      connectionLimit:</span> <span class="hljs-number">10</span>
 </code></pre>
-<p>In this example both connections are pointing to the same place, but in production we can change this to point to a read only replica or user.</p>
+<p>Feel free to edit the mysql config use a valid username/password so it can connect on your local.
+In this example both connections are pointing to the same place, but in production we can change this to point to a read only replica or user.</p>
 <h2 id="connecting-everything-together">Connecting everything together</h2>
 <p>To talk to our database, we&apos;re going to create a <code>Service</code> class.</p>
-<pre><code class="lang-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/service/TodoService.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
 
   getTodo(id) {
     <span class="hljs-comment">// TODO Implement me!</span>
@@ -330,7 +335,8 @@ transaction, like so:</p>
 </code></pre>
 <p>Here, we&apos;re going to tell inceptum that we want access to the mysql client we just set up in the service we just created.
 To do this, we define a static property on our class to tell inceptum what dependencies we want to be injected.</p>
-<pre><code class="lang-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/service/TodoService.ts</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoService {
 
   <span class="hljs-keyword">static</span> autowire = {
     mysql: <span class="hljs-string">&apos;MainMysqlClient&apos;</span>,
@@ -370,8 +376,8 @@ app.addDirectory(path.resolve(<span class="hljs-string">`<span class="hljs-subst
 app.use(<span class="hljs-keyword">new</span> WebPlugin(), <span class="hljs-keyword">new</span> SwaggerPlugin(swaggerPath));
 app.start();
 </code></pre>
-<p>Now, we need to wire up our service to our controller, we do this in a similar way to myself</p>
-<pre><code class="lang-typescript"><span class="hljs-comment">// src/controllers/TodoController.ts</span>
+<p>Now, we need to wire up our service to our controller, we do this in a similar way to mysql</p>
+<pre><code class="lang-typescript"><span class="hljs-comment">// src/controller/TodoController.ts</span>
 <span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> TodoController {
   service: <span class="hljs-built_in">any</span>;
 
@@ -385,7 +391,23 @@ app.start();
   }
 }
 </code></pre>
-<p>If we hit our endpoint now, you should see data straight out of your database in JSON form. Congrats! You have just created
+<p>Finally, lets let up our database table so we can query it live, run this SQL on your local mysql server:</p>
+<pre><code>CREATE DATABASE testdb;
+USE testdb;
+CREATE TABLE `todos` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `done` bool DEFAULT false,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO todos VALUES(&apos;1234&apos;,true);
+</code></pre><p>If we hit <a href="http://localhost:10010/todo/1234" target="_blank"><code>http://localhost:10010/todo/1234</code></a> now, you should see data straight out of your database in JSON form. </p>
+<pre><code class="lang-json">{
+  &quot;id&quot;: 1234,
+  &quot;done: true
+}
+</code></pre>
+<p>Congrats! You have just created
 your first REST API powered by Inceptum!</p>
 
                                 
@@ -426,7 +448,7 @@ your first REST API powered by Inceptum!</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.2","depth":1,"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"GETTING_STARTED.md","mtime":"2017-08-17T00:34:32.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-08-17T00:38:00.878Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Getting Started","level":"1.2","depth":1,"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"GETTING_STARTED.md","mtime":"2017-08-17T02:45:46.000Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2017-08-17T02:46:20.603Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
