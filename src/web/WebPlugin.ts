@@ -19,7 +19,7 @@ export default class WebPlugin implements Plugin {
     const express = pluginContext.get(this.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
     const server = express.listen(port, () => {
-      app.logger.info(`Server listening on port ${port}`);
+      app.logger.info(`Server started at http://localhost:${port}`);
     });
     pluginContext.set(this.CONTEXT_SERVER_KEY, server);
   }

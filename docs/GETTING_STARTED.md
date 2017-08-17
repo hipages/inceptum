@@ -115,7 +115,7 @@ paths:
 
 The intersting parts here are the custom attributes we've defind `x-inceptum-controller` and `x-inceptum-operation`.
 The attributes are basically defining what method we are going to call on what controller, as well as what paramaters
-were are going to pass to that method.
+we are going to pass to that method.
 
 Finally, we need to let inceptum know where to find out controllers. To do this, we can add the following line to our
 index.js.
@@ -137,12 +137,12 @@ Here we are using node's built-in `path` module to point inceptum to our control
 We can now write our controller!
 
 ```typescript
-// src/controllers/TodoController.ts
+// src/controller/TodoController.ts
 export default class TodoController {
 
-  async get(key, req, res) {
+  async get(id, req, res) {
     return res.send({
-      id: key,
+      id: id,
       done: false
     });
   }
@@ -150,7 +150,7 @@ export default class TodoController {
 }
 
 ```
-Now, if you start your app and go to `localhost:10100/todo/1234` in your browser you should receive the following JSON response:
+Now, if you start your app and go to [`http://localhost:10010/todo/1234`](http://localhost:10010/todo/1234) in your browser you should receive the following JSON response:
 
 ```json
 {
@@ -164,10 +164,11 @@ Cool! But static data isn't really useful. Lets add a database!
 ## Adding a database 
 
 To add a database connection to our app, all we need to do is add the following to our config.yml. Inceptum will automatically 
-create add MysqlPlugin() // TODO LINK to our application. It will be registered under the name `mysqlClient` to the IoC container.
+create a `MysqlPlugin()` (// TODO LINK) to our application. It will be registered under the name `MainMysqlClient` to the IoC container.
 
 ```yml
-#config.yml
+#config/default.yml
+# ... other configs
 mysql: # Telling inceptum to add a new MysqlPlugin() to our app
   MainMysqlClient: # IoC name
     master:
@@ -184,8 +185,10 @@ You'll notice that we've added a `master` conifg. We can also add a `slave` conf
 transaction, like so:
 
 ```yml
+#config/default.yml
+# ... other configs
 mysql:
-  mysqlClient: # this is the name of the object that will be exposed in the context
+  MainMysqlClient: # this is the name of the object that will be exposed in the context
     master:
       host: localhost
       port: 3306
@@ -203,7 +206,7 @@ mysql:
       charset: utf8
       connectionLimit: 10
 ```
-
+Feel free to edit the mysql config use a valid username/password so it can connect on your local.
 In this example both connections are pointing to the same place, but in production we can change this to point to a read only replica or user.
 
 
@@ -212,6 +215,7 @@ In this example both connections are pointing to the same place, but in producti
 To talk to our database, we're going to create a `Service` class.
 
 ```typescript
+// src/service/TodoService.ts
 export default class TodoService {
 
   getTodo(id) {
@@ -226,6 +230,7 @@ To do this, we define a static property on our class to tell inceptum what depen
 
 
 ```typescript
+// src/service/TodoService.ts
 export default class TodoService {
 
   static autowire = {
@@ -275,10 +280,10 @@ app.use(new WebPlugin(), new SwaggerPlugin(swaggerPath));
 app.start();
 ```
 
-Now, we need to wire up our service to our controller, we do this in a similar way to myself
+Now, we need to wire up our service to our controller, we do this in a similar way to mysql
 
 ```typescript
-// src/controllers/TodoController.ts
+// src/controller/TodoController.ts
 export default class TodoController {
   service: any;
 
@@ -293,5 +298,29 @@ export default class TodoController {
 }
 ```
 
-If we hit our endpoint now, you should see data straight out of your database in JSON form. Congrats! You have just created
+Finally, lets let up our database table so we can query it live, run this SQL on your local mysql server:
+
+```
+CREATE DATABASE testdb;
+USE testdb;
+CREATE TABLE `todos` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `done` bool DEFAULT false,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO todos VALUES('1234',true);
+```
+
+If we hit [`http://localhost:10010/todo/1234`](http://localhost:10010/todo/1234) now, you should see data straight out of your database in JSON form. 
+
+```json
+{
+  "id": 1234,
+  "done: true
+}
+```
+
+
+Congrats! You have just created
 your first REST API powered by Inceptum!

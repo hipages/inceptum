@@ -142,7 +142,7 @@ export class Context extends Lifecycle {
         this.registerDefinition(singleton);
       } else if (singleton instanceof Function) {
         this.registerDefinition(new BaseSingletonDefinition<any>(singleton));
-        this.logger.debug(`Registering singleston ${singleton.name}`);
+        this.logger.debug(`Registering singleton ${singleton.name}`);
       } else {
         throw new IoCException(`Not sure how to convert input into SingletonDefinition: ${singleton}`);
       }
