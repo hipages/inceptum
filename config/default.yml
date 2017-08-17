@@ -83,6 +83,10 @@ postgres:
       application_name: test
       # Promise?: PromiseConstructorLik
 
+sqs:
+  sqsClient:
+    queueUrl: http://localhost:9324
+
 Context:
   ActiveProfiles: development
 
