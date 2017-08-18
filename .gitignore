@@ -41,3 +41,4 @@ dist/
 dist
 
 .nyc*
+docs/_book
