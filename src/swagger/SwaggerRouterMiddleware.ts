@@ -1,9 +1,13 @@
 // tslint:disable:prefer-function-over-method
 
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
+
 const optionParsingRegExp = /^\s*([^\s]*)\s*\((.*)\)/;
 const optionParsingRegExp2 = /[a-zA-Z0-9?:@_-]+/g;
 const SWAGGER_CONTROLLER_PROPERTY = 'x-inceptum-controller';
 const SWAGGER_OPERATION_PROPERTY = 'x-inceptum-operation';
+
+const newrelic = NewrelicUtil.getNewrelicIfAvailable();
 
 export default class SwaggerRouterMiddleware {
   context: any;
@@ -27,6 +31,9 @@ export default class SwaggerRouterMiddleware {
   }
   async register(expressApp) {
     expressApp.use((req, res, next) => {
+      if (newrelic) {
+        newrelic.setTransactionName(req.swagger.path);
+      }
       try {
         if (this.hasController(req)) {
           // There's a controller to be called.

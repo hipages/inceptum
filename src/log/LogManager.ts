@@ -288,7 +288,7 @@ export class LogManagerInternal {
         LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]),
       ),
     );
-    return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, _app: this.appName });
+    return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, appName: this.appName ? this.appName.toLowerCase() : 'appNameNotAvailable' });
   }
 
   getStreamConfig(streamName: string, level: bunyan.LogLevel) {
