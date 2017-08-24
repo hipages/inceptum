@@ -10,3 +10,4 @@ export { DBClient } from './db/DBClient';
 export { DBTransaction } from './db/DBTransaction';
 export { SwaggerPlugin } from './swagger/SwaggerPlugin';
 export { default as WebPlugin } from './web/WebPlugin';
+import { Plugin, PluginContext } from './app/BaseApp';

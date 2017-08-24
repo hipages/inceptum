@@ -10,6 +10,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import stringify = require('json-stringify-safe');
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { ExtendedError } from '../util/ErrorUtil';
 
 export abstract class Logger {
@@ -288,7 +289,7 @@ export class LogManagerInternal {
         LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]),
       ),
     );
-    return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, _app: this.appName });
+    return bunyan.createLogger({ name: loggerPath, streams, serializers: bunyan.stdSerializers, appName: this.appName ? this.appName.toLowerCase() : 'appNameNotAvailable' });
   }
 
   getStreamConfig(streamName: string, level: bunyan.LogLevel) {
@@ -374,6 +375,9 @@ export const LogManager = new LogManagerInternal();
 
 const baseLogger = LogManager.getLogger('ROOT');
 process.on('unhandledRejection', (reason, promise) => {
+  if (NewrelicUtil.isNewrelicAvailable()) {
+    NewrelicUtil.getNewrelicIfAvailable().noticeError(reason, {source: 'unhandledRejection'});
+  }
   // eslint-disable-next-line no-underscore-dangle
   baseLogger.fatal(
     `Unhandled promise: ${reason} ${promise && promise._trace && promise._trace.stack ? promise._trace.stack : ''}`,
@@ -381,6 +385,9 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', (err) => {
+  if (NewrelicUtil.isNewrelicAvailable()) {
+    NewrelicUtil.getNewrelicIfAvailable().noticeError(err, {source: 'unhandledException'});
+  }
   baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
 });
 
