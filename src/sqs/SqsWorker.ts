@@ -3,8 +3,10 @@ import * as AWS from 'aws-sdk';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
+import {ArrayType} from "typedoc/dist/lib/models";
 
 const log = LogManager.getLogger();
+const defaultRetries = 5;
 
 export interface SqsConfigObject {
   /**
@@ -14,38 +16,25 @@ export interface SqsConfigObject {
 
   region?: string,
 
-  handleMessage?: Function,
+  attributeNames?: Array<string> ,
+
+  handleMessage?: (m, d) => void,
 
   batchSize?: number,
-
   /**
    * The milliseconds before a timeout occurs during the initial connection to the MySQL server. (Default: 10 seconds)
    */
   connectTimeout?: number,
 }
 
-
-export class SqsConnectionPool {
-
-  instance: SqsConsumer;
-
-  constructor(config: SqsConfigObject, name: string) {
-    this.instance = SqsConsumer.create(config);
-  }
-
-  poll() {
-    this.instance.start();
-  }
-
-  end() {
-    return this.instance.stop();
-  }
-
-  getConnection() {
-    return this.instance;
-  }
+export abstract class SqsHandler {
+  /**
+   *
+   * @param message
+   * @param done
+   */
+  abstract handle(message: Object, done: (err?: Error) => void): void;
 }
-
 
 export class SqsWorker {
 
@@ -56,38 +45,53 @@ export class SqsWorker {
 
   name: string;
 
-  pool: SqsConnectionPool;
+  queueUrl: string;
 
-  connectionPoolCreator: (config: SqsConfigObject) => SqsConnectionPool;
+  consumerCreator: (config: SqsConfigObject) => SqsConsumer;
 
-  handler: (message, done) => void;
+  instance: SqsConsumer;
+
+  handler: SqsHandler;
+
+  maxRetries: number;
 
   constructor() {
-    this.configuration = {};
     this.name = 'NotSet';
-    this.connectionPoolCreator = (config: SqsConfigObject) => new SqsConnectionPool(config, this.name);
+    this.consumerCreator = (config: SqsConfigObject) => SqsConsumer.create(config);
   }
 
   initialise() {
-    this.pool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration));
+    this.configuration = {
+      queueUrl: this.queueUrl,
+      attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
+      handleMessage: (m, d) => {
+        console.log(this.handler.handle);
+        try {
+          this.handler.handle(m, d);
+        } catch (err) {
+          d(err);
+        }
+      }
+    };
+
+
+
+    this.instance = this.consumerCreator(this.configuration);
+
+    this.instance.on('error', (err) => {
+      console.log(err.message);
+    });
+
+    this.instance.start();
   }
 
   shutdown() {
-    this.pool.end();
+    this.instance.stop();
   }
 
+  getMaxRetries() {
+    return this.maxRetries;
+  }
 
-  poll() {
-    this.pool.poll();
-  }
-  // tslint:disable-next-line:prefer-function-over-method
-  getFullPoolConfig(partial: SqsConfigObject): SqsConfigObject {
-    const full = {
-      queueUrl: 'localhost',
-      handleMessage: this.handler,
-    };
-    Object.assign(full, partial);
-    return full;
-  }
 }
 
