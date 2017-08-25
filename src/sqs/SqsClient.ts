@@ -7,10 +7,7 @@ const log = LogManager.getLogger();
 const awsApiVersion = '2012-11-05';
 const defaultAwsRegion = 'ap-southeast-2';
 
-
-
 export class SqsClient {
-
   static startMethod = 'initialise';
 
   name: string;
@@ -26,7 +23,7 @@ export class SqsClient {
   }
 
   initialise() {
-    let conf = {
+    const conf = {
       apiVersion: awsApiVersion,
       region: defaultAwsRegion,
     };
@@ -38,9 +35,9 @@ export class SqsClient {
     this.connection = new AWS.SQS(conf);
   }
 
-  sendMessage(params, cb:(err, data) => void) {
+  sendMessage(params, cb: (err, data) => void) {
     params['QueueUrl'] = this.queueUrl;
-    console.log(params);
+
     try {
       this.connection.sendMessage(params, cb);
     } catch (err) {

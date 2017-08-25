@@ -3,7 +3,6 @@ import * as AWS from 'aws-sdk';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
-import {ArrayType} from "typedoc/dist/lib/models";
 
 const log = LogManager.getLogger();
 const defaultRetries = 5;
@@ -18,7 +17,7 @@ export interface SqsConfigObject {
 
   attributeNames?: Array<string> ,
 
-  handleMessage?: (m, d) => void,
+  handleMessage?: Function,
 
   batchSize?: number,
   /**
@@ -65,21 +64,18 @@ export class SqsWorker {
       queueUrl: this.queueUrl,
       attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
       handleMessage: (m, d) => {
-        console.log(this.handler.handle);
         try {
           this.handler.handle(m, d);
         } catch (err) {
           d(err);
         }
-      }
+      },
     };
-
-
 
     this.instance = this.consumerCreator(this.configuration);
 
     this.instance.on('error', (err) => {
-      console.log(err.message);
+      // @todo
     });
 
     this.instance.start();

@@ -1,7 +1,7 @@
 // tslint:disable:prefer-function-over-method
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin } from '../app/BaseApp';
-import {SqsClient} from "./SqsClient";
+import { SqsClient } from './SqsClient';
 
 export default class SqsClientPlugin implements Plugin {
   name = 'SqsClientPlugin';
