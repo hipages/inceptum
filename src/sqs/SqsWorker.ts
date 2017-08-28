@@ -5,7 +5,6 @@ import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 
 const log = LogManager.getLogger();
-const defaultRetries = 5;
 
 export interface SqsConfigObject {
   /**
@@ -39,6 +38,7 @@ export class SqsWorker {
 
   static startMethod = 'initialise';
   static stopMethod = 'shutdown';
+  readonly maxRetries = 5;
 
   configuration: SqsConfigObject;
 
@@ -52,8 +52,6 @@ export class SqsWorker {
 
   handler: SqsHandler;
 
-  maxRetries: number;
-
   constructor() {
     this.name = 'NotSet';
     this.consumerCreator = (config: SqsConfigObject) => SqsConsumer.create(config);
@@ -65,7 +63,12 @@ export class SqsWorker {
       attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
       handleMessage: (m, d) => {
         try {
-          this.handler.handle(m, d);
+          if (m.Attributes.ApproximateReceiveCount > this.getMaxRetries()) {
+            log.error({m}, `SQS error`);
+            d();
+          } else {
+            this.handler.handle(m, d);
+          }
         } catch (err) {
           d(err);
         }
@@ -75,7 +78,7 @@ export class SqsWorker {
     this.instance = this.consumerCreator(this.configuration);
 
     this.instance.on('error', (err) => {
-      // @todo
+      log.error({err}, `SQS error`);
     });
 
     this.instance.start();

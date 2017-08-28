@@ -30,17 +30,13 @@ class myHandler extends SqsHandler {
     try {
       done();
     } catch (err) {
-      if (message.Attributes.ApproximateReceiveCount > myWorker.getMaxRetries()) {
-        done();
-      } else {
-        done(err);
-      }
+      done(err);
     }
   };
 }
 myWorker.handler = myHandler;
 
-describe('SqsClient', () => {
+describe.skip('SqsClient', () => {
   describe('Basic methods', () => {
     it('Send message', (done) => myClient.sendMessage(params, (err, data) => {
         if (err) console.log(err, err.stack); // an error occurred
@@ -51,7 +47,7 @@ describe('SqsClient', () => {
   });
 });
 
-describe('SqsWorker', () => {
+describe.skip('SqsWorker', () => {
   describe('Basic methods', () => {
     it('Polling message', (done) => {
         myWorker.initialise();
