@@ -7,32 +7,38 @@ const log = LogManager.getLogger();
 const awsApiVersion = '2012-11-05';
 const defaultAwsRegion = 'ap-southeast-2';
 
+export interface SqsClientConfigObject {
+  region?: string,
+  queueUrl?: string,
+}
+
 export class SqsClient {
   static startMethod = 'initialise';
 
   name: string;
 
+  private queueUrl: string;
+
   private connection: AWS.SQS;
 
-  awsRegion: string;
+  configuration: SqsClientConfigObject;
 
-  queueUrl: string;
-
-  constructor() {
+  constructor(config: SqsClientConfigObject) {
     this.name = 'NotSet';
+    this.queueUrl = config.queueUrl;
+
+    this.configuration = Object.assign(
+        {},
+        {
+          apiVersion: awsApiVersion,
+          region: defaultAwsRegion,
+        },
+        config);
+
   }
 
   initialise() {
-    const conf = {
-      apiVersion: awsApiVersion,
-      region: defaultAwsRegion,
-    };
-
-    if (this.awsRegion) {
-      conf.region = this.awsRegion;
-    }
-
-    this.connection = new AWS.SQS(conf);
+    this.connection = new AWS.SQS(this.configuration);
   }
 
   sendMessage(params, cb: (err, data) => void) {

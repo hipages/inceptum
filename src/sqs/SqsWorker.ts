@@ -5,8 +5,9 @@ import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 
 const log = LogManager.getLogger();
+const defaultAwsRegion = 'ap-southeast-2';
 
-export interface SqsConfigObject {
+export interface SqsWorkerConfigObject {
   /**
    * The queueUrl you are connecting to. (Default: localhost)
    */
@@ -40,42 +41,52 @@ export class SqsWorker {
   static stopMethod = 'shutdown';
   readonly maxRetries = 5;
 
-  configuration: SqsConfigObject;
+  configuration: SqsWorkerConfigObject;
 
   name: string;
 
-  queueUrl: string;
-
-  consumerCreator: (config: SqsConfigObject) => SqsConsumer;
+  consumerCreator: (config: SqsWorkerConfigObject) => SqsConsumer;
 
   instance: SqsConsumer;
 
   handler: SqsHandler;
 
-  constructor() {
+  constructor(config: SqsWorkerConfigObject) {
     this.name = 'NotSet';
-    this.consumerCreator = (config: SqsConfigObject) => SqsConsumer.create(config);
+
+    this.configuration = Object.assign(
+        {},
+        {
+          attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
+          region: defaultAwsRegion
+        },
+        config);
+
+    this.consumerCreator = (config: SqsWorkerConfigObject) => SqsConsumer.create(config);
   }
 
-  initialise() {
-    this.configuration = {
-      queueUrl: this.queueUrl,
-      attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
-      handleMessage: (m, d) => {
-        try {
-          if (m.Attributes.ApproximateReceiveCount > this.getMaxRetries()) {
-            log.error({m}, `SQS error`);
-            d();
-          } else {
-            this.handler.handle(m, d);
-          }
-        } catch (err) {
-          d(err);
-        }
-      },
-    };
 
-    this.instance = this.consumerCreator(this.configuration);
+  initialise() {
+    const conf = Object.assign(
+        {},
+        this.configuration,
+        {
+          handleMessage: (m, d) => {
+            try {
+              if (m.Attributes.ApproximateReceiveCount > this.getMaxRetries()) {
+                log.error({m}, `SQS error`);
+                d();
+              } else {
+                this.handler.handle(m, d);
+              }
+            } catch (err) {
+              d(err);
+            }
+          },
+        }
+    );
+
+    this.instance = this.consumerCreator(conf);
 
     this.instance.on('error', (err) => {
       log.error({err}, `SQS error`);

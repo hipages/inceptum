@@ -11,12 +11,12 @@ export default class SqsWorkerPlugin implements Plugin {
   }
 
   willStart(app: BaseApp) {
-    if (!app.hasConfig('sqsWorker')) {
-      throw new Error('SQSWorkerPlugin has been registered but could not find config using key "mysql"');
+    if (!app.hasConfig('SqsWorker')) {
+      throw new Error('SQSWorkerPlugin has been registered but could not find config using key "SqsWorker"');
     }
 
     const context = app.getContext();
-    const confs = context.getConfig('sqsWorker');
+    const confs = context.getConfig('SqsWorker');
     Object.keys(confs).forEach((key) => {
       const clientSingleton = new BaseSingletonDefinition<any>(SqsWorker, key);
       clientSingleton.constructorParamByValue(confs[key]);

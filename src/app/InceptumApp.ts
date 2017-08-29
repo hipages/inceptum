@@ -30,12 +30,12 @@ export class InceptumApp extends BaseApp {
       this.logger.debug('Postgres Detected - Adding Plugin');
       this.register(new PostgresPlugin());
     }
-    if (this.hasConfig('sqsClient')) {
-      this.logger.debug('sqsClient Detected - Adding Plugin');
+    if (this.hasConfig('SqsClient')) {
+      this.logger.debug('SqsClient Detected - Adding Plugin');
       this.register(new SqsClientPlugin());
     }
-    if (this.hasConfig('sqsWorker')) {
-      this.logger.debug('sqsClient Detected - Adding Plugin');
+    if (this.hasConfig('SqsWorker')) {
+      this.logger.debug('SqsClient Detected - Adding Plugin');
       this.register(new SqsWorkerPlugin());
     }
   }

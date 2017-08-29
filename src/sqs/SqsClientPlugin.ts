@@ -12,7 +12,7 @@ export default class SqsClientPlugin implements Plugin {
 
   willStart(app: BaseApp) {
     if (!app.hasConfig('SqsClient')) {
-      throw new Error('SqsClientPlugin has been registered but could not find config using key "mysql"');
+      throw new Error('SqsClientPlugin has been registered but could not find config using key "SqsClient"');
     }
 
     const context = app.getContext();
@@ -21,6 +21,7 @@ export default class SqsClientPlugin implements Plugin {
       const clientSingleton = new BaseSingletonDefinition<any>(SqsClient, key);
       clientSingleton.constructorParamByValue(confs[key]);
       clientSingleton.constructorParamByValue(key);
+      clientSingleton.setPropertyByConfig('queueUrl', 'queueUrl');
       context.registerSingletons(clientSingleton);
     });
   }

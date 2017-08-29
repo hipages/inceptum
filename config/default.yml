@@ -83,12 +83,12 @@ postgres:
       application_name: test
       # Promise?: PromiseConstructorLik
 
-sqsWorker:
+SqsWorker:
   myTestSqsWorker:
     handlerObject: MyHandler
     queueUrl: http://localhost:9324
 
-sqsClient:
+SqsClient:
   myTestSqsClient:
     queueUrl: http://localhost:9324
 

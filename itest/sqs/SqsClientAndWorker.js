@@ -3,10 +3,13 @@ const { SqsWorker } = require('../../src/sqs/SqsWorker');
 const { SqsHandler } = require('../../src/sqs/SqsWorker');
 
 const Queue_Url = 'localhost:9432';
-const myClient = new SqsClient();
+
+const clientConfig = {
+  queueUrl: Queue_Url
+};
+const myClient = new SqsClient(clientConfig);
 myClient.name = 'TestClient';
 
-myClient.queueUrl = Queue_Url;
 myClient.initialise();
 
 const msg = {
@@ -19,10 +22,11 @@ const params = {
 };
 
 
-const myWorker = new SqsWorker();
+const workerConfig = {
+  queueUrl: Queue_Url
+};
+const myWorker = new SqsWorker(workerConfig);
 myWorker.name = 'TestWorker';
-myWorker.queueUrl = Queue_Url;
-
 
 class myHandler extends SqsHandler {
   static handle(message, done) {
