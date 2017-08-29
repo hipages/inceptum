@@ -51,16 +51,16 @@ export class SqsWorker {
 
   handler: SqsHandler;
 
-  constructor(config: SqsWorkerConfigObject) {
+  constructor(configuration: SqsWorkerConfigObject) {
     this.name = 'NotSet';
 
     this.configuration = Object.assign(
         {},
         {
           attributeNames: ['All', 'ApproximateFirstReceiveTimestamp', 'ApproximateReceiveCount'],
-          region: defaultAwsRegion
+          region: defaultAwsRegion,
         },
-        config);
+        configuration);
 
     this.consumerCreator = (config: SqsWorkerConfigObject) => SqsConsumer.create(config);
   }
@@ -83,7 +83,7 @@ export class SqsWorker {
               d(err);
             }
           },
-        }
+        },
     );
 
     this.instance = this.consumerCreator(conf);
