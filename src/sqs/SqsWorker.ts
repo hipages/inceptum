@@ -51,8 +51,8 @@ export class SqsWorker {
 
   handler: SqsHandler;
 
-  constructor(configuration: SqsWorkerConfigObject) {
-    this.name = 'NotSet';
+  constructor(configuration: SqsWorkerConfigObject, name: string) {
+    this.name = name;
 
     this.configuration = Object.assign(
         {},
