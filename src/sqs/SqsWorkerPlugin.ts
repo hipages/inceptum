@@ -21,7 +21,7 @@ export default class SqsWorkerPlugin implements Plugin {
       const clientSingleton = new BaseSingletonDefinition<any>(SqsWorker, key);
       clientSingleton.constructorParamByValue(confs[key]);
       clientSingleton.constructorParamByValue(key);
-      clientSingleton.setPropertyByRef('handler', confs['handlerObject']);
+      clientSingleton.setPropertyByRef('handler', confs[key]['handlerObject']);
       context.registerSingletons(clientSingleton);
     });
   }
