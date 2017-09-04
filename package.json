@@ -1,15 +1,13 @@
 {
   "name": "inceptum",
-  "version": "0.5.8",
-  "description":
-    "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
+  "version": "0.5.9",
+  "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist docs/_book && mkdir docs/_book",
     "test": "NODE_ENV=test nyc mocha",
-    "itest":
-      "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
+    "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
     "lint": "tslint -p . --type-check",
     "docs": "gitbook serve docs",
@@ -26,7 +24,9 @@
   "engine": {
     "node": ">7.0.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "author": "Hipages",
   "license": "Apache-2.0",
   "directories": {
@@ -95,9 +95,17 @@
     "typescript": "2.4.0"
   },
   "nyc": {
-    "include": ["src/**/*.ts", "src/**/*.tsx"],
-    "extension": [".ts", ".tsx"],
-    "require": ["ts-node/register"],
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
     "sourceMap": true,
     "instrument": true
   }
