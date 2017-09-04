@@ -7,8 +7,7 @@ const Queue_Url = 'localhost:9432';
 const clientConfig = {
   queueUrl: Queue_Url
 };
-const myClient = new SqsClient(clientConfig);
-myClient.name = 'TestClient';
+const myClient = new SqsClient(clientConfig, 'TestClient');
 
 myClient.initialise();
 
@@ -25,8 +24,7 @@ const params = {
 const workerConfig = {
   queueUrl: Queue_Url
 };
-const myWorker = new SqsWorker(workerConfig);
-myWorker.name = 'TestWorker';
+const myWorker = new SqsWorker(workerConfig, 'TestWorker');
 
 class myHandler extends SqsHandler {
   static handle(message, done) {

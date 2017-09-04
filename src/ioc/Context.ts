@@ -151,6 +151,9 @@ export class Context extends Lifecycle {
 
   registerSingletonsInDir(dir) {
     Context.walkDirSync(dir).filter((file) => ['.js', '.ts'].includes(path.extname(file))).forEach((file) => {
+      if (file.includes('.d.ts')) {
+        return; // Ignore type definition files
+      }
       let expectedClass = path.basename(file);
       expectedClass = expectedClass.substr(0, expectedClass.length - 3);
       const loaded = require(file);

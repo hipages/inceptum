@@ -8,6 +8,7 @@ const awsApiVersion = '2012-11-05';
 const defaultAwsRegion = 'ap-southeast-2';
 
 export interface SqsClientConfigObject {
+  apiVersion?: string,
   region?: string,
   queueUrl?: string,
 }
@@ -17,15 +18,12 @@ export class SqsClient {
 
   name: string;
 
-  private queueUrl: string;
-
   private connection: AWS.SQS;
 
   configuration: SqsClientConfigObject;
 
-  constructor(config: SqsClientConfigObject) {
-    this.name = 'NotSet';
-    this.queueUrl = config.queueUrl;
+  constructor(config: SqsClientConfigObject, name: string) {
+    this.name = name;
 
     this.configuration = Object.assign(
         {},
@@ -42,7 +40,7 @@ export class SqsClient {
   }
 
   sendMessage(params, cb: (err, data) => void) {
-    params['QueueUrl'] = this.queueUrl;
+    params['QueueUrl'] = this.configuration.queueUrl;
 
     try {
       this.connection.sendMessage(params, cb);

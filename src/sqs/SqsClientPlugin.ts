@@ -21,7 +21,6 @@ export default class SqsClientPlugin implements Plugin {
       const clientSingleton = new BaseSingletonDefinition<any>(SqsClient, key);
       clientSingleton.constructorParamByValue(confs[key]);
       clientSingleton.constructorParamByValue(key);
-      clientSingleton.setPropertyByConfig('queueUrl', 'queueUrl');
       context.registerSingletons(clientSingleton);
     });
   }
