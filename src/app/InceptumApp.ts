@@ -38,5 +38,9 @@ export class InceptumApp extends BaseApp {
       this.logger.debug('SqsClient Detected - Adding Plugin');
       this.register(new SqsWorkerPlugin());
     }
+    if (this.hasConfig('elasticsearch')) {
+      this.logger.debug('elasticsearch Detected - Adding Plugin');
+      this.register(new SqsWorkerPlugin());
+    }
   }
 }

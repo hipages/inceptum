@@ -92,6 +92,21 @@ SqsClient:
   myTestSqsClient:
     queueUrl: http://localhost:9324
 
+elasticsearch:
+  elastic:
+    master:
+      hosts:
+        -
+          host: localhost
+          port: 9200
+          protocol: http
+    slave:
+      hosts:
+        -
+          host: localhost
+          port: 9200
+          protocol: http
+
 Context:
   ActiveProfiles: development
 
