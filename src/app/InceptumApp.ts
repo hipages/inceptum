@@ -8,6 +8,7 @@ import MysqlPlugin from '../mysql/MysqlPlugin';
 import PostgresPlugin from '../postgres/PostgresPlugin';
 import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
+import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
 import AutowirePlugin from './AutowirePlugin';
 import LazyLoadingPlugin from './LazyLoadingPlugin';
 import StartStopPlugin from './StartStopPlugin';
@@ -40,7 +41,7 @@ export class InceptumApp extends BaseApp {
     }
     if (this.hasConfig('elasticsearch')) {
       this.logger.debug('elasticsearch Detected - Adding Plugin');
-      this.register(new SqsWorkerPlugin());
+      this.register(new ElasticsearchPlugin());
     }
   }
 }

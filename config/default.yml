@@ -94,18 +94,10 @@ SqsClient:
 
 elasticsearch:
   elastic:
-    master:
-      hosts:
-        -
-          host: localhost
-          port: 9200
-          protocol: http
-    slave:
-      hosts:
-        -
-          host: localhost
-          port: 9200
-          protocol: http
+    hosts:
+      - host: localhost
+        port: 9200
+        protocol: http
 
 Context:
   ActiveProfiles: development
