@@ -10,7 +10,7 @@ describe('ElasticsearchPlugin', () => {
                 elastic: {
                     hosts: [
                         {
-                            host: '127.0.0.1',
+                            host: 'localhost',
                             port: 9200,
                             protocol: 'http',
                         },
