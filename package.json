@@ -36,6 +36,7 @@
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/bunyan": "1.8.0",
+    "@types/elasticsearch": "^5.0.16",
     "@types/mocha": "^2.2.41",
     "@types/pg": "^6.1.43",
     "aws-sdk": "^2.102.0",
@@ -49,6 +50,7 @@
     "config": "1.25.1",
     "deep-assign": "2.0.0",
     "dtrace-provider": "^0.8.1",
+    "elasticsearch": "^13.3.1",
     "express": "^4.14.0",
     "express-jwt": "^3.4.0",
     "express-yields": "^1.0.0",

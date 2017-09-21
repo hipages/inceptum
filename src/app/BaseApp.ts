@@ -63,8 +63,11 @@ export default class BaseApp {
    * Creates a new Inceptum App
    */
   constructor(options: AppOptions = {}) {
+    const { config = new Config() } = options;
+    this.appName = config.getConfig('app.name', 'BaseApp');
+
     LogManager.setAppName(this.appName);
-    const {config = new Config(), logger = LogManager.getLogger()} = options;
+    const { logger = LogManager.getLogger() } = options;
     this.logger = logger;
     this.context = new Context(config.getConfig('app.context.name', 'BaseContext'), null, options);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
@@ -113,7 +116,9 @@ export default class BaseApp {
     await this.runLifecycleMethodOnPlugins('willStop');
     this.logger.info('Shutting down app');
     await this.context.lcStop();
-    return await this.runLifecycleMethodOnPlugins('didStop');
+    const r = await this.runLifecycleMethodOnPlugins('didStop');
+    delete this.logger;
+    return r;
   }
 
   getContext(): Context {
