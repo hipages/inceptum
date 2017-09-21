@@ -1,15 +1,13 @@
 {
   "name": "inceptum",
   "version": "0.5.8",
-  "description":
-    "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
+  "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf dist docs/_book && mkdir docs/_book",
     "test": "NODE_ENV=test nyc mocha",
-    "itest":
-      "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
+    "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
     "lint": "tslint -p . --type-check",
     "docs": "gitbook serve docs",
@@ -26,7 +24,9 @@
   "engine": {
     "node": ">7.0.0"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "author": "Hipages",
   "license": "Apache-2.0",
   "directories": {
@@ -36,6 +36,7 @@
   "dependencies": {
     "@types/axios": "^0.14.0",
     "@types/bunyan": "1.8.0",
+    "@types/elasticsearch": "^5.0.16",
     "@types/mocha": "^2.2.41",
     "@types/pg": "^6.1.43",
     "aws-sdk": "^2.102.0",
@@ -49,6 +50,7 @@
     "config": "1.25.1",
     "deep-assign": "2.0.0",
     "dtrace-provider": "^0.8.1",
+    "elasticsearch": "^13.3.1",
     "express": "^4.14.0",
     "express-jwt": "^3.4.0",
     "express-yields": "^1.0.0",
@@ -95,9 +97,17 @@
     "typescript": "2.4.0"
   },
   "nyc": {
-    "include": ["src/**/*.ts", "src/**/*.tsx"],
-    "extension": [".ts", ".tsx"],
-    "require": ["ts-node/register"],
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
     "sourceMap": true,
     "instrument": true
   }
