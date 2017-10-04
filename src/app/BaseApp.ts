@@ -71,6 +71,7 @@ export default class BaseApp {
     this.logger = logger;
     this.context = new Context(config.getConfig('app.context.name', 'BaseContext'), null, options);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
+    this.context.registerDefinition(new PreinstantiatedSingletonDefinition(logger, 'logger'));
   }
 
   public use(...plugins: PluginImplemenation[]) {
