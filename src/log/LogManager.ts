@@ -354,7 +354,11 @@ export class LogManagerInternal {
         case 'redis':
           {
             const levelStringifyTransform = new LevelStringifyTransform();
-            levelStringifyTransform.pipe(LogManagerInternal.getRedisStream(streamConfig));
+            const redisStream = LogManagerInternal.getRedisStream(streamConfig);
+            levelStringifyTransform.pipe(redisStream);
+            levelStringifyTransform.on('end', () => {
+              redisStream._client.quit();
+            });
             this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
