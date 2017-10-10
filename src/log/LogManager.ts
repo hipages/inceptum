@@ -1,4 +1,5 @@
 // tslint:disable:jsdoc-format
+import { setTimeout } from 'timers';
 
 import * as config from 'config';
 import * as bunyan from 'bunyan';
@@ -251,6 +252,17 @@ export class LogManagerInternal {
       return this.getLoggerInternal(thePath);
     }
     return this.getLoggerInternal(LogManagerInternal.beSmartOnThePath(thePath));
+  }
+
+  scheduleShutdown() {
+    setTimeout(() => this.closeStreams(), 1000);
+  }
+
+  closeStreams() {
+    this.streamCache.forEach((streamToClose) => {
+      if (streamToClose instanceof LevelStringifyTransform) {
+        streamToClose.end();
+      }});
   }
 
   setAppName(appName: string): void {
