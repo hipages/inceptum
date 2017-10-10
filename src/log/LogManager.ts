@@ -198,11 +198,11 @@ export class LogManagerInternal {
     return thePath;
   }
   private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): bunyan.LogLevel {
-    let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
+    let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
-    overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
+    overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
@@ -283,7 +283,12 @@ export class LogManagerInternal {
     const loggerConfig = candidates[0];
     const loggerName = loggerConfig.name;
     const streamNames = loggerConfig.streams;
-    const streams = Object.keys(streamNames).map((streamName) =>
+    const streams = Object.keys(streamNames)
+    .filter((streamName) => {
+      const level = LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]) as string;
+      return level && level.toUpperCase() !== 'OFF';
+    })
+    .map((streamName) =>
       this.getStreamConfig(
         streamName,
         LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]),
