@@ -31,7 +31,7 @@ export default class SwaggerRouterMiddleware {
   }
   async register(expressApp) {
     expressApp.use((req, res, next) => {
-      if (newrelic) {
+      if (newrelic && req.swagger && req.swagger.path) {
         newrelic.setTransactionName(req.swagger.path);
       }
       try {
