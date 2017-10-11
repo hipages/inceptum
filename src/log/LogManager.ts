@@ -1,4 +1,5 @@
 // tslint:disable:jsdoc-format
+import { setTimeout } from 'timers';
 
 import * as config from 'config';
 import * as bunyan from 'bunyan';
@@ -198,11 +199,11 @@ export class LogManagerInternal {
     return thePath;
   }
   private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): bunyan.LogLevel {
-    let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
+    let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
-    overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_');
+    overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
       return process.env[overrideEnv];
     }
@@ -253,6 +254,17 @@ export class LogManagerInternal {
     return this.getLoggerInternal(LogManagerInternal.beSmartOnThePath(thePath));
   }
 
+  scheduleShutdown() {
+    setTimeout(() => this.closeStreams(), 1000);
+  }
+
+  closeStreams() {
+    this.streamCache.forEach((streamToClose) => {
+      if (streamToClose instanceof LevelStringifyTransform) {
+        streamToClose.end();
+      }});
+  }
+
   setAppName(appName: string): void {
     this.appName = appName;
   }
@@ -283,7 +295,12 @@ export class LogManagerInternal {
     const loggerConfig = candidates[0];
     const loggerName = loggerConfig.name;
     const streamNames = loggerConfig.streams;
-    const streams = Object.keys(streamNames).map((streamName) =>
+    const streams = Object.keys(streamNames)
+    .filter((streamName) => {
+      const level = LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]) as string;
+      return level && level.toUpperCase() !== 'OFF';
+    })
+    .map((streamName) =>
       this.getStreamConfig(
         streamName,
         LogManagerInternal.getEffectiveLevel(loggerName, streamName, streamNames[streamName]),
@@ -354,7 +371,11 @@ export class LogManagerInternal {
         case 'redis':
           {
             const levelStringifyTransform = new LevelStringifyTransform();
-            levelStringifyTransform.pipe(LogManagerInternal.getRedisStream(streamConfig));
+            const redisStream = LogManagerInternal.getRedisStream(streamConfig);
+            levelStringifyTransform.pipe(redisStream);
+            levelStringifyTransform.on('end', () => {
+              redisStream._client.quit();
+            });
             this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
