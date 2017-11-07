@@ -3,7 +3,7 @@ import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 const awsApiVersion = '2012-11-05';
 const defaultAwsRegion = 'ap-southeast-2';
 

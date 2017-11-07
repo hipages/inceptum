@@ -8,7 +8,7 @@ import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class PostgresTransaction extends DBTransaction {
   postgresClient: PostgresClient;

@@ -213,7 +213,7 @@ export class BaseSingletonDefinition<T> extends ConfigurableSingletonDefinition<
   // }
 
   constructor(clazz, name?, logger?) {
-    super(clazz, name, logger || LogManager.getLogger());
+    super(clazz, name, logger || LogManager.getLogger(__filename));
   }
 
   // ************************************

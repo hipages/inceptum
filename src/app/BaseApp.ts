@@ -67,7 +67,7 @@ export default class BaseApp {
     this.appName = config.getConfig('app.name', 'BaseApp');
 
     LogManager.setAppName(this.appName);
-    const { logger = LogManager.getLogger() } = options;
+    const { logger = LogManager.getLogger(__filename) } = options;
     this.logger = logger;
     this.context = new Context(config.getConfig('app.context.name', 'BaseContext'), null, options);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));

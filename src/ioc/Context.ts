@@ -32,7 +32,7 @@ export class Context extends Lifecycle {
   private config: Config;
 
   constructor(name: string, parentContext?: Context, options: ContextOptions = {}) {
-    super(name, options.logger || LogManager.getLogger());
+    super(name, options.logger || LogManager.getLogger(__filename));
     this.config = options.config || new Config();
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();

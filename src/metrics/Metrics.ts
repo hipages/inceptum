@@ -2,7 +2,7 @@ import * as prometheus from 'prom-client';
 import { Context } from '../ioc/Context';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import { LogManager } from '../log/LogManager';
-const logger = LogManager.getLogger();
+const logger = LogManager.getLogger(__filename);
 
 export interface LabelValues {
   [key: string]: string|number,
