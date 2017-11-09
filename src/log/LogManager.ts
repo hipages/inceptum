@@ -242,7 +242,7 @@ export class LogManagerInternal {
   }
 
   private streamCache: Map<string, bunyan.Stream | LevelStringifyTransform> = new Map();
-  private appName: string;
+  private appName: string = config.get('app.name', 'na');
 
   getLogger(filePath?: string): Logger {
     // console.log(`Got here with filePath: ${filePath}`);
