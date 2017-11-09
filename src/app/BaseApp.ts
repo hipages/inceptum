@@ -69,6 +69,7 @@ export default class BaseApp {
     this.logger.info(`Using app name ${LogManager.getAppName()}`);
     this.context = new Context(config.getConfig('app.context.name', 'BaseContext'), null, options);
     this.context.registerDefinition(new PreinstantiatedSingletonDefinition(LogManager));
+    this.context.registerDefinition(new PreinstantiatedSingletonDefinition(logger, 'logger'));
     this.context.on('STOPPED', () => LogManager.scheduleShutdown());
   }
 

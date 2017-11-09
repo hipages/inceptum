@@ -164,6 +164,9 @@ class LevelStringifyTransform extends stream.Transform {
   }
 }
 
+class CloseableLevelStringifyTransform extends LevelStringifyTransform {
+}
+
 class StringifyTransform extends stream.Transform {
   constructor() {
     super({ writableObjectMode: true, readableObjectMode: false });
@@ -260,7 +263,7 @@ export class LogManagerInternal {
 
   closeStreams() {
     this.streamCache.forEach((streamToClose) => {
-      if (streamToClose instanceof LevelStringifyTransform) {
+      if (streamToClose instanceof CloseableLevelStringifyTransform) {
         streamToClose.end();
       }});
   }
@@ -370,8 +373,9 @@ export class LogManagerInternal {
           break;
         case 'redis':
           {
-            const levelStringifyTransform = new LevelStringifyTransform();
+            const levelStringifyTransform = new CloseableLevelStringifyTransform();
             const redisStream = LogManagerInternal.getRedisStream(streamConfig);
+            redisStream['end'] = () => null;
             levelStringifyTransform.pipe(redisStream);
             levelStringifyTransform.on('end', () => {
               redisStream._client.quit();
