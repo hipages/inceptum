@@ -15,7 +15,7 @@ export class RouteRegisterUtil {
   doRegister() {
     this.routesToRegister.forEach((route: {verb: string, path: string, instanceProperty: string, methodName: string, objectName: string}) => {
       logger.info(`Registering route from ${route.objectName}: ${route.verb.toUpperCase()} ${route.path} -> ${route.methodName}`);
-      e[route.verb](route.path, (req, res) => {
+      this.express[route.verb](route.path, (req, res) => {
         return this[route.instanceProperty][route.methodName](req, res);
       });
     });
