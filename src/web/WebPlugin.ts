@@ -1,7 +1,26 @@
 // tslint:disable:prefer-function-over-method
 import * as http from 'http';
 import * as e from 'express';
+import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
+import { LogManager } from '../log/LogManager';
+import { WebRoutingInspector } from './WebRoutingInspector';
+
+const logger = LogManager.getLogger(__filename);
+
+export class RouteRegisterUtil {
+  private routesToRegister = [];
+  private express: e;
+
+  doRegister() {
+    this.routesToRegister.forEach((route: {verb: string, path: string, instanceProperty: string, methodName: string, objectName: string}) => {
+      logger.info(`Registering route from ${route.objectName}: ${route.verb.toUpperCase()} ${route.path} -> ${route.methodName}`);
+      this.express[route.verb](route.path, (req, res) => {
+        return this[route.instanceProperty][route.methodName](req, res);
+      });
+    });
+  }
+}
 
 export default class WebPlugin implements Plugin {
 
@@ -9,10 +28,19 @@ export default class WebPlugin implements Plugin {
   public CONTEXT_SERVER_KEY = 'WebPlugin/SERVER';
 
   name = 'WebPlugin';
+  private expressProvider = () => new e();
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
-    const express = new e();
+    const express = this.expressProvider();
     pluginContext.set(this.CONTEXT_APP_KEY, express);
+    const context = app.getContext();
+
+    const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
+    definition.withLazyLoading(false);
+    definition.startFunction('doRegister');
+    definition.setPropertyByValue('express', express);
+    context.registerDefinition(definition);
+    context.addObjectDefinitionInspector(new WebRoutingInspector(definition));
   }
 
   didStart(app, pluginContext) {

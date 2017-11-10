@@ -8,7 +8,7 @@ import { LogManager } from '../log/LogManager';
 import { Histogram, MetricsService } from '../metrics/Metrics';
 import { DBClient } from '../db/DBClient';
 
-const log = LogManager.getLogger();
+const log = LogManager.getLogger(__filename);
 
 export class MysqlTransaction extends DBTransaction {
   mysqlClient: MysqlClient;
