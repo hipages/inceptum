@@ -3,6 +3,7 @@ import * as http from 'http';
 import * as e from 'express';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { WebRoutingInspector } from './WebRoutingInspector';
 
@@ -21,6 +22,18 @@ export class RouteRegisterUtil {
     });
   }
 }
+
+export const errorMiddleware = (err, req, res, next) => {
+  if (NewrelicUtil.isNewrelicAvailable()) {
+    const nr = NewrelicUtil.getNewrelicIfAvailable();
+    nr.noticeError(nr);
+  }
+  logger.error(err);
+  if (res.headersSent) {
+      return next(err); // Give back to express to handle
+  }
+  res.status(500).end();
+};
 
 export default class WebPlugin implements Plugin {
 
@@ -46,6 +59,11 @@ export default class WebPlugin implements Plugin {
   didStart(app, pluginContext) {
     const express = pluginContext.get(this.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
+
+    // Add error handling middleware as the final middleware.
+    express.use(errorMiddleware);
+
+    // Start the server
     const server = express.listen(port, () => {
       app.logger.info(`Server started at http://localhost:${port}`);
     });
