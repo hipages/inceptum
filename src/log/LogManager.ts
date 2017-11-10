@@ -404,7 +404,7 @@ process.on('unhandledRejection', (reason, promise) => {
     NewrelicUtil.getNewrelicIfAvailable().noticeError(reason, {source: 'unhandledRejection'});
   }
   // eslint-disable-next-line no-underscore-dangle
-  baseLogger.fatal(
+  baseLogger.fatal(reason,
     `Unhandled promise: ${reason} ${promise && promise._trace && promise._trace.stack ? promise._trace.stack : ''}`,
   );
 });

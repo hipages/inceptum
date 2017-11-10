@@ -9,6 +9,20 @@ const SWAGGER_OPERATION_PROPERTY = 'x-inceptum-operation';
 
 const newrelic = NewrelicUtil.getNewrelicIfAvailable();
 
+function assert(predicate, message) {
+  if (!predicate) {
+      throw new Error(message);
+  }
+}
+
+const getControllerName = (req) => req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY]
+? req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY]
+: req.swagger.path[SWAGGER_CONTROLLER_PROPERTY];
+
+const getOperationName = (req) => req.swagger.operation[SWAGGER_OPERATION_PROPERTY]
+? req.swagger.operation[SWAGGER_OPERATION_PROPERTY]
+: req.method.toLowerCase();
+
 export default class SwaggerRouterMiddleware {
   context: any;
   handlerCache: Map<string, any>;
@@ -30,39 +44,26 @@ export default class SwaggerRouterMiddleware {
     return false;
   }
   async register(expressApp) {
-    expressApp.use((req, res, next) => {
+    expressApp.use(async (req, res, next) => {
       if (newrelic && req.swagger && req.swagger.path) {
         newrelic.setTransactionName(req.swagger.path);
       }
+
       try {
         if (this.hasController(req)) {
-          // There's a controller to be called.
-          this.getControllerHandler(req).then(
-            (handler) => {
-              const resp = handler(req, res);
-              if (resp && resp.then) {
-                resp.then(
-                  () => {
-                    next();
-                  },
-                  (err) => {
-                    next(err);
-                  },
-                );
-              } else {
-                next();
-              }
-            },
-            (err) => {
-              // logger.warn(`Couldn't create handler for endpoint: ${err}`);
-            },
-          );
+          const handler = await this.getControllerHandler(req);
+          assert(handler, `Could not find handler for ${getControllerName(req)}#${getOperationName(req)}. Make sure there is a matching class/method registered on the context.`);
+          try {
+            const resp = await handler(req, res);
+            assert(res.headersSent, `${getControllerName(req)}#${getOperationName(req)} was called but didn't handle the request. Make sure you always handle the request by calling an appopriate method on "res"`);
+          } catch (error) {
+            next(error); // Send to express error handler
+          }
         } else {
-          // No controller defined, let it pass
-          next();
+          next(); // Not handled, continue up the middleware chain
         }
       } catch (e) {
-        next(e);
+        next(e); // Send to express error handler
       }
     });
   }
@@ -79,35 +80,23 @@ export default class SwaggerRouterMiddleware {
   /**
    * @private
    * @param req
-   * @returns {Request}
+   * @returns Function
    */
-  getControllerHandler(req) {
-    const controllerName = req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY]
-      ? req.swagger.operation[SWAGGER_CONTROLLER_PROPERTY]
-      : req.swagger.path[SWAGGER_CONTROLLER_PROPERTY];
-    const operationId = req.swagger.operation[SWAGGER_OPERATION_PROPERTY]
-      ? req.swagger.operation[SWAGGER_OPERATION_PROPERTY]
-      : req.method.toLowerCase();
+  async getControllerHandler(req) {
+    const controllerName = getControllerName(req);
+    const operationId = getOperationName(req);
     const key = `${controllerName}_${operationId}`;
+
     if (this.handlerCache.has(key)) {
-      return Promise.resolve(this.handlerCache.get(key));
+      return this.handlerCache.get(key);
     }
-    try {
-      return this.getControllerObjectPromise(controllerName)
-        .then((controller) => this.createControllerArgHandler(controller, operationId))
-        .then(
-          (handler) => {
-            this.handlerCache.set(key, handler);
-            return handler;
-          },
-          (err) => {
-            // logger.error(err, `There was an error creating the handler for ${key}`);
-            throw err;
-          },
-        );
-    } catch (e) {
-      // logger.error(e);
-      return Promise.reject(e);
+    const controller = await this.getControllerObjectPromise(controllerName);
+    if (controller) {
+      const handler = this.createControllerArgHandler(controller, operationId);
+      if (handler) {
+        this.handlerCache.set(key, handler);
+        return handler;
+      }
     }
   }
 
@@ -115,11 +104,12 @@ export default class SwaggerRouterMiddleware {
    * @private
    * @param controller
    * @param operationId
-   * @returns {function(*=, *=)}
+   * @returns {function(*=, *=)|null}
    */
-  createControllerArgHandler(controller, operationId) {
+  createControllerArgHandler(controller: any, operationId: string): Function|void {
     let functionName;
     let params = [];
+
     if (operationId.indexOf('(') < 0) {
       functionName = operationId.trim();
     } else {
@@ -129,6 +119,11 @@ export default class SwaggerRouterMiddleware {
         params = matches[2].match(optionParsingRegExp2);
       }
     }
+
+    if (!controller[functionName]) {
+      return;
+    }
+
     const paramFunctions = [];
     params.forEach((param) => {
       if (param === 'null') {
