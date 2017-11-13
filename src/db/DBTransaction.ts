@@ -61,8 +61,8 @@ export abstract class DBTransaction {
 
   abstract async doTransactionEnd(): Promise<void>;
 
-  end(): void {
-    this.transaction.end();
+  async end(): Promise<void> {
+    await this.transaction.end();
   }
 
   public isRolledBack(): boolean {
