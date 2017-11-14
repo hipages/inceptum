@@ -236,23 +236,39 @@ export class MysqlClient extends DBClient {
    * @param {Function} func A function that returns a promise that will execute all the queries wanted in this transaction
    * @returns {Promise} A promise that will execute the whole transaction
    */
-  runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> {
+  async runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any> {
     const transaction = TransactionManager.newTransaction(readonly);
     const mysqlTransaction = new MysqlTransaction(this, transaction);
-    return mysqlTransaction.begin()
-      .then(() => func(mysqlTransaction))
-      .catch((err) => {
-        log.error({ err }, 'There was an error running in transaction');
-        transaction.markError(err);
-        throw err;
-      })
-      .then((result) => {
-        mysqlTransaction.end();
-        return result;
-      }, (reason) => {
-        mysqlTransaction.end();
-        throw reason;
-      });
+
+    try {
+      await mysqlTransaction.begin();
+      const resp = await func(mysqlTransaction);
+      return resp;
+    } catch (err) {
+      log.error({ err }, 'There was an error running in transaction');
+      transaction.markError(err);
+      throw err;
+    } finally {
+      await mysqlTransaction.end();
+    }
+
+
+    // return mysqlTransaction.begin()
+    //   .then(async () => await func(mysqlTransaction))
+    //   .catch((err) => {
+    //     log.error({ err }, 'There was an error running in transaction');
+    //     transaction.markError(err);
+    //     throw err;
+    //   })
+    //   .then(async (result) => {
+    //     await mysqlTransaction.end();
+    //     return result;
+    //   }, async (reason) => {
+    //     await mysqlTransaction.end();
+    //     throw reason;
+    //   });
+
+
       // .finally((result) => {
       //   mysqlTransaction.end();
       //   return Promise.resolve(result); // TODO This weird?
