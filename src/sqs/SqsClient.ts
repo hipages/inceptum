@@ -39,13 +39,17 @@ export class SqsClient {
     this.connection = new AWS.SQS(this.configuration);
   }
 
-  sendMessage(params, cb: (err, data) => void) {
+  async sendMessage(params, cb: (err, data) => void): Promise<any> {
     params['QueueUrl'] = this.configuration.queueUrl;
 
-    try {
-      this.connection.sendMessage(params, cb);
-    } catch (err) {
-      return cb(err, null);
-    }
+    return new Promise<any>((resolve, reject) => {
+      this.connection.sendMessage(params, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
+      });
+    });
   }
 }

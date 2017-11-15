@@ -32,7 +32,7 @@ export abstract class SqsHandler {
    * @param message
    * @param done
    */
-  abstract handle(message: Object, done: (err?: Error) => void): void;
+  abstract async handle(message: Object, done: (err?: Error) => void);
 }
 
 export class SqsWorker {
@@ -71,16 +71,16 @@ export class SqsWorker {
         {},
         this.configuration,
         {
-          handleMessage: (m, d) => {
+          handleMessage: (m, done) => {
             try {
               if (m.Attributes.ApproximateReceiveCount > this.getMaxRetries()) {
                 log.error({m}, `SQS error`);
-                d();
+                done();
               } else {
-                this.handler.handle(m, d);
+                this.handler.handle(m, done).then(done, done);
               }
             } catch (err) {
-              d(err);
+              done(err);
             }
           },
         },
