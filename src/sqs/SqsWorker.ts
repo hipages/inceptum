@@ -76,7 +76,8 @@ export class SqsWorker {
           handleMessage: (m, done) => {
             try {
               if (m.Attributes.ApproximateReceiveCount > this.getMaxRetries()) {
-                log.error({m}, `SQS error`);
+                m.skipped = 1;
+                log.error(m, `Reached maximum number of retries ${m.Attributes.ApproximateReceiveCount} > ${this.getMaxRetries()}`);
                 done();
               } else {
                 this.handler.handle(m, done).then(done, done);
@@ -91,13 +92,15 @@ export class SqsWorker {
     this.instance = this.consumerCreator(conf);
 
     this.instance.on('error', (err) => {
-      log.error({err}, `SQS error`);
+      log.error(err, `Unexpected SQS error`);
     });
 
+    log.info(`Starting SQS Worker: ${this.name}`);
     this.instance.start();
   }
 
   shutdown() {
+    log.info(`Stoping SQS Worker: ${this.name}`);
     this.instance.stop();
   }
 
