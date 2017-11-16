@@ -39,6 +39,8 @@ export class SqsWorker {
 
   static startMethod = 'initialise';
   static stopMethod = 'shutdown';
+  static lazy = false;
+
   readonly maxRetries = 5;
 
   configuration: SqsWorkerConfigObject;
