@@ -46,7 +46,9 @@ export default class SwaggerRouterMiddleware {
   async register(expressApp) {
     expressApp.use(async (req, res, next) => {
       if (newrelic && req.swagger && req.swagger.apiPath) {
-        newrelic.setTransactionName(req.swagger.apiPath);
+        // NR adds a `/` at the start of the path for us.
+        const basePath = req.swagger.swaggerObject.basePath.substring(1);
+        newrelic.setTransactionName(`${basePath}${req.swagger.apiPath}`);
       }
 
       try {
