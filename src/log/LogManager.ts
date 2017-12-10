@@ -193,7 +193,7 @@ export class LogManagerInternal {
     }
     const builtLoc = thePath.indexOf(`${path.sep}dist${path.sep}`);
     if (builtLoc >= 0) {
-      return thePath.substr(builtLoc + 7);
+      return thePath.substr(builtLoc + 6);
     }
     if (thePath.startsWith(process.cwd())) {
       const fromCwd = thePath.substr(process.cwd().length);
