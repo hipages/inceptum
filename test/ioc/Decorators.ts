@@ -20,7 +20,7 @@ suite('ioc/Decorators', () => {
       // const val = new Test1();
       Reflect.hasMetadata('inceptum', Test1.prototype).must.be.true();
       const metadata = Reflect.getMetadata('inceptum', Test1.prototype);
-      metadata.autowire['prop1'].must.equal('the value');
+      metadata.autowire.get('prop1').must.equal('the value');
     });
   });
   suite('Lazy', () => {
