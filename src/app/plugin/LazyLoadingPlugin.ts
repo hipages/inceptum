@@ -1,6 +1,6 @@
 // tslint:disable:prefer-function-over-method
-import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
-import { Plugin } from './BaseApp';
+import { ObjectDefinitionLazyLoadingInspector } from '../../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
+import { Plugin } from '../BaseApp';
 
 export default class LazyLoadingPlugin implements Plugin {
   name = 'LazyLoadingPlugin';

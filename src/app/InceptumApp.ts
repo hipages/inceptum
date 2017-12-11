@@ -1,17 +1,16 @@
 import { Context } from '../ioc/Context';
 import { LogManager, Logger } from '../log/LogManager';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
-import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
-import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 import { LifecycleState } from '../ioc/Lifecycle';
 import MysqlPlugin from '../mysql/MysqlPlugin';
 import PostgresPlugin from '../postgres/PostgresPlugin';
 import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
 import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
-import AutowirePlugin from './AutowirePlugin';
-import LazyLoadingPlugin from './LazyLoadingPlugin';
-import StartStopPlugin from './StartStopPlugin';
+import AutowirePlugin from './plugin/AutowirePlugin';
+import LazyLoadingPlugin from './plugin/LazyLoadingPlugin';
+import StartStopPlugin from './plugin/StartStopPlugin';
+import DecoratorPlugin from './plugin/DecoratorPlugin';
 import BaseApp from './BaseApp';
 
 export class InceptumApp extends BaseApp {
@@ -21,7 +20,7 @@ export class InceptumApp extends BaseApp {
   constructor(options = {}) {
     super(options);
     // Standard IOC plugins.
-    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin());
+    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin());
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
       this.logger.debug('Mysql Detected - Adding Plugin');

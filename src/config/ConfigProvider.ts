@@ -1,12 +1,12 @@
 /* tslint:disable:prefer-function-over-method */
 import * as config from 'config';
 
-export interface ConfigAdapater {
+export interface ConfigAdapter {
   hasConfig(key: string): boolean,
   getConfig(key: string, defaultValue?: any): any,
 }
 
-export default class Config implements ConfigAdapater {
+export default class Config implements ConfigAdapter {
   hasConfig(key: string): boolean {
     return config.has(key);
   }

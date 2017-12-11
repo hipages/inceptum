@@ -1,6 +1,6 @@
-import { PromiseUtil } from '../../../src/util/PromiseUtil';
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
+import { PromiseUtil } from '../../../src/util/PromiseUtil';
 
 import * as MockUtil from '../../../src/util/TestUtil';
 import { Context } from '../../../src/ioc/Context';

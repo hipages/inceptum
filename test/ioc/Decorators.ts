@@ -10,7 +10,7 @@ class Test1 {
   prop1: string;
 
   constructor() {
-    console.log('instantiating');
+    // console.log('instantiating');
   }
 }
 

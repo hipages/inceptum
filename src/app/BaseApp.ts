@@ -1,10 +1,8 @@
 import { Context } from '../ioc/Context';
 import { LogManager, Logger } from '../log/LogManager';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
-import { ObjectDefinitionStartStopMethodsInspector } from '../ioc/autoconfig/ObjectDefinitionStartStopMethodsInspector';
-import { ObjectDefinitionLazyLoadingInspector } from '../ioc/autoconfig/ObjectDefinitionLazyLoadingInspector';
 import { LifecycleState } from '../ioc/Lifecycle';
-import Config, { ConfigAdapater } from '../config/ConfigProvider';
+import Config, { ConfigAdapter } from '../config/ConfigProvider';
 
 export type PluginLifecycleMethodName = 'willStart' | 'didStart' | 'willStop' | 'didStop';
 export type PluginLifecycleMethod = (app: BaseApp, pluginContext?: Map<String, any>) => Promise<void> | void;
@@ -46,7 +44,7 @@ export type PluginImplemenation = PluginNameable & PluginImplementsAtLeastOneMet
 
 export interface AppOptions {
   logger?: Logger,
-  config?: ConfigAdapater,
+  config?: ConfigAdapter,
 }
 
 export type PluginContext = Map<String | Symbol, any>;

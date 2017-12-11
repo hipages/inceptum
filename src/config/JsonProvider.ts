@@ -1,8 +1,8 @@
 // tslint:disable:prefer-function-over-method
 import { get } from 'lodash';
-import { ConfigAdapater } from './ConfigProvider';
+import { ConfigAdapter } from './ConfigProvider';
 
-export default class JsonProvider implements ConfigAdapater {
+export default class JsonProvider implements ConfigAdapter {
   config: object;
 
   constructor(config) {

@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as config from 'config';
-import Config, { ConfigAdapater } from '../config/ConfigProvider';
+import Config, { ConfigAdapter } from '../config/ConfigProvider';
 import { Logger, LogManager } from '../log/LogManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { Lifecycle, LifecycleState } from './Lifecycle';

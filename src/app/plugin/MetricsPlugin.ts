@@ -1,6 +1,6 @@
 // tslint:disable:prefer-function-over-method
-import { MetricsManager } from '../metrics/Metrics';
-import { Plugin } from './BaseApp';
+import { MetricsManager } from '../../metrics/Metrics';
+import { Plugin } from '../BaseApp';
 
 export default class MetricPlugin implements Plugin {
   name = 'MetricsPlugin';
