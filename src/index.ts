@@ -13,3 +13,4 @@ export { default as WebPlugin } from './web/WebPlugin';
 export { Plugin, PluginContext } from './app/BaseApp';
 export { ObjectDefinitionInspector } from './ioc/ObjectDefinitionInspector';
 export { AbstractObjectDefinitionInspector } from './ioc/AbstractObjectDefinitionInspector';
+export * from './ioc/Decorators';
