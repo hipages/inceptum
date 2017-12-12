@@ -30,6 +30,7 @@ export class Context extends Lifecycle {
   private objectDefinitions: Map<string, ObjectDefinition<any>>;
   private parentContext: Context;
   private config: Config;
+  private objectGroups: Map<string, string[]>;
 
   constructor(name: string, parentContext?: Context, options: ContextOptions = {}) {
     super(name, options.logger || LogManager.getLogger(__filename));
@@ -38,6 +39,7 @@ export class Context extends Lifecycle {
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();
     this.objectDefinitionInspector = [];
+    this.objectGroups = new Map<string, string[]>();
   }
 
   // ************************************
@@ -226,6 +228,24 @@ export class Context extends Lifecycle {
    */
   hasConfig(key: string): boolean {
     return this.config.hasConfig(key);
+  }
+
+  // ************************************
+  // Group functions
+  // ************************************
+
+  addObjectNameToGroup(groupName: string, objectName: string) {
+    if (!this.objectGroups.has(groupName)) {
+      this.objectGroups.set(groupName, []);
+    }
+    this.objectGroups.get(groupName).push(objectName);
+  }
+
+  getGroupObjectNames(groupName: string): string[] {
+    if (!this.objectGroups.has(groupName)) {
+      return [];
+    }
+    return this.objectGroups.get(groupName);
   }
 
   // ************************************

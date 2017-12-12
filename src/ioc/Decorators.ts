@@ -7,6 +7,7 @@ export class InceptumMetadata {
   lazy = true;
   startMethod: string = null;
   stopMethod: string = null;
+  groups: string[] = [];
 }
 
 export function hasDecoratorMetadata(target: any): boolean {
@@ -42,6 +43,14 @@ export function AutowireConfig(configKey: string) {
   };
 }
 
+export function AutowireGroup(groupName: string) {
+  return (target: any, key: string) => {
+    // console.log('Called Autowire');
+    const metadata = getOrCreateMetadata(target);
+    metadata.autowire.set(key, `%${groupName}`);
+  };
+}
+
 export function Lazy(lazy: boolean) {
   return (target) => {
     const metadata = getOrCreateMetadata(target.prototype);
@@ -57,4 +66,11 @@ export function StartMethod(target, key: string) {
 export function StopMethod(target, key: string) {
   const metadata = getOrCreateMetadata(target);
   metadata.stopMethod = key;
+}
+
+export function RegisterInGroup(groupName: string) {
+  return (target) => {
+    const metadata = getOrCreateMetadata(target.prototype);
+    metadata.groups.push(groupName);
+  };
 }

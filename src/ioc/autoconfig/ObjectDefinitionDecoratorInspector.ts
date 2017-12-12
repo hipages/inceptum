@@ -26,6 +26,7 @@ export class ObjectDefinitionDecoratorInspector extends AbstractObjectDefinition
     if (metadata.stopMethod) {
       objectDefinition.stopFunction(metadata.stopMethod);
     }
+    metadata.groups.forEach((groupName: string) => objectDefinition.getContext().addObjectNameToGroup(groupName, objectDefinition.getName()));
     metadata.autowire.forEach((val, key) => {
       switch (val.substr(0, 1)) {
         case '~':
@@ -36,6 +37,9 @@ export class ObjectDefinitionDecoratorInspector extends AbstractObjectDefinition
           break;
         case '#':
           objectDefinition.setPropertyByConfig(key, val.substr(1));
+          break;
+        case '%':
+          objectDefinition.setPropertyByGroup(key, val.substr(1));
           break;
         default:
           // By Name

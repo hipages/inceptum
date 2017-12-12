@@ -18,6 +18,7 @@ export enum ParamType {
   Type, // = 'type',
   TypeArray, // = 'typeArray',
   Config, // = 'config',
+  Group, // = 'group',
 }
 
 export class ParamDefinition {
@@ -29,6 +30,11 @@ export class ParamDefinition {
   static withConfigKey(key: string): ParamDefinition {
     const resp = new ParamDefinition(ParamType.Config);
     resp.key = key;
+    return resp;
+  }
+  static withGroupName(groupName: string): ParamDefinition {
+    const resp = new ParamDefinition(ParamType.Group);
+    resp.group = groupName;
     return resp;
   }
   static withRefName(refName: string): ParamDefinition {
@@ -52,6 +58,7 @@ export class ParamDefinition {
   public type: ParamType;
   public val: any;
   public key: string;
+  public group: string;
   public objectDefinitions: Array<ObjectDefinition<any>>;
 
   constructor(type: ParamType) {
@@ -136,6 +143,14 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
     this.propertiesToSetDefinitions.push(new CallDefinition(
       paramName,
       ParamDefinition.withConfigKey(key)));
+    return this;
+  }
+
+  setPropertyByGroup(paramName, groupName) {
+    this.assertState(BaseSingletonState.NOT_STARTED);
+    this.propertiesToSetDefinitions.push(new CallDefinition(
+      paramName,
+      ParamDefinition.withGroupName(groupName)));
     return this;
   }
 
@@ -350,6 +365,9 @@ export class BaseSingletonDefinition<T> extends ConfigurableSingletonDefinition<
         break;
       case ParamType.TypeArray:
         paramDefinition.objectDefinitions = this.context.getDefinitionsByType(paramDefinition.className);
+        break;
+      case ParamType.Group:
+        paramDefinition.objectDefinitions = this.context.getGroupObjectNames(paramDefinition.group).map((refName) => this.context.getDefinitionByName(refName));
         break;
       default:
         throw new IoCException(`Unknown argument type ${paramDefinition.type} on bean ${this.name}`);
