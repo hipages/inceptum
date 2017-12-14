@@ -110,6 +110,11 @@
     "require": [
       "ts-node/register"
     ],
+    "reporter": [
+      "text",
+      "text-summary",
+      "lcov"
+    ],
     "sourceMap": true,
     "instrument": true
   }
