@@ -280,6 +280,15 @@ export class Context extends Lifecycle {
     });
   }
 
+  async getObjectsByGroup(groupName) {
+    const objectNames = this.getGroupObjectNames(groupName);
+    const objectDefinitions = objectNames.map((objectName) => this.getDefinitionByName(objectName));
+    return await objectDefinitions.reduce(async (acum, def) => {
+      (await acum).push(await def.getInstance());
+      return Promise.resolve(acum);
+    }, Promise.resolve([]));
+  }
+
   // ************************************
   // Get Bean Definition Functions
   // ************************************
@@ -319,6 +328,11 @@ export class Context extends Lifecycle {
       throw new IoCException(`Couldn't find a bean that produces class ${className}`);
     }
     return Array.from(resp.values());
+  }
+
+  getDefinitionsByGroup(groupName): Array<ObjectDefinition<any>> {
+    const objectNames = this.getGroupObjectNames(groupName);
+    return objectNames.map((objectName) => this.getDefinitionByName(objectName));
   }
 
   applyObjectDefinitionModifiers() {

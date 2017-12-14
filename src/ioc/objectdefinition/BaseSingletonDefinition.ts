@@ -19,6 +19,7 @@ export enum ParamType {
   TypeArray, // = 'typeArray',
   Config, // = 'config',
   Group, // = 'group',
+  DefinitionGroup, // = 'group',
 }
 
 export class ParamDefinition {
@@ -34,6 +35,11 @@ export class ParamDefinition {
   }
   static withGroupName(groupName: string): ParamDefinition {
     const resp = new ParamDefinition(ParamType.Group);
+    resp.group = groupName;
+    return resp;
+  }
+  static withDefinitionGroupName(groupName: string): ParamDefinition {
+    const resp = new ParamDefinition(ParamType.DefinitionGroup);
     resp.group = groupName;
     return resp;
   }
@@ -151,6 +157,14 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
     this.propertiesToSetDefinitions.push(new CallDefinition(
       paramName,
       ParamDefinition.withGroupName(groupName)));
+    return this;
+  }
+
+  setPropertyByDefinitionGroup(paramName, groupName) {
+    this.assertState(BaseSingletonState.NOT_STARTED);
+    this.propertiesToSetDefinitions.push(new CallDefinition(
+      paramName,
+      ParamDefinition.withDefinitionGroupName(groupName)));
     return this;
   }
 
@@ -367,6 +381,7 @@ export class BaseSingletonDefinition<T> extends ConfigurableSingletonDefinition<
         paramDefinition.objectDefinitions = this.context.getDefinitionsByType(paramDefinition.className);
         break;
       case ParamType.Group:
+      case ParamType.DefinitionGroup:
         paramDefinition.objectDefinitions = this.context.getGroupObjectNames(paramDefinition.group).map((refName) => this.context.getDefinitionByName(refName));
         break;
       default:
@@ -407,6 +422,8 @@ export class BaseSingletonDefinition<T> extends ConfigurableSingletonDefinition<
         return Promise.resolve(paramDefinition.val);
       case ParamType.Config:
         return Promise.resolve(this.context.getConfig(paramDefinition.key));
+      case ParamType.DefinitionGroup:
+        return Promise.resolve(paramDefinition.objectDefinitions);
       default:
         const prom = PromiseUtil.map(paramDefinition.objectDefinitions,
         (od) => od.getInstance());

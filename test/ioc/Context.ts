@@ -18,7 +18,7 @@ class A {
 }
 
 class B {
-  private a;
+  a;
   constructor(a) {
     // console.log('Instantiating B');
     this.a = a;
@@ -260,18 +260,16 @@ suite('ioc/Context', () => {
         })
         .then(() => myContext.lcStop());
     });
-    test('getting by type array', () => {
+    test('getting by type array', async () => {
       const myContext = new Context('test1');
       myContext.registerSingletons(A);
-      return myContext.lcStart()
-        .then(() => myContext.getObjectsByType('A'))
-        .then((a) => {
-          (a === undefined).must.be.false();
-          a.must.be.an.array();
-          a.length.must.be.equal(1);
-          a[0].must.be.an.instanceOf(A);
-        })
-        .then(() => myContext.lcStop());
+      await myContext.lcStart();
+      const a  = await myContext.getObjectsByType('A');
+      (a === undefined).must.be.false();
+      a.must.be.an.array();
+      a.length.must.be.equal(1);
+      a[0].must.be.an.instanceOf(A);
+      await myContext.lcStop();
     });
   });
   suite('getting object definitions', () => {
@@ -303,6 +301,20 @@ suite('ioc/Context', () => {
       a[1].must.be.an.instanceOf(BaseSingletonDefinition);
       a[1].getProducedClass().must.equal(A);
       (a[1].getName() === 'A' || a[1].getName() === 'A2').must.be.true();
+    });
+    test('getting by group', () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(A);
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2'));
+      myContext.addObjectNameToGroup('myGroup', 'A');
+
+      const a = myContext.getDefinitionsByGroup('myGroup');
+      (a === undefined).must.be.false();
+      a.must.be.an.array();
+      a.length.must.equal(1);
+      a[0].must.be.an.instanceOf(BaseSingletonDefinition);
+      a[0].getProducedClass().must.equal(A);
+      a[0].getName().must.equal('A');
     });
   });
   suite('objects with parameters set', () => {
@@ -345,6 +357,35 @@ suite('ioc/Context', () => {
           b.a.must.be.equal(a);
         })
         .then(() => myContext.lcStop());
+    });
+    test('can use group params', async () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(A));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByGroup('a', 'myGroup'));
+      myContext.addObjectNameToGroup('myGroup', 'A');
+      await myContext.lcStart();
+      const b: B = await myContext.getObjectByName('B');
+      (b === undefined).must.be.false();
+      (b.a === undefined).must.be.false();
+      b.a.must.be.an.array();
+      b.a.length.must.equal(1);
+      (b.a[0] instanceof A).must.be.true();
+      await myContext.lcStop();
+    });
+    test('can use definition group params', async () => {
+      const myContext = new Context('test1');
+      myContext.registerSingletons(new BaseSingletonDefinition(A));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByDefinitionGroup('a', 'myGroup'));
+      myContext.addObjectNameToGroup('myGroup', 'A');
+      await myContext.lcStart();
+      const b: B = await myContext.getObjectByName('B');
+      (b === undefined).must.be.false();
+      (b.a === undefined).must.be.false();
+      b.a.must.be.an.array();
+      b.a.length.must.equal(1);
+      (b.a[0] instanceof BaseSingletonDefinition).must.be.true();
+      (b.a[0] as any as BaseSingletonDefinition<any>).getName().must.equal('A');
+      await myContext.lcStop();
     });
   });
   suite('wiring', () => {
@@ -478,5 +519,4 @@ suite('ioc/Context', () => {
         .then(() => otherContext.lcStop());
     });
   });
-}
-);
+});

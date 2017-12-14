@@ -2,6 +2,7 @@
   "extends": "tslint-config-shopify",
   "rules": {
     "no-require-imports" : false,
-    "member-ordering": [ false ]
+    "member-ordering": [ false ],
+    "prefer-function-over-method": false
   }
 }
