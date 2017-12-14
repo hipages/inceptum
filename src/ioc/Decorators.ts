@@ -51,6 +51,14 @@ export function AutowireGroup(groupName: string) {
   };
 }
 
+export function AutowireGroupDefinitions(groupName: string) {
+  return (target: any, key: string) => {
+    // console.log('Called Autowire');
+    const metadata = getOrCreateMetadata(target);
+    metadata.autowire.set(key, `&${groupName}`);
+  };
+}
+
 export function Lazy(lazy: boolean) {
   return (target) => {
     const metadata = getOrCreateMetadata(target.prototype);

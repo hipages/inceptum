@@ -41,6 +41,9 @@ export class ObjectDefinitionDecoratorInspector extends AbstractObjectDefinition
         case '%':
           objectDefinition.setPropertyByGroup(key, val.substr(1));
           break;
+        case '&':
+          objectDefinition.setPropertyByDefinitionGroup(key, val.substr(1));
+          break;
         default:
           // By Name
           objectDefinition.setPropertyByRef(key, val);
