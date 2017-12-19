@@ -10,6 +10,7 @@ env:
 service:
   - mysql
   - postgres
+  - rabbitmq
 
 install:
   - yarn install

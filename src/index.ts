@@ -15,3 +15,4 @@ export { ObjectDefinitionInspector } from './ioc/ObjectDefinitionInspector';
 export { AbstractObjectDefinitionInspector } from './ioc/AbstractObjectDefinitionInspector';
 export * from './ioc/Decorators';
 export { NewrelicUtil } from './newrelic/NewrelicUtil';
+export { RabbitmqConsumerHandler } from './rabbitmq/RabbitmqConsumerHandler';

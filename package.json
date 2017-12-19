@@ -15,7 +15,6 @@
     "deploy-docs": "gitbook build docs && gh-pages -d docs/_book",
     "postpublish": "npm run deploy-docs",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
-    "precommit": "npm run lint",
     "prepush": "node .checkpush.js"
   },
   "repository": {
@@ -35,11 +34,13 @@
     "test": "test"
   },
   "dependencies": {
+    "@types/amqplib": "^0.5.5",
     "@types/axios": "^0.14.0",
     "@types/bunyan": "1.8.0",
     "@types/elasticsearch": "^5.0.16",
     "@types/mocha": "^2.2.41",
     "@types/pg": "^6.1.43",
+    "amqplib": "^0.5.2",
     "aws-sdk": "^2.102.0",
     "axios": "^0.16.2",
     "body-parser": "^1.15.2",
@@ -91,12 +92,12 @@
     "must": "^0.13.2",
     "nyc": "^11.1.0",
     "sinon": "1.17.7",
-    "ts-node": "3.0.4",
+    "ts-node": "4.0.1",
     "tslint": "^5.6.0",
     "tslint-config-shopify": "^2.0.0",
     "typedoc": "^0.8.0",
     "typedoc-clarity-theme": "^1.1.0",
-    "typescript": "2.4.0"
+    "typescript": "2.6.2"
   },
   "nyc": {
     "include": [
