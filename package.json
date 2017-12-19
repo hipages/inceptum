@@ -15,6 +15,7 @@
     "deploy-docs": "gitbook build docs && gh-pages -d docs/_book",
     "postpublish": "npm run deploy-docs",
     "prepublishOnly": "npm run clean && tsc && npm test && npm run lint",
+    "precommit": "npm run lint",
     "prepush": "node .checkpush.js"
   },
   "repository": {

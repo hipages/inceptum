@@ -36,7 +36,6 @@ const emailConsumerConfig: RabbitmqConsumerConfig = {
 };
 
 const smsConsumerConfig = { ...emailConsumerConfig };
-// smsConsumerConfig.appQueueName = partialRoutingKey;
 
 class RabbitmqConsumerHandlerTest extends RabbitmqConsumerHandler {
     protected logger: Logger = logger;
@@ -66,6 +65,16 @@ class RabbitmqConsumerHandlerTestException extends RabbitmqConsumerHandler {
         if (msg.properties.headers.retriesCount < 2) {
             throw new RabbitmqConsumerHandlerError();
         }
+    }
+}
+
+class RabbitmqProducerExposedChannel extends RabbitmqProducer {
+    setChannel(channel) {
+        this.channel = channel;
+    }
+
+    getChannel() {
+        return this.channel;
     }
 }
 
@@ -180,10 +189,14 @@ class RabbitmqProducerAndConsumerTest {
         zeroRetryTime.must.equal(0);
     }
 
-    // @test
-    // 'error when publishing message'() {
-
-    // }
+    @test
+    async 'error is occured when publishing message'() {
+        const producer = new RabbitmqProducerExposedChannel(clientConfig, 'error', producerConfig);
+        await producer.init();
+        const channelStub = sinon.stub(producer.getChannel(), 'publish').returns(false);
+        producer.setChannel(channelStub);
+        producer.publish('test msg', 'a-key').must.reject.with.error();
+    }
 
     /**
      *

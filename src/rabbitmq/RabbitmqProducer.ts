@@ -29,7 +29,7 @@ export class RabbitmqProducer extends RabbitmqClient {
             }
 
             this.logger.error(`publish failed. ====> ${msg}`);
-            await new Promise((resolve: () => void, reject: () => void) => {
+            await new Promise<void>((resolve: () => void, reject: () => void) => {
                 this.channel.once('drain', function() {
                     this.logger.info(`drain event received. ====> ${msg}`);
                     resolve();

@@ -32,11 +32,11 @@ export abstract class RabbitmqClient {
   }
 
   async closeChannel(): Promise<void> {
-    await this.channel.close();
+    this.channel.close();
   }
 
   async closeConnection(): Promise<void> {
-    await this.connection.close();
+    this.connection.close();
   }
 
   // prefetch
