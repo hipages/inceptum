@@ -24,6 +24,7 @@ install:
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 
 before_script:
+  - rabbitmq-plugins enable rabbitmq_management
   - rabbitmqadmin import ./itests/rabbitmq/definitions.json
 
 script:
