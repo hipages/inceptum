@@ -33,7 +33,8 @@ before_script:
   - sudo service rabbitmq-server restart 
   - wget http://127.0.0.1:15672/cli/rabbitmqadmin
   - chmod +x rabbitmqadmin
-  - ./rabbitmqadmin import ./itest/rabbitmq/definitions.json
+  - ls -al
+  - ./rabbitmqadmin import ./hipages/inceptum/itest/rabbitmq/definitions.json
 
 script:
   - wget -q --waitretry=1 --retry-connrefused -T 10 -O - http://127.0.0.1:9200
