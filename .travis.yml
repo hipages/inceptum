@@ -30,6 +30,7 @@ install:
 
 before_script:
   - sudo rabbitmq-plugins enable rabbitmq_management
+  - sudo service rabbitmq-server restart 
   - wget http://127.0.0.1:15672/cli/rabbitmqadmin
   - chmod +x rabbitmqadmin
   - rabbitmqadmin import ./itests/rabbitmq/definitions.json
