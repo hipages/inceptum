@@ -33,9 +33,11 @@ const emailConsumerConfig: RabbitmqConsumerConfig = {
     maxRetries: 4,
     retryDelayInMinute: 2,
     retryDelayFactor: 5,
+    options: {},
 };
 
 const smsConsumerConfig = { ...emailConsumerConfig };
+smsConsumerConfig.options = { priority: 1 };
 
 class RabbitmqConsumerHandlerTest extends RabbitmqConsumerHandler {
     protected logger: Logger = logger;
@@ -98,7 +100,6 @@ class RabbitmqProducerAndConsumerTest {
 
         const appQueueConsumer = new RabbitmqConsumer(clientConfig, 'mandrill', emailConsumerConfig, handler);
         await appQueueConsumer.init();
-        await appQueueConsumer.subscribe(emailConsumerConfig.appQueueName);
 
         handlerSpy.called.must.be.true();
     }
@@ -115,25 +116,24 @@ class RabbitmqProducerAndConsumerTest {
             smsConsumerConfig,
             handlerExceptionCreator);
         await appQueueConsumer.init();
-        // subscribe to appQueue
-        await appQueueConsumer.subscribe(smsConsumerConfig.appQueueName, {priority: 1});
 
         // publish msg
         const routingKey = `${routingKeyAppName}.uweqw-212-d-sfcx-dssa.${channelName}`;
         await this.publishMessage(routingKey);
 
         // create dlq consumer
+        const dlqConsumerConfig = { ...smsConsumerConfig };
+        dlqConsumerConfig.appQueueName = smsConsumerConfig.dlqName;
         const dlqHandler = new RabbitmqConsumerHandlerTest();
         const dlqHandlerSpy = sinon.spy(dlqHandler, 'handle');
         const dlqConsumer = new RabbitmqConsumer(
             clientConfig,
             'mandrill',
-            smsConsumerConfig,
+            dlqConsumerConfig,
             dlqHandler,
         );
         // subscribe
         await dlqConsumer.init();
-        await dlqConsumer.subscribe(smsConsumerConfig.dlqName);
 
         // make sure there is an exception
         handlerExceptionSpy.called.must.be.true();
@@ -150,9 +150,9 @@ class RabbitmqProducerAndConsumerTest {
         errorConfig.maxRetries = 4;
         errorConfig.retryDelayInMinute = 0.005;
         errorConfig.retryDelayFactor = 1;
+        errorConfig.options = { priority: 3 };
         const errorConsumer = new RabbitmqConsumer(clientConfig, 'nuntius', errorConfig, handler);
         await errorConsumer.init();
-        await errorConsumer.subscribe(errorConfig.appQueueName, {priority: 3});
 
         // publish message
         const routingKey = `${routingKeyAppName}.ll-opp-222.${channelName}`;

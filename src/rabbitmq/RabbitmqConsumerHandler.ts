@@ -1,5 +1,5 @@
 import { Message } from 'amqplib';
-import { Logger } from '../../src/log/LogManager';
+import { Logger } from '../log/LogManager';
 import { RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
 
 export abstract class RabbitmqConsumerHandler {

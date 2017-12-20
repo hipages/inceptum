@@ -10,7 +10,7 @@ export class RabbitmqProducer extends RabbitmqClient {
         name: string,
         producerConfig: RabbitmqProducerConfig ) {
             super(clientConfig, name);
-            this.producerConfig = producerConfig;
+            this.producerConfig = {...producerConfig};
             this.producerConfig.backPressureStrategy = producerConfig.backPressureStrategy || BackPressureStrategy.ERROR;
     }
 
@@ -38,5 +38,13 @@ export class RabbitmqProducer extends RabbitmqClient {
         }
 
         return Promise.resolve(true);
+    }
+
+    async init(): Promise<void> {
+        await super.init();
+    }
+
+    async close(): Promise<void> {
+        await super.close();
     }
 }

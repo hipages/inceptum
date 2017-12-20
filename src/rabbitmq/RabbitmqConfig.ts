@@ -24,4 +24,5 @@ export interface RabbitmqConsumerConfig {
   retryDelayInMinute: number,
   retryDelayFactor: number,
   messageHandler?: string,
+  options?: object,
 }

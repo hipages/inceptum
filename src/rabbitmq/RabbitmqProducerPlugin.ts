@@ -19,11 +19,13 @@ export default class RabbitmqProducerPlugin implements Plugin {
     const clientConf = context.getConfig('rabbitmq.client');
     Object.keys(confs).forEach((key) => {
       const clientType = 'producer';
-      const name = `${key}.${clientType}`;
+      const name = `${key}_${clientType}`;
       const clientSingleton = new BaseSingletonDefinition<any>(RabbitmqProducer, name);
       clientSingleton.constructorParamByValue(clientConf);
       clientSingleton.constructorParamByValue(name);
       clientSingleton.constructorParamByValue(confs[key]);
+      clientSingleton.startFunction('init');
+      clientSingleton.stopFunction('close');
       context.registerSingletons(clientSingleton);
     });
   }

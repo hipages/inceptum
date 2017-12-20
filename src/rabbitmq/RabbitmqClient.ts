@@ -1,5 +1,5 @@
 import { connect, Connection, Channel } from 'amqplib';
-import { Logger } from '../../src/log/LogManager';
+import { Logger } from '../log/LogManager';
 import { RabbitmqProducerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 
 export abstract class RabbitmqClient {
@@ -29,6 +29,11 @@ export abstract class RabbitmqClient {
 
   protected async createChannel(): Promise<void> {
     this.channel = await this.connection.createChannel();
+  }
+
+  async close(): Promise<void> {
+    await this.closeChannel();
+    await this.closeConnection();
   }
 
   async closeChannel(): Promise<void> {

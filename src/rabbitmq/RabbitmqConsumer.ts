@@ -15,7 +15,13 @@ export class RabbitmqConsumer extends RabbitmqClient {
     handler: RabbitmqConsumerHandler) {
       super(clientConfig, name);
       this.messageHandler = handler;
-      this.consumerConfig = consumerConfig;
+      this.consumerConfig = {...consumerConfig};
+      this.consumerConfig.options = this.consumerConfig.options || {};
+  }
+
+  async init(): Promise<void> {
+    await super.init();
+    await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options );
   }
 
   /**
@@ -79,6 +85,10 @@ export class RabbitmqConsumer extends RabbitmqClient {
 
   allowRetry(retriesCount: number): boolean {
     return retriesCount && this.consumerConfig.maxRetries >= retriesCount;
+  }
+
+  async close(): Promise<void> {
+      await super.close();
   }
 
 }

@@ -6,9 +6,9 @@ import { RabbitmqClientConfig, RabbitmqProducerConfig, BackPressureStrategy } fr
 
 const rabbitClientConfig: RabbitmqClientConfig = {
   hostname: 'localhost',
-  port: 1234,
-  username: 'guest',
-  password: 'guest',
+  port: 5672,
+  username: 'hip',
+  password: 'hipages',
 };
 
 const rabbitmqProducerConfig: RabbitmqProducerConfig = {
@@ -33,10 +33,10 @@ class RabbitmqProducerPluginTest {
   async 'RabbitmqProducerPlugin should be registered'() {
     const app = new InceptumApp({config: new JsonProvider(configYml)});
     await app.start();
-    const definition = app.getContext().getDefinitionByName('peter.producer');
+    const definition = app.getContext().getDefinitionByName('peter_producer');
     definition.must.not.be.undefined();
-    definition.getName().must.be.equal('peter.producer');
-    const producer = await app.getContext().getObjectByName('peter.producer');
+    definition.getName().must.be.equal('peter_producer');
+    const producer = await app.getContext().getObjectByName('peter_producer');
     producer.clientConfig.must.be.eql(rabbitClientConfig);
     producer.producerConfig.must.be.eql(rabbitmqProducerConfig);
   }

@@ -7,13 +7,13 @@ import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHand
 
 const rabbitClientConfig: RabbitmqClientConfig = {
   hostname: 'localhost',
-  port: 1234,
-  username: 'guest',
-  password: 'guest',
+  port: 5672,
+  username: 'hip',
+  password: 'hipages',
 };
 
 const rabbitConsumerConfig: RabbitmqConsumerConfig = {
-  appQueueName: 'app.queue',
+  appQueueName: 'nuntius.mandrill.queue',
   delayQueueName: 'delay.queue',
   dlqName: 'dlq',
   messageHandler: 'DefaultHandler',
@@ -46,11 +46,12 @@ class RabbitmqConsumerPluginTest {
     const app = new InceptumApp({config: new JsonProvider(configYml)});
     app.getContext().registerDefinition(new BaseSingletonDefinition<DefaultHandler>(DefaultHandler));
     await app.start();
-    const definition = app.getContext().getDefinitionByName('peter.consumer');
+    const definition = app.getContext().getDefinitionByName('peter_consumer');
     definition.must.not.be.undefined();
-    definition.getName().must.be.equal('peter.consumer');
-    const consumer = await app.getContext().getObjectByName('peter.consumer');
+    definition.getName().must.be.equal('peter_consumer');
+    const consumer = await app.getContext().getObjectByName('peter_consumer');
     consumer.clientConfig.must.be.eql(rabbitClientConfig);
+    rabbitConsumerConfig.options = {};
     consumer.consumerConfig.must.be.eql(rabbitConsumerConfig);
   }
 }

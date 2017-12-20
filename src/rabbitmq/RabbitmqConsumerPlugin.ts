@@ -20,12 +20,15 @@ export default class RabbitmqConsumerPlugin implements Plugin {
     const confs = context.getConfig('rabbitmq.consumer');
     Object.keys(confs).forEach((key) => {
       const clientType = 'consumer';
-      const name = `${key}.${clientType}`;
+      const name = `${key}_${clientType}`;
       const consumerSingleton = new BaseSingletonDefinition<any>(RabbitmqConsumer, name);
       consumerSingleton.constructorParamByValue(clientConf);
       consumerSingleton.constructorParamByValue(name);
       consumerSingleton.constructorParamByValue(confs[key]);
       consumerSingleton.constructorParamByRef(confs[key]['messageHandler']);
+      consumerSingleton.startFunction('init');
+      consumerSingleton.stopFunction('close');
+      consumerSingleton.withLazyLoading(false);
       context.registerSingletons(consumerSingleton);
     });
   }
