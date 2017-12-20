@@ -98,8 +98,12 @@ class RabbitmqProducerAndConsumerTest {
         const routingKey = `${routingKeyAppName}.kkk-123-dsad.${channelName}`;
         await this.publishMessage(routingKey);
 
+        await new Promise((resolve, reject) => setTimeout(resolve, 500));
+
         const appQueueConsumer = new RabbitmqConsumer(clientConfig, 'mandrill', emailConsumerConfig, handler);
         await appQueueConsumer.init();
+
+        await new Promise((resolve, reject) => setTimeout(resolve, 500));
 
         handlerSpy.called.must.be.true();
     }
