@@ -12,6 +12,11 @@ service:
   - postgres
   - rabbitmq
 
+cache:
+  yarn: true
+  directories:
+    - node_modules
+
 install:
   - yarn install
   - sudo pip install rabbitadmin
