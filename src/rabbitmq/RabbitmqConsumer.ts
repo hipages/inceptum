@@ -21,7 +21,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
 
   async init(): Promise<void> {
     await super.init();
-    this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
+    await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
   }
 
   /**

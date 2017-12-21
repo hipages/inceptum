@@ -33,11 +33,11 @@ const emailConsumerConfig: RabbitmqConsumerConfig = {
     maxRetries: 4,
     retryDelayInMinute: 2,
     retryDelayFactor: 5,
-    options: {},
+    options: { priority: 1 },
 };
 
 const smsConsumerConfig = { ...emailConsumerConfig };
-smsConsumerConfig.options = { priority: 1 };
+smsConsumerConfig.options = { priority: 2 };
 
 class RabbitmqConsumerHandlerTest extends RabbitmqConsumerHandler {
     protected logger: Logger = logger;
@@ -93,17 +93,18 @@ class RabbitmqProducerAndConsumerTest {
     @test
     // tslint:disable-next-line:prefer-function-over-method
     async 'test one producer and one consumer'() {
+        /**
+         * Create consumer with higher priority than a consumer in plugin test before publishing message
+         * to make sure queue will deliver message to appQueueConsumer
+         */
         const handler = new RabbitmqConsumerHandlerTest();
         const handlerSpy = sinon.spy(handler, 'handle');
-        const routingKey = `${routingKeyAppName}.kkk-123-dsad.${channelName}`;
-        await this.publishMessage(routingKey);
-
-        await new Promise((resolve, reject) => setTimeout(resolve, 500));
-
         const appQueueConsumer = new RabbitmqConsumer(clientConfig, 'mandrill', emailConsumerConfig, handler);
         await appQueueConsumer.init();
 
-        await new Promise((resolve, reject) => setTimeout(resolve, 500));
+        const routingKey = `${routingKeyAppName}.kkk-123-dsad.${channelName}`;
+        await this.publishMessage(routingKey);
+        await new Promise((resolve, reject) => setTimeout(resolve, 1000));
 
         handlerSpy.called.must.be.true();
     }
