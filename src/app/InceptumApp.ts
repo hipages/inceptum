@@ -7,11 +7,14 @@ import PostgresPlugin from '../postgres/PostgresPlugin';
 import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
 import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
+import RabbitmqConsumerPlugin from '../rabbitmq/RabbitmqConsumerPlugin';
+import RabbitmqProducerPlugin from '../rabbitmq/RabbitmqProducerPlugin';
 import AutowirePlugin from './plugin/AutowirePlugin';
 import LazyLoadingPlugin from './plugin/LazyLoadingPlugin';
 import StartStopPlugin from './plugin/StartStopPlugin';
 import DecoratorPlugin from './plugin/DecoratorPlugin';
 import BaseApp from './BaseApp';
+
 
 export class InceptumApp extends BaseApp {
   /**
@@ -41,6 +44,16 @@ export class InceptumApp extends BaseApp {
     if (this.hasConfig('elasticsearch')) {
       this.logger.debug('elasticsearch Detected - Adding Plugin');
       this.register(new ElasticsearchPlugin());
+    }
+    if (this.hasConfig('rabbitmq.client')) {
+      if (this.hasConfig('rabbitmq.consumer')) {
+        this.logger.debug('rabbitmq consumer Detected - Adding Plugin');
+        this.register(new RabbitmqConsumerPlugin());
+      }
+      if (this.hasConfig('rabbitmq.producer')) {
+        this.logger.debug('rabbitmq producer Detected - Adding Plugin');
+        this.register(new RabbitmqProducerPlugin());
+      }
     }
   }
 }

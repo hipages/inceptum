@@ -99,6 +99,26 @@ elasticsearch:
         port: 9200
         protocol: http
 
+rabbitmq:
+  client:
+    hostname: localhost
+    port: 5672
+    username: hip
+    password: 
+  producer:
+    peter:
+      exchangName: firehose
+      backPressureStrategy: 0
+  consumer:
+    peter:
+      appQueueName: nuntius.mandrill.queue
+      delayQueueName: nuntius.mandrill.delay.queue
+      dlqName: nuntius.mandrill.dlq
+      messageHandler: MessageHandler
+      maxRetries: 4
+      retryDelayInMinute: 2
+      retryDelayFactor: 1
+
 Context:
   ActiveProfiles: development
 
