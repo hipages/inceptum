@@ -1,7 +1,7 @@
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import 'reflect-metadata';
-import JsonProvider from '../../src/config/JsonProvider';
+import { JsonProvider } from '../../src/config/JsonProvider';
 import { ObjectDefinitionDecoratorInspector } from '../../src/ioc/autoconfig/ObjectDefinitionDecoratorInspector';
 import { Context } from '../../src/ioc/Context';
 
