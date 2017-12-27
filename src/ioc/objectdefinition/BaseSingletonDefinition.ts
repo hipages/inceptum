@@ -28,9 +28,10 @@ export class ParamDefinition {
     resp.val = val;
     return resp;
   }
-  static withConfigKey(key: string): ParamDefinition {
+  static withConfigKey(key: string, defaultValue?: any): ParamDefinition {
     const resp = new ParamDefinition(ParamType.Config);
     resp.key = key;
+    resp.defaultValue = defaultValue;
     return resp;
   }
   static withGroupName(groupName: string): ParamDefinition {
@@ -66,6 +67,7 @@ export class ParamDefinition {
   public key: string;
   public group: string;
   public objectDefinitions: Array<ObjectDefinition<any>>;
+  public defaultValue: any;
 
   constructor(type: ParamType) {
     this.type = type;
@@ -112,9 +114,9 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
     return this;
   }
 
-  constructorParamByConfig(key: string) {
+  constructorParamByConfig(key: string, defaultValue?: any) {
     this.assertState(BaseSingletonState.NOT_STARTED);
-    this.constructorArgDefinitions.push(ParamDefinition.withConfigKey(key));
+    this.constructorArgDefinitions.push(ParamDefinition.withConfigKey(key, defaultValue));
     return this;
   }
 
@@ -144,11 +146,11 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
     return this;
   }
 
-  setPropertyByConfig(paramName, key) {
+  setPropertyByConfig(paramName, key, defaultValue?: any) {
     this.assertState(BaseSingletonState.NOT_STARTED);
     this.propertiesToSetDefinitions.push(new CallDefinition(
       paramName,
-      ParamDefinition.withConfigKey(key)));
+      ParamDefinition.withConfigKey(key, defaultValue)));
     return this;
   }
 
@@ -421,7 +423,8 @@ export class BaseSingletonDefinition<T> extends ConfigurableSingletonDefinition<
       case ParamType.Value:
         return Promise.resolve(paramDefinition.val);
       case ParamType.Config:
-        return Promise.resolve(this.context.getConfig(paramDefinition.key));
+        const configValue = this.context.getConfig(paramDefinition.key);
+        return Promise.resolve(configValue !== undefined ? configValue : paramDefinition.defaultValue);
       case ParamType.DefinitionGroup:
         return Promise.resolve(paramDefinition.objectDefinitions);
       default:

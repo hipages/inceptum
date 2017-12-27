@@ -4,6 +4,7 @@ export const INCEPTUM_METADATA_KEY = 'inceptum';
 
 export class InceptumMetadata {
   autowire = new Map<string, string>();
+  defaultValue = new Map<string, string>();
   lazy = true;
   startMethod: string = null;
   stopMethod: string = null;
@@ -35,11 +36,14 @@ export function Autowire(what: string) {
   };
 }
 
-export function AutowireConfig(configKey: string) {
+export function AutowireConfig(configKey: string, defaultValue?: any) {
   return (target: any, key: string) => {
     // console.log('Called Autowire');
     const metadata = getOrCreateMetadata(target);
     metadata.autowire.set(key, `#${configKey}`);
+    if (defaultValue !== undefined) {
+      metadata.defaultValue.set(configKey, defaultValue);
+    }
   };
 }
 

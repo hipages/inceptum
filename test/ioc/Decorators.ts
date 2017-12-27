@@ -1,10 +1,11 @@
-import { ObjectDefinitionDecoratorInspector } from '../../src/ioc/autoconfig/ObjectDefinitionDecoratorInspector';
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
 import 'reflect-metadata';
+import JsonProvider from '../../src/config/JsonProvider';
+import { ObjectDefinitionDecoratorInspector } from '../../src/ioc/autoconfig/ObjectDefinitionDecoratorInspector';
 import { Context } from '../../src/ioc/Context';
 
-import { Autowire, Lazy, AutowireGroup, RegisterInGroup } from '../../src/ioc/Decorators';
+import { Autowire, Lazy, AutowireGroup, RegisterInGroup, AutowireConfig } from '../../src/ioc/Decorators';
 import { BaseSingletonDefinition } from '../../src/ioc/objectdefinition/BaseSingletonDefinition';
 
 @Lazy(false)
@@ -37,6 +38,11 @@ class WireInto {
   prop3: any[];
 }
 
+class ConfigAutowire {
+  @AutowireConfig('my.config', 'default')
+  val: any;
+}
+
 suite('ioc/Decorators', () => {
   suite('Autowire', () => {
     test('Autowire gets called', () => {
@@ -44,6 +50,24 @@ suite('ioc/Decorators', () => {
       Reflect.hasMetadata('inceptum', Test1.prototype).must.be.true();
       const metadata = Reflect.getMetadata('inceptum', Test1.prototype);
       metadata.autowire.get('prop1').must.equal('the value');
+    });
+    test('Autowire by config gets called', async () => {
+      const context = new Context('test1', undefined, {config: new JsonProvider({my: {config: 'value' }})});
+      context.addObjectDefinitionInspector(new ObjectDefinitionDecoratorInspector());
+      context.registerSingletons(ConfigAutowire);
+      await context.lcStart();
+      const wireInto: ConfigAutowire = await context.getObjectByName('ConfigAutowire');
+      wireInto.val.must.equal('value');
+      await context.lcStop();
+    });
+    test('Autowire by config gets called and default is used if not available', async () => {
+      const context = new Context('test1', undefined, {config: new JsonProvider({})});
+      context.addObjectDefinitionInspector(new ObjectDefinitionDecoratorInspector());
+      context.registerSingletons(ConfigAutowire);
+      await context.lcStart();
+      const wireInto: ConfigAutowire = await context.getObjectByName('ConfigAutowire');
+      wireInto.val.must.equal('default');
+      await context.lcStop();
     });
   });
   suite('Lazy', () => {

@@ -59,7 +59,13 @@ export class ObjectDefinitionAutowiringInspector extends AbstractObjectDefinitio
           objectDefinition.setPropertyByTypeArray(key, val.substr(1));
           break;
         case '#':
-          objectDefinition.setPropertyByConfig(key, val.substr(1));
+          const configKey = val.substr(1);
+          if (configKey.indexOf(':') > 0) {
+            const parts = configKey.split(':', 2);
+            objectDefinition.setPropertyByConfig(key, parts[0], parts[1]);
+          } else {
+            objectDefinition.setPropertyByConfig(key, configKey);
+          }
           break;
         default:
           // By Name
