@@ -37,15 +37,15 @@ export const errorMiddleware = (err, req, res, next) => {
 
 export default class WebPlugin implements Plugin {
 
-  public CONTEXT_APP_KEY = 'WebPlugin/APP';
-  public CONTEXT_SERVER_KEY = 'WebPlugin/SERVER';
+  public static CONTEXT_APP_KEY = 'WebPlugin/APP';
+  public static CONTEXT_SERVER_KEY = 'WebPlugin/SERVER';
 
   name = 'WebPlugin';
   private expressProvider = () => new e();
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
     const express = this.expressProvider();
-    pluginContext.set(this.CONTEXT_APP_KEY, express);
+    pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
@@ -57,7 +57,7 @@ export default class WebPlugin implements Plugin {
   }
 
   didStart(app, pluginContext) {
-    const express = pluginContext.get(this.CONTEXT_APP_KEY);
+    const express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
 
     // Add error handling middleware as the final middleware.
@@ -67,11 +67,11 @@ export default class WebPlugin implements Plugin {
     const server = express.listen(port, () => {
       app.logger.info(`Server started at http://localhost:${port}`);
     });
-    pluginContext.set(this.CONTEXT_SERVER_KEY, server);
+    pluginContext.set(WebPlugin.CONTEXT_SERVER_KEY, server);
   }
 
   willStop(app, pluginContext) {
-    const express = pluginContext.get(this.CONTEXT_SERVER_KEY);
+    const express = pluginContext.get(WebPlugin.CONTEXT_SERVER_KEY);
     app.logger.info('Shutting down server');
     express.close();
   }
