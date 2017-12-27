@@ -4,6 +4,7 @@
     "no-require-imports" : false,
     "member-ordering": [ false ],
     "prefer-function-over-method": false,
+    "whitespace": false,
     "await-promise": [true, "Bluebird"]
   }
 }
