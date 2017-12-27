@@ -152,7 +152,7 @@ export class Context extends Lifecycle {
   }
 
   registerSingletonsInDir(dir) {
-    Context.walkDirSync(dir).filter((file) => ['.js', '.ts'].includes(path.extname(file))).forEach((file) => {
+    Context.walkDirSync(dir).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
       if (file.includes('.d.ts')) {
         return; // Ignore type definition files
       }
