@@ -10,7 +10,7 @@
     "test": "NODE_ENV=test nyc mocha",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
-    "lint": "tslint -p . --type-check",
+    "lint": "tslint -p .",
     "docs": "gitbook serve docs",
     "deploy-docs": "gitbook build docs && gh-pages -d docs/_book",
     "postpublish": "npm run deploy-docs",
