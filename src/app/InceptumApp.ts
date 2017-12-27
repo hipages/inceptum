@@ -9,6 +9,8 @@ import SqsClientPlugin from '../sqs/SqsClientPlugin';
 import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
 import RabbitmqConsumerPlugin from '../rabbitmq/RabbitmqConsumerPlugin';
 import RabbitmqProducerPlugin from '../rabbitmq/RabbitmqProducerPlugin';
+import HealthCheckPlugin from '../health/HealthCheckPlugin';
+import WebPlugin from '../web/WebPlugin';
 import AutowirePlugin from './plugin/AutowirePlugin';
 import LazyLoadingPlugin from './plugin/LazyLoadingPlugin';
 import StartStopPlugin from './plugin/StartStopPlugin';
@@ -23,7 +25,7 @@ export class InceptumApp extends BaseApp {
   constructor(options = {}) {
     super(options);
     // Standard IOC plugins.
-    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin());
+    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin(), new WebPlugin(), new HealthCheckPlugin());
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
       this.logger.debug('Mysql Detected - Adding Plugin');
