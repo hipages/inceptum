@@ -97,14 +97,22 @@ export class Context extends Lifecycle {
   clone(name) {
     this.assertState(LifecycleState.NOT_STARTED);
     const copy = new Context(name, this.parentContext, { logger: this.logger, config: this.config });
-    this.objectDefinitions.forEach((objectDefinition) => copy.registerDefinition(objectDefinition.copy()));
+    this.objectDefinitions.forEach((objectDefinition) => {
+      if (objectDefinition.getName() !== '__CONTEXT__') {
+        copy.registerDefinition(objectDefinition.copy());
+      }
+    });
     return copy;
   }
 
   importContext(otherContext, overwrite = false) {
     this.assertState(LifecycleState.NOT_STARTED);
     otherContext.assertState(LifecycleState.NOT_STARTED);
-    otherContext.objectDefinitions.forEach((objectDefinition) => this.registerDefinition(objectDefinition, overwrite));
+    otherContext.objectDefinitions.forEach((objectDefinition) => {
+      if (objectDefinition.getName() !== '__CONTEXT__') {
+        this.registerDefinition(objectDefinition, overwrite);
+      }
+    });
   }
 
   // ************************************
@@ -129,7 +137,7 @@ export class Context extends Lifecycle {
         `Object definition with name ${objectDefinition.getName()} already exists in this context`,
       );
     }
-    if (this.parentContext && this.parentContext.objectDefinitions.has(objectDefinition.getName())) {
+    if (this.parentContext && this.parentContext.objectDefinitions.has(objectDefinition.getName()) && objectDefinition.getName() !== '__CONTEXT__') {
       throw new IoCException(`Parent context already has an object definition with name ${objectDefinition.getName()}`);
     }
     this.objectDefinitions.set(objectDefinition.getName(), objectDefinition);

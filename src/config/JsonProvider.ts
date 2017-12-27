@@ -2,7 +2,7 @@
 import { get } from 'lodash';
 import { ConfigAdapter } from './ConfigProvider';
 
-export default class JsonProvider implements ConfigAdapter {
+export class JsonProvider implements ConfigAdapter {
   config: object;
 
   constructor(config) {

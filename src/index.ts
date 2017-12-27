@@ -1,3 +1,4 @@
+export { JsonProvider } from './config/JsonProvider';
 export { Context } from './ioc/Context';
 export { SingletonDefinition } from './ioc/objectdefinition/SingletonDefinition';
 export { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
