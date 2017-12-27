@@ -75,7 +75,7 @@ export abstract class HealthCheck {
 
 export class HealthCheckGroup extends HealthCheck {
   groupKey: string;
-  private healthChecks: HealthCheck[] = [];
+  private healthChecks = new Map<string,HealthCheck>();
   constructor(groupName: string) {
     super(`Group: ${groupName}`, 0, 0);
     this.groupKey = groupName;
@@ -86,16 +86,18 @@ export class HealthCheckGroup extends HealthCheck {
   public addCheckAs(healthCheck: HealthCheck, asName: string) {
     if (asName.indexOf('.') >= 0) {
       const parts = asName.split('.', 2);
-      const group = this.healthChecks.find((hc) => (hc instanceof HealthCheckGroup) && (hc.groupKey === parts[0])) as HealthCheckGroup;
-      if (group) {
+      const group = this.healthChecks.get(parts[0]) as HealthCheckGroup;
+      if (group && (group instanceof HealthCheckGroup)) {
         group.addCheckAs(healthCheck, parts[1]);
+      } else if (group) {
+        throw new Error(`A health check with name ${parts[0]} is already defined in this group`);
       } else {
         const newGroup = new HealthCheckGroup(parts[0]);
         newGroup.addCheckAs(healthCheck, parts[1]);
         this.addCheck(newGroup, parts[0]);
       }
     } else {
-      this.healthChecks.push(healthCheck);
+      this.healthChecks.set(asName, healthCheck);
       if (this.isStarted()) {
         healthCheck.start();
       }
@@ -115,14 +117,14 @@ export class HealthCheckGroup extends HealthCheck {
     throw new Error('This shouldn\'t be called. We override getLastResult to get up-to-date info');
   }
   getLastResult(): HealthCheckResult {
-    const resp = new HealthCheckResult(HealthCheckStatus.OK, 'OK', new Date().getTime(), []);
-    this.healthChecks.forEach((healthCheck) => {
+    const resp = new HealthCheckResult(HealthCheckStatus.OK, 'OK', new Date().getTime(), {});
+    this.healthChecks.forEach((healthCheck, key) => {
       const lastResult = healthCheck.getLastResult();
       if (getStatusIndex(lastResult.status) > getStatusIndex(resp.status)) {
         resp.status = lastResult.status;
         resp.message = `Check ${healthCheck.getCheckName()} returned ${resp.status}`;
       }
-      resp.data.push(lastResult);
+      resp.data[key] = lastResult;
     });
     return resp;
   }
