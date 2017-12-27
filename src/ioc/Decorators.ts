@@ -36,6 +36,12 @@ export function Autowire(what: string) {
   };
 }
 
+export function AutowireContext(target: any, key: string) {
+  // console.log('Called Autowire');
+  const metadata = getOrCreateMetadata(target);
+  metadata.autowire.set(key, '__CONTEXT__');
+}
+
 export function AutowireConfig(configKey: string, defaultValue?: any) {
   return (target: any, key: string) => {
     // console.log('Called Autowire');

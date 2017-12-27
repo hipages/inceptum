@@ -13,6 +13,7 @@ import { IoCException } from './IoCException';
 import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
 import { BaseSingletonDefinition } from './objectdefinition/BaseSingletonDefinition';
 import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
+import { PreinstantiatedSingletonDefinition } from './objectdefinition/PreinstantiatedSingletonDefinition';
 /**
  * A context used by IoC to register and request objects from.
  * This is the main class for the inversion of control framework. It serves as a registry where you can
@@ -40,6 +41,7 @@ export class Context extends Lifecycle {
     this.startedObjects = new Map();
     this.objectDefinitionInspector = [];
     this.objectGroups = new Map<string, string[]>();
+    this.registerDefinition(new PreinstantiatedSingletonDefinition(this, '__CONTEXT__'));
   }
 
   // ************************************
