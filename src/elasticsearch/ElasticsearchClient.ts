@@ -1,12 +1,7 @@
 import * as elasticsearch from 'elasticsearch';
-import { Protocol } from '_debugger';
 
 export interface ElasticsearchClientConfigObject {
-    host?: {
-     host: string,
-     port: string,
-     protocol: string,
-    },
+    hosts?: any,
     apiVersion?: string,
 }
 
@@ -15,9 +10,9 @@ export class ElasticsearchClient {
     static stopMethod = 'close';
 
     public name: string;
+    public configuration: ElasticsearchClientConfigObject;
 
-    protected configuration: ElasticsearchClientConfigObject;
-    protected connection: elasticsearch.Client;
+    private connection: elasticsearch.Client;
 
     constructor(name: string, config: ElasticsearchClientConfigObject) {
         this.name = name;
@@ -32,20 +27,18 @@ export class ElasticsearchClient {
         return this.configuration;
     }
 
-    getClient() {
-        return this.connection;
-    }
-
-    close(): void {
-        this.connection.close();
-    }
-
-    // Below this is not required as we are exposing all the API actions with the connection.
-    // Leaving below to avoid any break. Need to check below usage before removing
-
     ping(params?: object) {
         return this.connection.ping(params);
     }
+
+    indices() {
+        return this.connection.indices;
+    }
+
+    cat() {
+        return this.connection.cat;
+    }
+
     bulk(params: object) {
         return this.connection.bulk(params);
     }
@@ -180,5 +173,9 @@ export class ElasticsearchClient {
 
     updateByQuery(params: Elasticsearch.UpdateDocumentByQueryParams, callback: (error: any, response: any) => void): void {
         this.connection.updateByQuery(params, callback);
+    }
+
+    close(): void {
+        this.connection.close();
     }
 }
