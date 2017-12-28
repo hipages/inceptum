@@ -93,6 +93,7 @@
     "must": "^0.13.2",
     "nyc": "^11.1.0",
     "sinon": "1.17.7",
+    "ts-mockito": "^2.2.7",
     "ts-node": "4.0.1",
     "tslint": "^5.8.0",
     "tslint-config-shopify": "^2.0.0",

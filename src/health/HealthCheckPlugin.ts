@@ -40,7 +40,10 @@ export default class HealthCheckPlugin implements Plugin {
   willStart(app: BaseApp, pluginContext: PluginContext) {
     const context = app.getContext();
     context.registerSingletons(HealthCheckManager, ContextReadyHealthCheck);
+  }
 
+  didStart(app: BaseApp, pluginContext: PluginContext) {
+    const context = app.getContext();
     const express: e.Express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     if (express) {
       express.get('/health', async (req, res) => {

@@ -1,21 +1,16 @@
-import { Context } from '../ioc/Context';
-import { LogManager, Logger } from '../log/LogManager';
-import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
-import { LifecycleState } from '../ioc/Lifecycle';
+import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
+import HealthCheckPlugin from '../health/HealthCheckPlugin';
 import MysqlPlugin from '../mysql/MysqlPlugin';
 import PostgresPlugin from '../postgres/PostgresPlugin';
-import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
-import SqsClientPlugin from '../sqs/SqsClientPlugin';
-import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
 import RabbitmqConsumerPlugin from '../rabbitmq/RabbitmqConsumerPlugin';
 import RabbitmqProducerPlugin from '../rabbitmq/RabbitmqProducerPlugin';
-import HealthCheckPlugin from '../health/HealthCheckPlugin';
-import WebPlugin from '../web/WebPlugin';
+import SqsClientPlugin from '../sqs/SqsClientPlugin';
+import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
+import BaseApp from './BaseApp';
 import AutowirePlugin from './plugin/AutowirePlugin';
+import DecoratorPlugin from './plugin/DecoratorPlugin';
 import LazyLoadingPlugin from './plugin/LazyLoadingPlugin';
 import StartStopPlugin from './plugin/StartStopPlugin';
-import DecoratorPlugin from './plugin/DecoratorPlugin';
-import BaseApp from './BaseApp';
 
 
 export class InceptumApp extends BaseApp {
@@ -25,7 +20,7 @@ export class InceptumApp extends BaseApp {
   constructor(options = {}) {
     super(options);
     // Standard IOC plugins.
-    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin(), new WebPlugin(), new HealthCheckPlugin());
+    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin(), new HealthCheckPlugin());
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
       this.logger.debug('Mysql Detected - Adding Plugin');

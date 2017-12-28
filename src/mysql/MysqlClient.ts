@@ -10,6 +10,18 @@ import { DBClient } from '../db/DBClient';
 
 const log = LogManager.getLogger(__filename);
 
+function getConnectionPromise(connectionPool: ConnectionPool<mysql.IConnection>): Promise<mysql.IConnection> {
+  return new Promise<any>((resolve, reject) => {
+    connectionPool.getConnection((err, connection) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(connection);
+      }
+    });
+  });
+}
+
 export class MysqlTransaction extends DBTransaction {
   mysqlClient: MysqlClient;
   connection: mysql.IConnection;
@@ -25,17 +37,6 @@ export class MysqlTransaction extends DBTransaction {
   }
 
   // tslint:disable-next-line:prefer-function-over-method
-  private getConnectionPromise(connectionPool: ConnectionPool<mysql.IConnection>): Promise<mysql.IConnection> {
-    return new Promise<any>((resolve, reject) => {
-      connectionPool.getConnection((err, connection) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(connection);
-        }
-      });
-    });
-  }
 
   runQueryOnPool(sql: string, bindsArr: Array<any>): Promise<any> {
     log.debug(`sql: ${sql} ${(bindsArr && (bindsArr.length > 0)) ? `| ${bindsArr}` : ''}`);
@@ -59,7 +60,7 @@ export class MysqlTransaction extends DBTransaction {
       // tslint:disable-next-line:no-invalid-this
       if (!this.connection) {
         // tslint:disable-next-line:no-invalid-this
-        return this.getConnectionPromise(this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
+        return getConnectionPromise(this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
       }
       // tslint:disable-next-line:no-invalid-this
       return this.connection;
@@ -308,6 +309,17 @@ export class MysqlClient extends DBClient {
       return this.masterPool;
     }
     throw new Error('Couldn\'t find an appropriate connection pool');
+  }
+
+  async ping(readonly: boolean) {
+    const connection = await getConnectionPromise(this.getConnectionPoolForReadonly(readonly));
+    return new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }));
   }
 }
 

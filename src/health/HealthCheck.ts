@@ -35,7 +35,8 @@ export abstract class HealthCheck {
   started = false;
   lastResult: HealthCheckResult = HealthCheckResult.getInitialResult();
   timer: NodeJS.Timer;
-  constructor(public checkName: string, public sleepMillis = 60000, public staleNumFails = 2) {}
+  checkRunning = false;
+  constructor(public checkName: string, public sleepMillis = 60000, public staleNumFails = 2, private runImmediately = false) {}
   getCheckName(): string {
     return this.checkName;
   }
@@ -48,22 +49,38 @@ export abstract class HealthCheck {
     }
     this.started = true;
     this.doStart();
+    if (this.runImmediately) {
+      this.runCheck();
+    }
+  }
+  async runCheck() {
+    if (!this.checkRunning) {
+      this.checkRunning = true;
+      try {
+        this.lastResult = await this.doCheck();
+      } catch (e) {
+        this.lastResult = new HealthCheckResult(HealthCheckStatus.CRITICAL, `There was an error running check ${this.getCheckName()}: ${e.message}`);
+      }
+      this.checkRunning = false;
+    }
   }
   doStart() {
-    this.timer = setInterval(() => {this.lastResult = this.doCheck(); }, this.getSleepMillis());
+    this.timer = setInterval(async () => { await this.runCheck(); }, this.getSleepMillis());
   }
   stop() {
-    if (this.started && this.timer) {
+    if (this.started) {
       this.doStop();
     }
   }
   doStop() {
-    clearInterval(this.timer);
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
   isStarted(): boolean {
     return this.started;
   }
-  abstract doCheck(): HealthCheckResult;
+  abstract async doCheck(): Promise<HealthCheckResult>;
   getLastResult(): HealthCheckResult {
     const threshold = (new Date().getTime()) - this.getSleepMillis() * this.staleNumFails;
     if (this.lastResult.timestamp < threshold) {
@@ -75,7 +92,7 @@ export abstract class HealthCheck {
 
 export class HealthCheckGroup extends HealthCheck {
   groupKey: string;
-  private healthChecks = new Map<string,HealthCheck>();
+  healthChecks = new Map<string,HealthCheck>();
   constructor(groupName: string) {
     super(`Group: ${groupName}`, 0, 0);
     this.groupKey = groupName;
@@ -86,15 +103,17 @@ export class HealthCheckGroup extends HealthCheck {
   public addCheckAs(healthCheck: HealthCheck, asName: string) {
     if (asName.indexOf('.') >= 0) {
       const parts = asName.split('.', 2);
-      const group = this.healthChecks.get(parts[0]) as HealthCheckGroup;
+      const firstPart = parts[0];
+      const remainderPart = asName.substr(firstPart.length + 1);
+      const group = this.healthChecks.get(firstPart);
       if (group && (group instanceof HealthCheckGroup)) {
-        group.addCheckAs(healthCheck, parts[1]);
+        group.addCheckAs(healthCheck, remainderPart);
       } else if (group) {
-        throw new Error(`A health check with name ${parts[0]} is already defined in this group`);
+        throw new Error(`A health check with name ${firstPart} is already defined in this group`);
       } else {
-        const newGroup = new HealthCheckGroup(parts[0]);
-        newGroup.addCheckAs(healthCheck, parts[1]);
-        this.addCheck(newGroup, parts[0]);
+        const newGroup = new HealthCheckGroup(firstPart);
+        newGroup.addCheckAs(healthCheck, remainderPart);
+        this.addCheck(newGroup, firstPart);
       }
     } else {
       this.healthChecks.set(asName, healthCheck);
@@ -113,7 +132,7 @@ export class HealthCheckGroup extends HealthCheck {
       healthCheck.stop();
     });
   }
-  public doCheck(): HealthCheckResult {
+  public async doCheck(): Promise<HealthCheckResult> {
     throw new Error('This shouldn\'t be called. We override getLastResult to get up-to-date info');
   }
   getLastResult(): HealthCheckResult {

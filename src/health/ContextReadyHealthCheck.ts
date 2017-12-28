@@ -13,7 +13,7 @@ export class ContextReadyHealthCheck extends HealthCheck {
     super('context', 5000);
   }
 
-  public doCheck(): HealthCheckResult {
+  public async doCheck(): Promise<HealthCheckResult> {
     if (!this.context) {
       return new HealthCheckResult(HealthCheckStatus.NOT_READY, `Context not wired`);
     }

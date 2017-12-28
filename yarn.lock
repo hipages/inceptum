@@ -5960,6 +5960,12 @@ trim-right@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/trim-right/-/trim-right-1.0.1.tgz#cb2e1203067e0c8de1f614094b9fe45704ea6003"
 
+ts-mockito@^2.2.7:
+  version "2.2.7"
+  resolved "https://registry.npmjs.org/ts-mockito/-/ts-mockito-2.2.7.tgz#f4e9965e643eb900faaec5a5d476228fc2cda105"
+  dependencies:
+    lodash "^4.17.4"
+
 ts-node@4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-4.0.1.tgz#4d368088b50c382d78285c029784ea0f32a4eb5c"
