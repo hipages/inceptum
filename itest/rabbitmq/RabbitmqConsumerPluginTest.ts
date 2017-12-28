@@ -2,7 +2,7 @@ import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
 import { RabbitmqClientConfig, RabbitmqConsumerConfig } from '../../src/rabbitmq/RabbitmqConfig';
 import { InceptumApp, BaseSingletonDefinition } from '../../src/index';
-import JsonProvider from '../../src/config/JsonProvider';
+import { JsonProvider } from '../../src/config/JsonProvider';
 import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHandler';
 
 const rabbitClientConfig: RabbitmqClientConfig = {
