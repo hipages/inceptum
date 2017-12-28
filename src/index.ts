@@ -11,6 +11,8 @@ export { DBTransaction } from './db/DBTransaction';
 export { SqsHandler } from './sqs/SqsWorker';
 export { SwaggerPlugin } from './swagger/SwaggerPlugin';
 export { default as WebPlugin } from './web/WebPlugin';
+export { default as HealthCheckPlugin } from './health/HealthCheckPlugin';
+export { RegisterAsHealthCheck, HealthCheckStatus, HealthCheckResult, HealthCheck, HealthCheckGroup } from './health/HealthCheck';
 export { Plugin, PluginContext } from './app/BaseApp';
 export { ObjectDefinitionInspector } from './ioc/ObjectDefinitionInspector';
 export { AbstractObjectDefinitionInspector } from './ioc/AbstractObjectDefinitionInspector';
