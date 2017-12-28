@@ -52,7 +52,7 @@ export default class HealthCheckPlugin implements Plugin {
         if (healthCheckResult.status === HealthCheckStatus.OK || healthCheckResult.status === HealthCheckStatus.NOT_READY) {
           res.send(healthCheckResult);
         } else {
-          res.status(500).send(healthCheckResult);
+          res.status(503).send(healthCheckResult);
         }
       });
     }
