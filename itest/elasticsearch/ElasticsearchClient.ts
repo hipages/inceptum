@@ -1,3 +1,5 @@
+import * as elasticsearch from 'elasticsearch';
+import { must } from 'must';
 import { ElasticsearchClient } from '../../src/elasticsearch/ElasticsearchClient';
 
 const elasticConfig = {
@@ -24,14 +26,14 @@ describe('elasticsearchClient', () => {
     it('Index and Delete', () => {
       const data = {
         body: [
-          { index:  { _index: 'testindex', _type: 'testtype', _id: 1 } },
+          { index: { _index: 'testindex', _type: 'testtype', _id: 1 } },
           { title: 'foo1' },
 
-          { index:  { _index: 'testindex', _type: 'testtype', _id: 2 } },
+          { index: { _index: 'testindex', _type: 'testtype', _id: 2 } },
           { title: 'foo2' },
 
-          { delete:  { _index: 'testindex', _type: 'testtype', _id: 1 } },
-          { delete:  { _index: 'testindex', _type: 'testtype', _id: 2 } },
+          { delete: { _index: 'testindex', _type: 'testtype', _id: 1 } },
+          { delete: { _index: 'testindex', _type: 'testtype', _id: 2 } },
         ],
       };
 

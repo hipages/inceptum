@@ -1,7 +1,7 @@
 import * as mocha from 'mocha';
 import { must } from 'must';
 import { InceptumApp } from '../../src/app/InceptumApp';
-import JsonProvider from '../../src/config/JsonProvider';
+import { JsonProvider } from '../../src/config/JsonProvider';
 
 describe('ElasticsearchPlugin', () => {
     it('It must register a singleton if there\'s a config for elasticsearch', async () => {

@@ -1,7 +1,7 @@
 import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
 import { InceptumApp } from '../../src/index';
-import JsonProvider from '../../src/config/JsonProvider';
+import { JsonProvider } from '../../src/config/JsonProvider';
 import { RabbitmqClientConfig, RabbitmqProducerConfig, BackPressureStrategy } from '../../src/rabbitmq/RabbitmqConfig';
 
 const rabbitClientConfig: RabbitmqClientConfig = {

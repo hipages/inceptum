@@ -31,6 +31,14 @@ export class ElasticsearchClient {
         return this.connection.ping(params);
     }
 
+    indices() {
+        return this.connection.indices;
+    }
+
+    cat() {
+        return this.connection.cat;
+    }
+
     bulk(params: object) {
         return this.connection.bulk(params);
     }
