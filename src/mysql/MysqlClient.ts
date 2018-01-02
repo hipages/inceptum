@@ -311,9 +311,10 @@ export class MysqlClient extends DBClient {
     throw new Error('Couldn\'t find an appropriate connection pool');
   }
 
-  async ping(readonly: boolean) {
+  async ping(readonly: boolean): Promise<void> {
     const connection = await getConnectionPromise(this.getConnectionPoolForReadonly(readonly));
-    return new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
+    return await new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
+      connection.release();
       if (err) {
         reject(err);
       } else {
