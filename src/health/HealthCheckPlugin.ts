@@ -2,7 +2,7 @@ import * as e from 'express';
 
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { AutowireGroup, Lazy, StartMethod, StopMethod } from '../ioc/Decorators';
-import WebPlugin from '../web/WebPlugin';
+import AdminPortPlugin from '../web/AdminPortPlugin';
 import { LogManager } from '../log/LogManager';
 import { HealthCheck, HealthCheckGroup, HealthCheckStatus, HEALTH_CHECK_GROUP } from './HealthCheck';
 import { ContextReadyHealthCheck } from './ContextReadyHealthCheck';
@@ -44,7 +44,7 @@ export default class HealthCheckPlugin implements Plugin {
 
   didStart(app: BaseApp, pluginContext: PluginContext) {
     const context = app.getContext();
-    const express: e.Express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
+    const express: e.Express = pluginContext.get(AdminPortPlugin.CONTEXT_APP_KEY);
     if (express) {
       express.get('/health', async (req, res) => {
         const healthCheckManager: HealthCheckManager = await context.getObjectByName('HealthCheckManager');

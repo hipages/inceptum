@@ -312,8 +312,11 @@ export class MysqlClient extends DBClient {
   }
 
   async ping(readonly: boolean): Promise<void> {
+    log.debug('Doing ping');
     const connection = await getConnectionPromise(this.getConnectionPoolForReadonly(readonly));
+    log.debug('Got connection for ping');
     return await new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
+      log.debug('Result from select');
       connection.release();
       if (err) {
         reject(err);
