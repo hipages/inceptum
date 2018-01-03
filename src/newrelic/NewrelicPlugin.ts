@@ -20,7 +20,7 @@ export default class NewrelicPlugin implements Plugin {
     }
   }
 
-  willStop(app, pluginContext) {
+  didStop(app, pluginContext) {
     const newrelic = NewrelicUtil.getNewrelicIfAvailable();
     if (newrelic) {
       return new Promise<void>((resolve, reject) => {
