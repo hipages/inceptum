@@ -76,7 +76,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {
         // add to dlq
         try {
-          this.sendMessageToDlx(message);
+          this.sendMessageToDlq(message);
         } catch (err) {
           this.logger.error(err, 'failed to send message to dlq');
           this.channel.nack(message);
@@ -93,7 +93,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
     }
   }
 
-  sendMessageToDlx(message: Message) {
+  sendMessageToDlq(message: Message) {
     this.channel.sendToQueue(this.consumerConfig.dlqName, message.content);
     this.logger.info(this.stringyifyMessageContent(message), 'sent message to dlq');
     this.channel.ack(message);
