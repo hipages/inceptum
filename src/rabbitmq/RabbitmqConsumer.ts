@@ -9,6 +9,25 @@ import { RabbitmqConsumerHandlerUnrecoverableError,MessageInfo, RabbitmqConsumer
 
 const logger = LogManager.getLogger(__filename);
 
+const newrelic = NewrelicUtil.getNewrelicIfAvailable();
+
+class NewrelichandlerWrapper extends RabbitmqConsumerHandler {
+  constructor(protected baseHandler: RabbitmqConsumerHandler) {
+    super();
+  }
+  async handle(message: Message): Promise<void> {
+    newrelic.startBackgroundTransaction(this.baseHandler.constructor.name, 'RabbitMQConsumer', async () => {
+      const transaction = newrelic.getTransaction();
+      try {
+        await this.baseHandler.handle(message);
+      } finally {
+        transaction.end();
+      }
+    });
+  }
+}
+
+
 export class RabbitmqConsumer extends RabbitmqClient {
   protected consumerConfig: RabbitmqConsumerConfig;
   protected messageHandler: RabbitmqConsumerHandler;
@@ -19,7 +38,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
     consumerConfig,
     handler: RabbitmqConsumerHandler) {
       super(clientConfig, name);
-      this.messageHandler = handler;
+      this.messageHandler = newrelic ? new NewrelichandlerWrapper(handler) : handler;
       this.consumerConfig = {...consumerConfig};
       this.consumerConfig.options = this.consumerConfig.options || {};
       this.logger = logger;
