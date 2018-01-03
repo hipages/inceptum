@@ -11,11 +11,17 @@ try {
 } catch (e) {
 }
 
+export abstract class NewRelic {
+  abstract noticeError(error: Error | Object, opt?: object);
+  abstract shutdown(opts: object, cb: (e) => void);
+  abstract setTransactionName(name: string);
+}
+
 export class NewrelicUtil {
   static isNewrelicAvailable() {
     return NEWRELIC_AVAILABLE;
   }
-  static getNewrelicIfAvailable() {
+  static getNewrelicIfAvailable(): NewRelic {
     if (NEWRELIC_AVAILABLE) {
       return NEWRELIC;
     } else {

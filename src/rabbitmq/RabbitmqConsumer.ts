@@ -1,8 +1,13 @@
 import { Channel, Message, Replies, Options } from 'amqplib';
+import * as stringify from 'json-stringify-safe';
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
+import { LogManager } from '../log/LogManager';
 import { RabbitmqClient } from './RabbitmqClient';
 import { RabbitmqConsumerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 import { RabbitmqConsumerHandler } from './RabbitmqConsumerHandler';
-import { RabbitmqConsumerHandlerUnrecoverableError } from './RabbitmqConsumerHandlerError';
+import { RabbitmqConsumerHandlerUnrecoverableError,MessageInfo, RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
+
+const logger = LogManager.getLogger(__filename);
 
 export class RabbitmqConsumer extends RabbitmqClient {
   protected consumerConfig: RabbitmqConsumerConfig;
@@ -17,11 +22,17 @@ export class RabbitmqConsumer extends RabbitmqClient {
       this.messageHandler = handler;
       this.consumerConfig = {...consumerConfig};
       this.consumerConfig.options = this.consumerConfig.options || {};
+      this.logger = logger;
   }
 
   async init(): Promise<void> {
-    await super.init();
-    await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
+    try {
+      await super.init();
+      await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
+    } catch (e) {
+      const c = {...this.consumerConfig, ...this.clientConfig};
+      this.logger.error(e, `failed to subscribe with config - ${c.toString()}`);
+    }
   }
 
   /**
@@ -39,34 +50,57 @@ export class RabbitmqConsumer extends RabbitmqClient {
   async handleMessage(message: Message) {
     try {
       await this.messageHandler.handle(message);
+      this.channel.ack(message);
     } catch (e) {
+      this.logger.error(e, `failed to handle message`);
       const retriesCount = ++message.properties.headers.retriesCount;
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {
         // add to dlq
         try {
-          this.channel.sendToQueue(this.consumerConfig.dlqName, message.content);
+          this.sendMessageToDlx(message);
         } catch (err) {
-          this.logger.error('failed to send message to dlq', err);
+          this.logger.error(err, 'failed to send message to dlq');
           this.channel.nack(message);
         }
       } else {
-        // depending on retries config, retry
-        const ttl = this.getTtl(retriesCount);
-        const options: Options.Publish = {
-          expiration: ttl,
-          headers: message.properties.headers,
-        };
-
         try {
-          this.channel.sendToQueue(this.consumerConfig.delayQueueName, message.content, options);
+          this.sendMessageToDelayedQueue(message, retriesCount, e);
         } catch (err) {
           // put message back to rabbitmq
+          this.logger.error(err, 'failed to send message to delayed queue');
           this.channel.nack(message);
         }
       }
-    } finally {
-      this.channel.ack(message);
     }
+  }
+
+  sendMessageToDlx(message: Message) {
+    this.channel.sendToQueue(this.consumerConfig.dlqName, message.content);
+    this.logger.info(this.stringyifyMessageContent(message), 'sent message to dlq');
+    this.channel.ack(message);
+  }
+
+  sendMessageToDelayedQueue(message: Message, retriesCount: number, e: Error) {
+    const ct = this.stringyifyMessageContent(message);
+    // depending on retries config, retry
+    const ttl = this.getTtl(retriesCount);
+    const options: Options.Publish = {
+      expiration: ttl,
+      headers: message.properties.headers,
+    };
+    this.channel.sendToQueue(this.consumerConfig.delayQueueName, message.content, options);
+    const data: MessageInfo = {
+      queueName: this.consumerConfig.delayQueueName,
+      messageContent: ct,
+      options,
+    };
+
+    this.logger.info(data, `sent message to delayed queue`);
+    this.channel.ack(message);
+  }
+
+  stringyifyMessageContent(message: Message): string {
+    return message.content.toString();
   }
 
   /**
