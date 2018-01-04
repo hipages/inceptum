@@ -8,21 +8,37 @@ import RabbitmqProducerPlugin from '../rabbitmq/RabbitmqProducerPlugin';
 import NewrelicPlugin from '../newrelic/NewrelicPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
 import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
-import BaseApp from './BaseApp';
+import BaseApp, { AppOptions } from './BaseApp';
 import AutowirePlugin from './plugin/AutowirePlugin';
 import DecoratorPlugin from './plugin/DecoratorPlugin';
 import LazyLoadingPlugin from './plugin/LazyLoadingPlugin';
 import StartStopPlugin from './plugin/StartStopPlugin';
 
+export interface InceptumAppOptions extends AppOptions {
+  enableAdminPort?: boolean,
+  enableHealthChecks?: boolean,
+}
+
+export const DEFAULT_INCEPTUM_APP_OPTIONS: InceptumAppOptions = {
+  enableAdminPort: true,
+  enableHealthChecks: true,
+};
 
 export class InceptumApp extends BaseApp {
   /**
    * Creates a new Inceptum App
    */
-  constructor(options = {}) {
+  constructor(options: InceptumAppOptions = DEFAULT_INCEPTUM_APP_OPTIONS) {
     super(options);
     // Standard IOC plugins.
-    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin(), new AdminPortPlugin(), new HealthCheckPlugin(), new NewrelicPlugin());
+    this.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin());
+    if (options.enableAdminPort) {
+      this.register(new AdminPortPlugin());
+    }
+    if (options.enableHealthChecks) {
+      this.register(new HealthCheckPlugin());
+    }
+    this.register(new NewrelicPlugin());
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
       this.logger.debug('Mysql Detected - Adding Plugin');
