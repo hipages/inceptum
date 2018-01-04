@@ -1,8 +1,9 @@
 import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
-import { InceptumApp } from '../../src/index';
+import RabbitmqProducerPlugin from '../../src/rabbitmq/RabbitmqProducerPlugin';
 import { JsonProvider } from '../../src/config/JsonProvider';
 import { RabbitmqClientConfig, RabbitmqProducerConfig, BackPressureStrategy } from '../../src/rabbitmq/RabbitmqConfig';
+import { InceptumApp } from '../../src/app/InceptumApp';
 
 const rabbitClientConfig: RabbitmqClientConfig = {
   hostname: 'localhost',
@@ -31,7 +32,7 @@ class RabbitmqProducerPluginTest {
 
   @test
   async 'RabbitmqProducerPlugin should be registered'() {
-    const app = new InceptumApp({config: new JsonProvider(configYml)});
+    const app = new InceptumApp({config: new JsonProvider(configYml), enableAdminPort: false, enableHealthChecks: false});
     await app.start();
     const definition = app.getContext().getDefinitionByName('peter_producer');
     definition.must.not.be.undefined();
@@ -39,5 +40,6 @@ class RabbitmqProducerPluginTest {
     const producer = await app.getContext().getObjectByName('peter_producer');
     producer.clientConfig.must.be.eql(rabbitClientConfig);
     producer.producerConfig.must.be.eql(rabbitmqProducerConfig);
+    app.stop();
   }
 }

@@ -51,6 +51,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
     } catch (e) {
       const c = {...this.consumerConfig, ...this.clientConfig};
       this.logger.error(e, `failed to subscribe with config - ${c.toString()}`);
+      NewrelicUtil.noticeError(e, {config: c});
     }
   }
 
@@ -71,7 +72,8 @@ export class RabbitmqConsumer extends RabbitmqClient {
       await this.messageHandler.handle(message);
       this.channel.ack(message);
     } catch (e) {
-      this.logger.error(e, `failed to handle message`);
+      this.logger.error(e, 'failed to handle message');
+      NewrelicUtil.noticeError(e, message);
       const retriesCount = ++message.properties.headers.retriesCount;
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {
         // add to dlq
@@ -79,14 +81,16 @@ export class RabbitmqConsumer extends RabbitmqClient {
           this.sendMessageToDlq(message);
         } catch (err) {
           this.logger.error(err, 'failed to send message to dlq');
+          NewrelicUtil.noticeError(err, message);
           this.channel.nack(message);
         }
       } else {
         try {
           this.sendMessageToDelayedQueue(message, retriesCount, e);
-        } catch (err) {
+        } catch (error) {
           // put message back to rabbitmq
-          this.logger.error(err, 'failed to send message to delayed queue');
+          this.logger.error(error, 'failed to send message to delayed queue');
+          NewrelicUtil.noticeError(error, message);
           this.channel.nack(message);
         }
       }

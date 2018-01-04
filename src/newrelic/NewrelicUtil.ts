@@ -12,7 +12,7 @@ try {
 }
 
 export abstract class NewRelic {
-  abstract noticeError(error: Error | Object, opt?: object);
+  abstract noticeError(error: Error | Object, customParams?: object);
   abstract shutdown(opts: object, cb: (e) => void);
   abstract setTransactionName(name: string);
   abstract startBackgroundTransaction(name: string, group?: string, handle?: () => any);
@@ -40,4 +40,12 @@ export class NewrelicUtil {
       NEWRELIC = null;
     }
   }
+
+  static noticeError(e: Error, params?: object) {
+    const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
+    if (nr) {
+      nr.noticeError(e, params);
+    }
+  }
+
 }
