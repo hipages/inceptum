@@ -50,7 +50,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
       await super.init();
       await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
     } catch (e) {
-      const c = {...this.consumerConfig, ...this.clientConfig};
+      const c = { ...this.consumerConfig };
       this.logger.error(e, `failed to subscribe with config - ${c.toString()}`);
       NewrelicUtil.noticeError(e, {config: c});
       throw e;
