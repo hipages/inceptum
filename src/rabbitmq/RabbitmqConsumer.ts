@@ -1,11 +1,11 @@
-import { Channel, Message } from 'amqplib';
+import { Channel } from 'amqplib';
 import * as stringify from 'json-stringify-safe';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { RabbitmqClient } from './RabbitmqClient';
 import { RabbitmqConsumerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 import { PublishOptions, ConsumeOptions, RepliesConsume } from './RabbitmqClient';
-import { RabbitmqConsumerHandler } from './RabbitmqConsumerHandler';
+import { RabbitmqConsumerHandler, Message } from './RabbitmqConsumerHandler';
 import { RabbitmqConsumerHandlerUnrecoverableError, MessageInfo, RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
 
 const logger = LogManager.getLogger(__filename);

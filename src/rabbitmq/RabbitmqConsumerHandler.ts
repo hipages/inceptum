@@ -1,6 +1,11 @@
-import { Message } from 'amqplib';
 import { Logger } from '../log/LogManager';
 import { RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
+
+export interface Message {
+  content: Buffer,
+  fields: any,
+  properties: any,
+}
 
 export abstract class RabbitmqConsumerHandler {
 

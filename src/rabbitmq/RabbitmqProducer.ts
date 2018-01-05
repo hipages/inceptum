@@ -1,6 +1,6 @@
-import { connect, Connection, Channel, Options } from 'amqplib';
-import { RabbitmqProducerConfig, BackPressureStrategy, RabbitmqClientConfig } from './RabbitmqConfig';
-import { RabbitmqClient } from './RabbitmqClient';
+import { connect, Connection, Channel } from 'amqplib';
+import { RabbitmqProducerConfig, RabbitmqBackPressureStrategy, RabbitmqClientConfig } from './RabbitmqConfig';
+import { PublishOptions, RabbitmqClient } from './RabbitmqClient';
 
 export class RabbitmqProducer extends RabbitmqClient {
     protected producerConfig: RabbitmqProducerConfig;
@@ -11,7 +11,7 @@ export class RabbitmqProducer extends RabbitmqClient {
         producerConfig: RabbitmqProducerConfig ) {
             super(clientConfig, name);
             this.producerConfig = {...producerConfig};
-            this.producerConfig.backPressureStrategy = producerConfig.backPressureStrategy || BackPressureStrategy.ERROR;
+            this.producerConfig.backPressureStrategy = producerConfig.backPressureStrategy || RabbitmqBackPressureStrategy.ERROR;
     }
 
     /**
@@ -19,12 +19,12 @@ export class RabbitmqProducer extends RabbitmqClient {
      * @param msg
      * @param routingKey
      */
-    async publish(msg: string, routingKey: string, optionsPublish: Options.Publish = {}): Promise<boolean> {
+    async publish(msg: string, routingKey: string, optionsPublish: PublishOptions = {}): Promise<boolean> {
         optionsPublish.headers = {
             retriesCount: 0,
         };
         while (!this.channel.publish(this.producerConfig.exchangeName, routingKey, new Buffer(msg), optionsPublish)) {
-            if (this.producerConfig.backPressureStrategy === BackPressureStrategy.ERROR) {
+            if (this.producerConfig.backPressureStrategy === RabbitmqBackPressureStrategy.ERROR) {
                 throw new Error('Failed to publish message');
             }
 
