@@ -1,8 +1,9 @@
-import { Options } from 'amqplib';
+import { PublishOptions } from './RabbitmqClient';
+
 export interface MessageInfo {
   queueName: string,
   messageContent: string,
-  options?: Options.Publish,
+  options?: PublishOptions,
 }
 
 export class RabbitmqConsumerHandlerError extends Error {

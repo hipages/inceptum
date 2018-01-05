@@ -1,11 +1,12 @@
-import { Channel, Message, Replies, Options } from 'amqplib';
+import { Channel, Message } from 'amqplib';
 import * as stringify from 'json-stringify-safe';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { RabbitmqClient } from './RabbitmqClient';
 import { RabbitmqConsumerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
+import { PublishOptions, ConsumeOptions, RepliesConsume } from './RabbitmqClient';
 import { RabbitmqConsumerHandler } from './RabbitmqConsumerHandler';
-import { RabbitmqConsumerHandlerUnrecoverableError,MessageInfo, RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
+import { RabbitmqConsumerHandlerUnrecoverableError, MessageInfo, RabbitmqConsumerHandlerError } from './RabbitmqConsumerHandlerError';
 
 const logger = LogManager.getLogger(__filename);
 
@@ -52,13 +53,14 @@ export class RabbitmqConsumer extends RabbitmqClient {
       const c = {...this.consumerConfig, ...this.clientConfig};
       this.logger.error(e, `failed to subscribe with config - ${c.toString()}`);
       NewrelicUtil.noticeError(e, {config: c});
+      throw e;
     }
   }
 
   /**
    * Subscribe to a queue
    */
-  async subscribe(queueName: string, consumeOptions: Options.Consume = {}): Promise<Replies.Consume> {
+  async subscribe(queueName: string, consumeOptions: ConsumeOptions = {}): Promise<RepliesConsume> {
     return await this.channel.consume(
       queueName,
       (message: Message) => {
@@ -79,6 +81,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
         // add to dlq
         try {
           this.sendMessageToDlq(message);
+          this.channel.ack(message);
         } catch (err) {
           this.logger.error(err, 'failed to send message to dlq');
           NewrelicUtil.noticeError(err, message);
@@ -87,6 +90,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
       } else {
         try {
           this.sendMessageToDelayedQueue(message, retriesCount, e);
+          this.channel.ack(message);
         } catch (error) {
           // put message back to rabbitmq
           this.logger.error(error, 'failed to send message to delayed queue');
@@ -100,14 +104,13 @@ export class RabbitmqConsumer extends RabbitmqClient {
   sendMessageToDlq(message: Message) {
     this.channel.sendToQueue(this.consumerConfig.dlqName, message.content);
     this.logger.info(this.stringyifyMessageContent(message), 'sent message to dlq');
-    this.channel.ack(message);
   }
 
   sendMessageToDelayedQueue(message: Message, retriesCount: number, e: Error) {
     const ct = this.stringyifyMessageContent(message);
     // depending on retries config, retry
     const ttl = this.getTtl(retriesCount);
-    const options: Options.Publish = {
+    const options: PublishOptions = {
       expiration: ttl,
       headers: message.properties.headers,
     };
@@ -119,7 +122,6 @@ export class RabbitmqConsumer extends RabbitmqClient {
     };
 
     this.logger.info(data, `sent message to delayed queue`);
-    this.channel.ack(message);
   }
 
   stringyifyMessageContent(message: Message): string {
