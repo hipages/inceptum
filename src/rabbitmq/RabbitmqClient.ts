@@ -2,6 +2,40 @@ import { connect, Connection, Channel } from 'amqplib';
 import { Logger } from '../log/LogManager';
 import { RabbitmqProducerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 
+export interface PublishOptions {
+  expiration?: string | number,
+  userId?: string,
+  CC?: string | string[],
+
+  mandatory?: boolean,
+  persistent?: boolean,
+  deliveryMode?: boolean | number,
+  BCC?: string | string[],
+
+  contentType?: string,
+  contentEncoding?: string,
+  headers?: any,
+  priority?: number,
+  correlationId?: string,
+  replyTo?: string,
+  messageId?: string,
+  timestamp?: number,
+  type?: string,
+  appId?: string,
+}
+export interface ConsumeOptions {
+  consumerTag?: string,
+  noLocal?: boolean,
+  noAck?: boolean,
+  exclusive?: boolean,
+  priority?: number,
+  arguments?: any,
+}
+
+export interface RepliesConsume {
+  consumerTag: string,
+}
+
 export abstract class RabbitmqClient {
   protected channel: Channel;
   protected connection: Connection;

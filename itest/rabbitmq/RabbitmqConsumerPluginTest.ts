@@ -1,6 +1,7 @@
 import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
 import { RabbitmqClientConfig, RabbitmqConsumerConfig } from '../../src/rabbitmq/RabbitmqConfig';
+import RabbitmqConsumerPlugin from '../../src/rabbitmq/RabbitmqConsumerPlugin';
 import { InceptumApp, BaseSingletonDefinition } from '../../src/index';
 import { JsonProvider } from '../../src/config/JsonProvider';
 import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHandler';
@@ -43,7 +44,7 @@ class RabbitmqConsumerPluginTest {
 
   @test
   async 'RabbitmqConsumerPlugin should be registered'() {
-    const app = new InceptumApp({config: new JsonProvider(configYml)});
+    const app = new InceptumApp({config: new JsonProvider(configYml), enableAdminPort: false, enableHealthChecks: false});
     app.getContext().registerDefinition(new BaseSingletonDefinition<DefaultHandler>(DefaultHandler));
     await app.start();
     const definition = app.getContext().getDefinitionByName('peter_consumer');
@@ -53,5 +54,6 @@ class RabbitmqConsumerPluginTest {
     consumer.clientConfig.must.be.eql(rabbitClientConfig);
     rabbitConsumerConfig.options = {};
     consumer.consumerConfig.must.be.eql(rabbitConsumerConfig);
+    await app.stop();
   }
 }

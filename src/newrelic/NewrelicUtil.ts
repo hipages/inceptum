@@ -11,11 +11,19 @@ try {
 } catch (e) {
 }
 
+export abstract class NewRelic {
+  abstract noticeError(error: Error | Object, customParams?: object);
+  abstract shutdown(opts: object, cb: (e) => void);
+  abstract setTransactionName(name: string);
+  abstract startBackgroundTransaction(name: string, group?: string, handle?: () => any);
+  abstract getTransaction();
+}
+
 export class NewrelicUtil {
   static isNewrelicAvailable() {
     return NEWRELIC_AVAILABLE;
   }
-  static getNewrelicIfAvailable() {
+  static getNewrelicIfAvailable(): NewRelic {
     if (NEWRELIC_AVAILABLE) {
       return NEWRELIC;
     } else {
@@ -32,4 +40,12 @@ export class NewrelicUtil {
       NEWRELIC = null;
     }
   }
+
+  static noticeError(e: Error, params?: object) {
+    const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
+    if (nr) {
+      nr.noticeError(e, params);
+    }
+  }
+
 }

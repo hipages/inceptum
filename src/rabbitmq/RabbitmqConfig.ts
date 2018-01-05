@@ -1,4 +1,4 @@
-export enum BackPressureStrategy {
+export enum RabbitmqBackPressureStrategy {
   ERROR,
   BLOCK,
 }
@@ -13,7 +13,7 @@ export interface RabbitmqClientConfig {
 
 export interface RabbitmqProducerConfig {
   exchangeName: string,
-  backPressureStrategy: BackPressureStrategy,
+  backPressureStrategy: RabbitmqBackPressureStrategy,
 }
 
 export interface RabbitmqConsumerConfig {
