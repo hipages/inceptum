@@ -1,3 +1,4 @@
+import * as bp from 'body-parser';
 import { Plugin } from '../app/BaseApp';
 import SwaggerMetadataMiddleware from './SwaggerMetadataMiddleware';
 import SwaggerRouterMiddleware from './SwaggerRouterMiddleware';
@@ -23,6 +24,7 @@ export class SwaggerPlugin implements Plugin {
 
 ;   const meta = new SwaggerMetadataMiddleware({ swaggerFilePath: this.swaggerPath });
     const router = new SwaggerRouterMiddleware(app.getContext());
+    express.use(bp.json({ limit: '10mb' }));
     await meta.register(express);
     express.use(CORSMiddleware);
     await router.register(express);
