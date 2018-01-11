@@ -50,4 +50,14 @@ describe('PostgresClient', () => {
       }
     });
   });
+  describe('client.read()', () => {
+    it('must run queries', () => {
+      const rows = await myClient.read('SELECT * FROM table1');
+      rows.length.must.be.equal(3);
+    });
+    it('must correctly bind values to the queies', () => {
+      const rows = await myClient.read('SELECT * FROM table1 WHERE name = ?', 'User 2');
+      rows.length.must.be.equal(1);
+    });
+  });
 });
