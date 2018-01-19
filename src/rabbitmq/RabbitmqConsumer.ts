@@ -17,7 +17,7 @@ class NewrelichandlerWrapper extends RabbitmqConsumerHandler {
     super();
   }
   async handle(message: Message): Promise<void> {
-    newrelic.startBackgroundTransaction(this.baseHandler.constructor.name, 'RabbitMQConsumer', async () => {
+    await newrelic.startBackgroundTransaction(this.baseHandler.constructor.name, 'RabbitMQConsumer', async () => {
       const transaction = newrelic.getTransaction();
       try {
         await this.baseHandler.handle(message);
