@@ -47,7 +47,7 @@ export class MockDBClient extends DBClient {
     return func(new MockDBTransaction(this));
   }
 
-  public read(sql, binds) {
+  public read<T>(sql, binds): Promise<T> {
     return this.runInTransaction(true, (client) =>  client.query(sql, ...binds));
   }
   public registerQuery(sql: string, resp: any, ...bindArrs) {
