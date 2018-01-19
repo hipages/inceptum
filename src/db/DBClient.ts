@@ -17,5 +17,5 @@ export abstract class DBClient {
    * @param sql query to run
    * @param binds binds
    */
-  public abstract read(sql: string, ...binds: any[]): Promise<any[]>;
+  public abstract read<T>(sql: string, ...binds: any[]): Promise<T[]>;
 }
