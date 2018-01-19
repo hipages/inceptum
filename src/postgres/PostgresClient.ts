@@ -175,6 +175,10 @@ export class PostgresClient extends DBClient {
       });
   }
 
+  async read(sql: string, ...binds: any[]): Promise<any[]> {
+    return this.runInTransaction(true, (client) => client.query(sql, ...binds));
+  }
+
   shutdown() {
     if (this.masterPool) {
       this.masterPool.end();
