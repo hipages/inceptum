@@ -276,6 +276,10 @@ export class MysqlClient extends DBClient {
       // });
   }
 
+  async read<T>(sql: string, ...binds: any[]): Promise<T[]> {
+    return this.runInTransaction(true, (client) => client.query(sql, ...binds));
+  }
+
   shutdown() {
     if (this.masterPool) {
       this.masterPool.end();
