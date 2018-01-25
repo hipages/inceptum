@@ -37,19 +37,19 @@ export class Transaction {
   markError(e) {
     this.error = e;
   }
-  addCommitListener(f) {
+  addCommitListener(f: (Transaction) => Promise<any>) {
     if (!f || !(f instanceof Function)) {
       throw new TransactionError('Provided input to addCommitListener is not a function');
     }
     this.commitListeners.push(f);
   }
-  addRollbackListener(f) {
+  addRollbackListener(f: (Transaction) => Promise<any>) {
     if (!f || !(f instanceof Function)) {
       throw new TransactionError('Provided input to addRollbackListener is not a function');
     }
     this.rollbackListeners.push(f);
   }
-  addEndListener(f) {
+  addEndListener(f: (Transaction) => Promise<any>) {
     if (!f || !(f instanceof Function)) {
       throw new TransactionError('Provided input to addEndListener is not a function');
     }
@@ -85,17 +85,13 @@ export class Transaction {
     return this.readonly;
   }
 
-  callListeners(listeners) {
+  async callListeners(listeners: Array<(Transaction) => Promise<any>>): Promise<void> {
     if (listeners && listeners.length > 0) {
-      return Promise.all(listeners.map((listener) => listener(this)).filter((resp) => !!resp));
+      await listeners.reduce(async (prev, listener) => {
+        await prev;
+        return await listener(this);
+      }, Promise.resolve());
     }
-    return Promise.resolve();
-    // for (let i = 0; i < listeners.length; i++) {
-    //   const result = listeners[i](this);
-    //   if (result && result.then) {
-    //     throw new TransactionError(`${type} listener returned a promise. Callbacks are expected to be synchronous`);
-    //   }
-    // }
   }
 }
 

@@ -244,13 +244,13 @@ export class MysqlClient extends DBClient {
     try {
       await mysqlTransaction.begin();
       const resp = await func(mysqlTransaction);
+      await mysqlTransaction.end();
       return resp;
     } catch (err) {
       log.error({ err }, 'There was an error running in transaction');
       transaction.markError(err);
-      throw err;
-    } finally {
       await mysqlTransaction.end();
+      throw err;
     }
 
 

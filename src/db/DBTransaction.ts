@@ -15,9 +15,9 @@ export abstract class DBTransaction {
   async begin(): Promise<void> {
     await this.doTransactionBegin();
     this.transaction.begin();
-    this.transaction.addCommitListener(() => this.doTransactionCommit());
-    this.transaction.addRollbackListener(() => this.doTransactionRollback());
-    this.transaction.addEndListener(() => this.doTransactionEnd());
+    this.transaction.addCommitListener(async () => await this.doTransactionCommit());
+    this.transaction.addRollbackListener(async () => await this.doTransactionRollback());
+    this.transaction.addEndListener(async () => await this.doTransactionEnd());
   }
 
   query(sql: string, ...bindArrs: any[]): Promise<any> {
@@ -40,8 +40,8 @@ export abstract class DBTransaction {
     return 'BEGIN';
   }
 
-  doTransactionCommit(): Promise<void> {
-    return this.runQueryPrivate(this.getTransactionCommitSQL());
+  async doTransactionCommit(): Promise<void> {
+    await this.runQueryPrivate(this.getTransactionCommitSQL());
   }
 
   // tslint:disable-next-line:prefer-function-over-method
@@ -49,9 +49,9 @@ export abstract class DBTransaction {
     return 'COMMIT';
   }
 
-  doTransactionRollback(): Promise<void> {
+  async doTransactionRollback(): Promise<void> {
     this.rolledBack = true;
-    return this.runQueryPrivate(this.getTransactionRollbackSQL());
+    await this.runQueryPrivate(this.getTransactionRollbackSQL());
   }
 
   // tslint:disable-next-line:prefer-function-over-method

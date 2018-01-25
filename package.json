@@ -8,6 +8,7 @@
     "build": "tsc",
     "clean": "rm -rf dist docs/_book && mkdir docs/_book",
     "test": "NODE_ENV=test nyc mocha",
+    "build": "tsc",
     "itest": "NODE_ENV=test nyc --reporter=lcov --report-dir=icoverage mocha itest",
     "coverage": "codecov -f coverage/lcov.info",
     "lint": "tslint -p .",
