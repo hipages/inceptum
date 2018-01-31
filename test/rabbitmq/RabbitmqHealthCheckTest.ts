@@ -35,8 +35,11 @@ class RabbitmqHealthCheckTest {
     this.apiPing.ping.returns(failed);
     const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
     hc.rabbitmqMgtHttpApi = this.apiPing;
-    const result = await hc.doCheck();
-    result.must.be.eql(new HealthCheckResult(HealthCheckStatus.CRITICAL, 'here is a reason'));
+    try {
+      const result = await hc.doCheck();
+    } catch (e) {
+      e.must.be.eql(new HealthCheckResult(HealthCheckStatus.CRITICAL, 'here is a reason'));
+    }
   }
 
   @test
@@ -44,7 +47,10 @@ class RabbitmqHealthCheckTest {
     this.apiPing.ping.throws();
     const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
     hc.rabbitmqMgtHttpApi = this.apiPing;
-    const result = await hc.doCheck();
-    result.status.must.be.eql(HealthCheckStatus.CRITICAL);
+    try {
+      const result = await hc.doCheck();
+    } catch (e) {
+      e.must.be.an.error();
+    }
   }
 }
