@@ -7,7 +7,7 @@ import { error } from 'util';
 import { LogManager, Logger } from '../../src/log/LogManager';
 import { RabbitmqProducer } from '../../src/rabbitmq/RabbitmqProducer';
 import { RabbitmqConsumer } from '../../src/rabbitmq/RabbitmqConsumer';
-import { RabbitmqProducerConfig, BackPressureStrategy, RabbitmqConsumerConfig, RabbitmqClientConfig } from '../../src/rabbitmq/RabbitmqConfig';
+import { RabbitmqProducerConfig, RabbitmqBackPressureStrategy, RabbitmqConsumerConfig, RabbitmqClientConfig } from '../../src/rabbitmq/RabbitmqConfig';
 import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHandler';
 import { RabbitmqConsumerHandlerUnrecoverableError, RabbitmqConsumerHandlerError } from '../../src/rabbitmq/RabbitmqConsumerHandlerError';
 
@@ -18,10 +18,11 @@ const clientConfig: RabbitmqClientConfig = {
     port: 5672,
     username: 'hip',
     password: 'hipages',
+    mgtHttpPort: 15672,
 };
 const producerConfig: RabbitmqProducerConfig = {
     exchangeName: 'firehose',
-    backPressureStrategy: BackPressureStrategy.ERROR,
+    backPressureStrategy: RabbitmqBackPressureStrategy.ERROR,
 };
 
 const routingKeyAppName = 'nuntius.channelNotificationCreated';
@@ -81,7 +82,7 @@ class RabbitmqProducerExposedChannel extends RabbitmqProducer {
 }
 
 @suite
-class RabbitmqProducerAndConsumerTest {
+class RabbitmqProducerAndConsumer {
 
     protected producer: RabbitmqProducer;
 
