@@ -19,6 +19,8 @@ const clientConfig: RabbitmqClientConfig = {
     username: 'hip',
     password: 'hipages',
     mgtHttpPort: 15672,
+    mgtHttpHost: 'localhost',
+    mgtHttpTheme: 'http',
 };
 const producerConfig: RabbitmqProducerConfig = {
     exchangeName: 'firehose',

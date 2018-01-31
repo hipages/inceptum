@@ -6,15 +6,17 @@ import { RabbitmqProducerConfig } from '../../src/rabbitmq/RabbitmqConfig';
 import RabbitmqConsumerPlugin from '../../src/rabbitmq/RabbitmqConsumerPlugin';
 import { BaseSingletonDefinition } from '../../src/ioc/objectdefinition/BaseSingletonDefinition';
 import { JsonProvider } from '../../src/config/JsonProvider';
+import RabbitmqClientPlugin from '../../src/rabbitmq/RabbitmqClientPlugin';
 import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHandler';
-import { RabbitmqClientPlugin } from '../../src/rabbitmq/RabbitmqClientPlugin';
 
 const rabbitClientConfig: RabbitmqClientConfig = {
-  hostname: 'minikube',
-  port: 30497,
+  hostname: 'localhost',
+  port: 5672,
   username: 'hip',
   password: 'hipages',
-  mgtHttpPort: 32372,
+  mgtHttpPort: 15672,
+  mgtHttpHost: 'localhost',
+  mgtHttpTheme: 'http',
 };
 
 const rabbitConsumerConfig: RabbitmqConsumerConfig = {
