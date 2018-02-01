@@ -27,7 +27,7 @@ const producerConfig: RabbitmqProducerConfig = {
     backPressureStrategy: RabbitmqBackPressureStrategy.ERROR,
 };
 
-const routingKeyAppName = 'nuntius.channelNotificationCreated';
+const routingKeyAppName = 'nuntius.ChannelNotificationAddedEvent';
 const channelName = 'mandrill';
 const emailConsumerConfig: RabbitmqConsumerConfig = {
     appQueueName: 'nuntius.mandrill.queue',
@@ -156,7 +156,7 @@ class RabbitmqProducerAndConsumer {
         const handlerSpy = sinon.spy(handler, 'handle');
         const errorConfig = {...emailConsumerConfig};
         errorConfig.maxRetries = 4;
-        errorConfig.retryDelayInMinute = 0.005;
+        errorConfig.retryDelayInMinute = 0.0001;
         errorConfig.retryDelayFactor = 1;
         errorConfig.options = { priority: 3 };
         const errorConsumer = new RabbitmqConsumer(clientConfig, 'nuntius', errorConfig, handler);
@@ -182,13 +182,13 @@ class RabbitmqProducerAndConsumer {
         firstRetryTime.must.equal(120000);
 
         const secondRetryTime = consumer.getTtl(2);
-        secondRetryTime.must.equal(600000);
+        secondRetryTime.must.equal(32*2*60*1000);
 
         const thirdRetryTime = consumer.getTtl(3);
-        thirdRetryTime.must.equal(3000000);
+        thirdRetryTime.must.equal(243*2*60*1000);
 
         const fourthRetryTime = consumer.getTtl(4);
-        fourthRetryTime.must.equal(250 * 60 * 1000);
+        fourthRetryTime.must.equal(1024*2 * 60 * 1000);
 
         const fifthRetryTime = consumer.getTtl(5);
         fifthRetryTime.must.equal(0);
