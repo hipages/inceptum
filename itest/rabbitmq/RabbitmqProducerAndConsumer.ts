@@ -7,7 +7,7 @@ import { error } from 'util';
 import { LogManager, Logger } from '../../src/log/LogManager';
 import { RabbitmqProducer } from '../../src/rabbitmq/RabbitmqProducer';
 import { RabbitmqConsumer } from '../../src/rabbitmq/RabbitmqConsumer';
-import { RabbitmqProducerConfig, BackPressureStrategy, RabbitmqConsumerConfig, RabbitmqClientConfig } from '../../src/rabbitmq/RabbitmqConfig';
+import { RabbitmqProducerConfig, RabbitmqBackPressureStrategy, RabbitmqConsumerConfig, RabbitmqClientConfig } from '../../src/rabbitmq/RabbitmqConfig';
 import { RabbitmqConsumerHandler } from '../../src/rabbitmq/RabbitmqConsumerHandler';
 import { RabbitmqConsumerHandlerUnrecoverableError, RabbitmqConsumerHandlerError } from '../../src/rabbitmq/RabbitmqConsumerHandlerError';
 
@@ -18,13 +18,16 @@ const clientConfig: RabbitmqClientConfig = {
     port: 5672,
     username: 'hip',
     password: 'hipages',
+    mgtHttpPort: 15672,
+    mgtHttpHost: 'localhost',
+    mgtHttpTheme: 'http',
 };
 const producerConfig: RabbitmqProducerConfig = {
     exchangeName: 'firehose',
-    backPressureStrategy: BackPressureStrategy.ERROR,
+    backPressureStrategy: RabbitmqBackPressureStrategy.ERROR,
 };
 
-const routingKeyAppName = 'nuntius.channelNotificationCreated';
+const routingKeyAppName = 'nuntius.ChannelNotificationAddedEvent';
 const channelName = 'mandrill';
 const emailConsumerConfig: RabbitmqConsumerConfig = {
     appQueueName: 'nuntius.mandrill.queue',
@@ -81,7 +84,7 @@ class RabbitmqProducerExposedChannel extends RabbitmqProducer {
 }
 
 @suite
-class RabbitmqProducerAndConsumerTest {
+class RabbitmqProducerAndConsumer {
 
     protected producer: RabbitmqProducer;
 
@@ -153,7 +156,7 @@ class RabbitmqProducerAndConsumerTest {
         const handlerSpy = sinon.spy(handler, 'handle');
         const errorConfig = {...emailConsumerConfig};
         errorConfig.maxRetries = 4;
-        errorConfig.retryDelayInMinute = 0.005;
+        errorConfig.retryDelayInMinute = 0.0001;
         errorConfig.retryDelayFactor = 1;
         errorConfig.options = { priority: 3 };
         const errorConsumer = new RabbitmqConsumer(clientConfig, 'nuntius', errorConfig, handler);
@@ -179,13 +182,13 @@ class RabbitmqProducerAndConsumerTest {
         firstRetryTime.must.equal(120000);
 
         const secondRetryTime = consumer.getTtl(2);
-        secondRetryTime.must.equal(600000);
+        secondRetryTime.must.equal(32*2*60*1000);
 
         const thirdRetryTime = consumer.getTtl(3);
-        thirdRetryTime.must.equal(3000000);
+        thirdRetryTime.must.equal(243*2*60*1000);
 
         const fourthRetryTime = consumer.getTtl(4);
-        fourthRetryTime.must.equal(250 * 60 * 1000);
+        fourthRetryTime.must.equal(1024*2 * 60 * 1000);
 
         const fifthRetryTime = consumer.getTtl(5);
         fifthRetryTime.must.equal(0);

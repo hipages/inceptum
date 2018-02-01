@@ -9,6 +9,9 @@ export interface RabbitmqClientConfig {
   port: number,
   username: string,
   password: string,
+  mgtHttpHost: string,
+  mgtHttpPort: number,
+  mgtHttpTheme: string,
 }
 
 export interface RabbitmqProducerConfig {

@@ -135,7 +135,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
    */
   getTtl(retriesCount = 1): number {
     if (this.allowRetry(retriesCount)) {
-      return Math.pow(this.consumerConfig.retryDelayFactor, retriesCount - 1)
+      return Math.pow(retriesCount, this.consumerConfig.retryDelayFactor)
         * this.consumerConfig.retryDelayInMinute * 60 * 1000;
     }
 
