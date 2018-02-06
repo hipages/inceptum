@@ -3,7 +3,6 @@ import { must } from 'must';
 import BaseApp from '../../src/app/BaseApp';
 import { RabbitmqClientConfig, RabbitmqConsumerConfig, RabbitmqBackPressureStrategy } from '../../src/rabbitmq/RabbitmqConfig';
 import { RabbitmqProducerConfig } from '../../src/rabbitmq/RabbitmqConfig';
-import RabbitmqConsumerPlugin from '../../src/rabbitmq/RabbitmqConsumerPlugin';
 import { BaseSingletonDefinition } from '../../src/ioc/objectdefinition/BaseSingletonDefinition';
 import { JsonProvider } from '../../src/config/JsonProvider';
 import RabbitmqClientPlugin from '../../src/rabbitmq/RabbitmqClientPlugin';
