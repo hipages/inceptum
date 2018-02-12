@@ -3,8 +3,6 @@ import HealthCheckPlugin from '../health/HealthCheckPlugin';
 import AdminPortPlugin from '../web/AdminPortPlugin';
 import MysqlPlugin from '../mysql/MysqlPlugin';
 import PostgresPlugin from '../postgres/PostgresPlugin';
-import RabbitmqConsumerPlugin from '../rabbitmq/RabbitmqConsumerPlugin';
-// import RabbitmqProducerPlugin from '../rabbitmq/RabbitmqProducerPlugin';
 import RabbitmqClientPlugin from '../rabbitmq/RabbitmqClientPlugin';
 import NewrelicPlugin from '../newrelic/NewrelicPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
