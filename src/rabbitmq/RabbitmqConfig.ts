@@ -1,9 +1,11 @@
+import { Options } from 'amqplib';
+
 export enum RabbitmqBackPressureStrategy {
   ERROR,
   BLOCK,
 }
 
-export interface RabbitmqClientConfig {
+export interface RabbitmqClientConfig extends Options.Connect {
   protocol?: string,
   hostname: string,
   port: number,

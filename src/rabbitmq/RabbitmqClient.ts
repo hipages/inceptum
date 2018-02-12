@@ -1,4 +1,4 @@
-import { connect, Connection, Channel } from 'amqplib';
+import { connect, Connection, Channel, Options } from 'amqplib';
 import { Logger } from '../log/LogManager';
 import { RabbitmqProducerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 
