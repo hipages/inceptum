@@ -37,6 +37,10 @@
   version "5.0.16"
   resolved "https://registry.yarnpkg.com/@types/elasticsearch/-/elasticsearch-5.0.16.tgz#fc29dc26c894aed69a6d20390d3c736aad61e625"
 
+"@types/events@*":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/events/-/events-1.1.0.tgz#93b1be91f63c184450385272c47b6496fd028e02"
+
 "@types/fs-extra@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-4.0.0.tgz#1dd742ad5c9bce308f7a52d02ebc01421bc9102f"
@@ -97,10 +101,11 @@
   dependencies:
     moment ">=2.14.0"
 
-"@types/pg@^6.1.43":
-  version "6.1.43"
-  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-6.1.43.tgz#5e5bd8e91a6b382e2a53dd6373ca7e6793d02cc2"
+"@types/pg@^6.1.45":
+  version "6.1.46"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-6.1.46.tgz#4bca3cb605181eabd54e145aea33ff22d9ca3f80"
   dependencies:
+    "@types/events" "*"
     "@types/node" "*"
     "@types/pg-types" "*"
 
