@@ -40,7 +40,7 @@
     "@types/bunyan": "1.8.0",
     "@types/elasticsearch": "^5.0.16",
     "@types/mocha": "^2.2.41",
-    "@types/pg": "^6.1.45",
+    "@types/pg": "6.1.45",
     "amqplib": "^0.5.2",
     "aws-sdk": "^2.102.0",
     "axios": "^0.16.2",
