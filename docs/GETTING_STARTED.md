@@ -10,9 +10,13 @@ and dotfiles we'll need.
 
 For this example, we'll be just-in-time transpliling it with ts-node. In production we would be pre compiling our code
 to javascript, but this will be ok this purposes of this tutorial.
-
 ```
 $ yarn global add ts-node
+```
+On Mac/*ix you will have to do this
+```
+$ sudo npm install ts-node -g
+$ sudo npm install typescript -g
 ```
 
 Now, lets add inceptum to our project...
