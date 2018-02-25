@@ -6,6 +6,7 @@ import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { WebRoutingInspector } from './WebRoutingInspector';
+import HttpError from './HttpError';
 
 const logger = LogManager.getLogger(__filename);
 
@@ -32,7 +33,12 @@ export const errorMiddleware = (err, req, res, next) => {
   if (res.headersSent) {
       return next(err); // Give back to express to handle
   }
-  res.status(500).end();
+
+  if (err instanceof HttpError && err.statusCode) {
+    res.status(err.getStatusCode()).send({message: err.message});
+  } else {
+    res.status(500).end();
+  }
 };
 
 export default class WebPlugin implements Plugin {
