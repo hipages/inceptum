@@ -6,6 +6,7 @@ export { BaseSingletonDefinition } from './ioc/objectdefinition/BaseSingletonDef
 export { InceptumApp } from './app/InceptumApp';
 export * from './log/LogManager';
 export { ExtendedError } from './util/ErrorUtil';
+export { BadRequestError } from './web/errors/BadRequestError';
 export { DBClient } from './db/DBClient';
 export { DBTransaction } from './db/DBTransaction';
 export { SqsHandler } from './sqs/SqsWorker';

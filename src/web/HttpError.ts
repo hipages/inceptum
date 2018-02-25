@@ -1,7 +1,8 @@
-export default class HttpError extends Error {
+import { ExtendedError } from '../util/ErrorUtil';
+export default class HttpError extends ExtendedError {
   statusCode: number;
-  constructor(statusCode: number, message: string) {
-    super(message);
+  constructor(statusCode: number, message: string, cause?: Error) {
+    super(message, cause);
     this.statusCode = statusCode;
   }
   getStatusCode() {
