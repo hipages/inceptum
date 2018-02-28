@@ -27,3 +27,4 @@ export { ConsumeOptions, PublishOptions, RepliesConsume } from './rabbitmq/Rabbi
 export { RabbitmqConsumer } from './rabbitmq/RabbitmqConsumer';
 export { RabbitmqProducer } from './rabbitmq/RabbitmqProducer';
 export { RabbitmqConsumerHandlerUnrecoverableError, RabbitmqConsumerHandlerError, MessageInfo } from './rabbitmq/RabbitmqConsumerHandlerError';
+export { JwtTokenClient } from './jwt/JwtTokenClient';
