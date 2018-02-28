@@ -37,6 +37,7 @@ export default class RabbitmqClientPlugin implements Plugin {
         clientSingleton.constructorParamByValue(clientConf);
         clientSingleton.constructorParamByValue(name);
         clientSingleton.constructorParamByValue(producerConfs[key]);
+        clientSingleton.setPropertyByValue('shutdownFunction', () => context.lcStop());
         clientSingleton.startFunction('init');
         clientSingleton.stopFunction('close');
         context.registerSingletons(clientSingleton);
@@ -53,6 +54,7 @@ export default class RabbitmqClientPlugin implements Plugin {
         consumerSingleton.constructorParamByValue(name);
         consumerSingleton.constructorParamByValue(consumerConfs[key]);
         consumerSingleton.constructorParamByRef(consumerConfs[key]['messageHandler']);
+        consumerSingleton.setPropertyByValue('shutdownFunction', () => context.lcStop());
         consumerSingleton.startFunction('init');
         consumerSingleton.stopFunction('close');
         consumerSingleton.withLazyLoading(false);
