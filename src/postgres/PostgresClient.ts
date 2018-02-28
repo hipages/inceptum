@@ -6,7 +6,6 @@ import { ConfigurationObject, PoolConfig } from '../db/ConfigurationObject';
 import { Transaction, TransactionManager } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
-import { Histogram, MetricsService } from '../metrics/Metrics';
 
 const log = LogManager.getLogger(__filename);
 
