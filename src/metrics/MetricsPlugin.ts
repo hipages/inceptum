@@ -6,6 +6,9 @@ import * as gcStats from 'prometheus-gc-stats';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import AdminPortPlugin from '../web/AdminPortPlugin';
+import { LogManager } from '../log/LogManager';
+
+const Logger = LogManager.getLogger(__filename);
 
 export default class MetricsPlugin implements Plugin {
   name = 'MetricsPlugin';
@@ -17,14 +20,15 @@ export default class MetricsPlugin implements Plugin {
   }
 
   didStart(app: BaseApp, pluginContext: PluginContext) {
-    this.prometheusTimer = (prometheus as any).defaultMetrics();
-    // prometheus.register.setDefaultLabels({app: app.getConfig('app.name', 'not_set')});
+    this.prometheusTimer = prometheus.collectDefaultMetrics();
+    prometheus.register.setDefaultLabels({app: app.getConfig('app.name', 'not_set')});
     const startGcStats = gcStats();
     startGcStats();
 
     const context = app.getContext();
     const express: e.Express = pluginContext.get(AdminPortPlugin.CONTEXT_APP_KEY);
     if (express) {
+      Logger.info('Registering metrics endpoint in Admin port');
       express.get('/metrics', async (req, res) => {
           res.type('text/plain');
           res.send(prometheus.register.metrics());
@@ -34,6 +38,7 @@ export default class MetricsPlugin implements Plugin {
 
   didStop() {
     if (this.prometheusTimer) {
+      Logger.info('Shutting down prometheus interval');
       clearInterval(this.prometheusTimer);
     }
   }
