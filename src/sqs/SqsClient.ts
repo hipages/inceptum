@@ -1,7 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
-import { Histogram, MetricsService } from '../metrics/Metrics';
 
 const log = LogManager.getLogger(__filename);
 const awsApiVersion = '2012-11-05';

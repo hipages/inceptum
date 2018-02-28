@@ -1,10 +1,6 @@
 {
   "name": "inceptum",
-<<<<<<< HEAD
-  "version": "0.5.47",
-=======
   "version": "0.5.55",
->>>>>>> 38fa341ac95654482223330bef4a91ee010f8461
   "description": "hipages take on the foundational library for enterprise-grade apps written in NodeJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -72,7 +68,8 @@
     "mysql": "^2.11.1",
     "node-dogstatsd": "0.0.6",
     "pg": "^7.0.2",
-    "prom-client": "7.1.0",
+    "prom-client": "^10.2.2",
+    "prometheus-gc-stats": "^0.5.0",
     "redis": "2.6.5",
     "reflect-metadata": "^0.1.10",
     "source-map-support": "^0.4.15",

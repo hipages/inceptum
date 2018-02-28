@@ -1,11 +1,11 @@
 import * as mysql from 'mysql';
+import { Summary, Gauge, Counter, register } from 'prom-client';
 import { DBTransaction } from '../db/DBTransaction';
 import { ConnectionPool } from '../db/ConnectionPool';
 import { ConfigurationObject, PoolConfig } from '../db/ConfigurationObject';
 import { Transaction, TransactionManager } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
-import { Histogram, MetricsService } from '../metrics/Metrics';
 import { DBClient } from '../db/DBClient';
 
 const log = LogManager.getLogger(__filename);
@@ -90,40 +90,44 @@ export class MysqlTransaction extends DBTransaction {
   }
 }
 
+const activeGauge = new Gauge(`db_pool_active_connections`, 'Number of active connections in the pool', ['poolName']);
+const connectionsCounter = new Counter(`db_pool_connections`, 'Number of established connections in all time', ['poolName']);
+const durationsHistogram = new Summary(`db_pool_acquire_time`, 'Time required to acquire a connection', ['poolName'], {percentiles: [0.5, 0.75, 0.9, 0.99]});
+
 class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnection> {
 
   instance: mysql.IPool;
-  active: number;
-  numConnections: number;
+  active: Gauge.Internal;
+  numConnections: Counter.Internal;
   enqueueTimes: Array<number>;
-  durationHistogram: any; // todo
+  durationHistogram: Summary.Internal; // todo
   config: MySQLPoolConfig;
 
   constructor(instance: mysql.IPool, name: string) {
     this.instance = instance;
-    this.active = 0;
-    this.numConnections = 0;
+    this.active = activeGauge.labels(name);
+    this.numConnections = connectionsCounter.labels(name);
     this.enqueueTimes = [];
     this.setupPool();
-    this.durationHistogram = MetricsService.histogram(`db_pool_${name}`);
+    this.durationHistogram = durationsHistogram.labels(name);
   }
 
   setupPool() {
     const self = this;
     if (this.instance.on) {
       this.instance.on('acquire', () => {
-        self.active++;
+        self.active.inc();
         if (this.enqueueTimes.length > 0) {
           const start = this.enqueueTimes.shift();
           self.registerWaitTime(Date.now() - start);
         }
       });
-      this.instance.on('connection', () => { self.numConnections++; });
+      this.instance.on('connection', () => { self.numConnections.inc(); });
       this.instance.on('enqueue', () => {
-        this.enqueueTimes.push(Date.now());
+        self.enqueueTimes.push(Date.now());
       });
       this.instance.on('release', () => {
-        this.active--;
+        self.active.dec();
       });
     }
   }

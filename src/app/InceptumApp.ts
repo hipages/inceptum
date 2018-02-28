@@ -7,6 +7,7 @@ import RabbitmqClientPlugin from '../rabbitmq/RabbitmqClientPlugin';
 import NewrelicPlugin from '../newrelic/NewrelicPlugin';
 import SqsClientPlugin from '../sqs/SqsClientPlugin';
 import SqsWorkerPlugin from '../sqs/SqsWorkerPlugin';
+import MetricsPlugin from '../metrics/MetricsPlugin';
 import BaseApp, { AppOptions } from './BaseApp';
 import AutowirePlugin from './plugin/AutowirePlugin';
 import DecoratorPlugin from './plugin/DecoratorPlugin';
@@ -16,11 +17,13 @@ import StartStopPlugin from './plugin/StartStopPlugin';
 export interface InceptumAppOptions extends AppOptions {
   enableAdminPort?: boolean,
   enableHealthChecks?: boolean,
+  enableMetrics?: boolean,
 }
 
 export const DEFAULT_INCEPTUM_APP_OPTIONS: InceptumAppOptions = {
   enableAdminPort: true,
   enableHealthChecks: true,
+  enableMetrics: true,
 };
 
 export class InceptumApp extends BaseApp {
@@ -36,6 +39,9 @@ export class InceptumApp extends BaseApp {
     }
     if (options.enableHealthChecks) {
       this.register(new HealthCheckPlugin());
+    }
+    if (options.enableMetrics) {
+      this.register(new MetricsPlugin());
     }
     this.register(new NewrelicPlugin());
     // TODO This is for backward compat, I'd like to remove it and be explicit
