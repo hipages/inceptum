@@ -90,9 +90,21 @@ export class MysqlTransaction extends DBTransaction {
   }
 }
 
-const activeGauge = new Gauge(`db_pool_active_connections`, 'Number of active connections in the pool', ['poolName']);
-const connectionsCounter = new Counter(`db_pool_connections`, 'Number of established connections in all time', ['poolName']);
-const durationsHistogram = new Summary(`db_pool_acquire_time`, 'Time required to acquire a connection', ['poolName'], {percentiles: [0.5, 0.75, 0.9, 0.99]});
+const activeGauge = new Gauge({
+  name: 'db_pool_active_connections',
+  help: 'Number of active connections in the pool',
+  labelNames: ['poolName'],
+});
+const connectionsCounter = new Counter({
+  name: 'db_pool_connections',
+  help: 'Number of established connections in all time',
+  labelNames: ['poolName'],
+});
+const durationsHistogram = new Summary({
+  name: 'db_pool_acquire_time',
+  help: 'Time required to acquire a connection',
+  labelNames: ['poolName'],
+  percentiles: [0.5, 0.75, 0.9, 0.99]});
 
 class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnection> {
 
