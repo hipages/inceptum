@@ -56,6 +56,7 @@ export class ExtendedError extends Error {
   structuredStackTrace: Array<CallSite>;
   constructor(message: string, cause?: Error) {
     super(message);
+    this.name = this.constructor.name;
     this.cause = cause;
   }
   getStructuredStackTrace(): Array<CallSite> {
