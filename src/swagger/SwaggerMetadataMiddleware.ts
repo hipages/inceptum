@@ -2,6 +2,7 @@ import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import { initializeMiddleware } from 'swagger-tools';
 import { JwtTokenClient } from '../jwt/JwtTokenClient';
+import { UnauthorizedError } from '../web/errors/UnauthorizedError';
 
 export default class SwaggerMetadataMiddleware {
   swagger: object;
@@ -38,14 +39,16 @@ export default class SwaggerMetadataMiddleware {
 
   jwtHandler(req, authOrSecDef, scopesOrApiKey, callback) {
     const jwt = new JwtTokenClient();
-    const token = jwt.verify(scopesOrApiKey);
-    if (token !== null) {
-      req.decodedToken = token.payload;
-      return callback();
+    try {
+      const token = jwt.verify(scopesOrApiKey);
+      if (token !== null) {
+        req.decodedToken = token.payload;
+        return callback();
+      }
+    } catch (e) {
+      return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
     }
-    const err = new Error('Failed to authenticate using bearer token');
-    err['statusCode'] = 403;
-    return callback(err);
+    return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
 }
 
   register(expressApp): Promise<void> {
