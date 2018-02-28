@@ -1,13 +1,20 @@
 import * as jwt from 'jsonwebtoken';
 import * as config from 'config';
 
+function assert(predicate, message) {
+  if (!predicate) {
+      throw new Error(message);
+  }
+}
 export class JwtTokenClient {
   verify(token: string,
     options?: jwt.VerifyOptions): any {
     if (!options) {
         options = { algorithms: ['HS256'] };
     }
-    return jwt.verify(token, config.get('authentication.jwt.secret'), options);
+    const secret = config.get('authentication.jwt.secret');
+    assert(secret, 'No secret found');
+    return jwt.verify(token, secret, options);
   }
 
   sign(payload: object | string | Buffer,
@@ -15,6 +22,8 @@ export class JwtTokenClient {
     if (!options) {
         options = { algorithm: 'HS256' };
     }
-    return jwt.sign(payload, config.get('authentication.jwt.secret'), options);
+    const secret = config.get('authentication.jwt.secret');
+    assert(secret, 'No secret found');
+    return jwt.sign(payload, secret, options);
   }
 }
