@@ -15,8 +15,10 @@ export abstract class NewRelic {
   abstract noticeError(error: Error | Object, customParams?: object);
   abstract shutdown(opts: object, cb: (e) => void);
   abstract setTransactionName(name: string);
-  abstract startBackgroundTransaction(name: string, group?: string, handle?: () => any);
+  abstract async startBackgroundTransaction(name: string, group?: string, handle?: () => any);
   abstract getTransaction();
+  abstract addCustomAttributes(attributes: {});
+  abstract addCustomAttribute(name: string, value: string | number);
 }
 
 export class NewrelicUtil {
@@ -45,6 +47,20 @@ export class NewrelicUtil {
     const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
     if (nr) {
       nr.noticeError(e, params);
+    }
+  }
+
+  static addCustomAttributes(attributes: {}) {
+    const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
+    if (nr) {
+      nr.addCustomAttributes(attributes);
+    }
+  }
+
+  static addCustomAttribute(name: string, value: string | number) {
+    const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
+    if (nr) {
+      nr.addCustomAttribute(name, value);
     }
   }
 

@@ -1,5 +1,6 @@
 import { DBTransaction } from './DBTransaction';
 
+
 export abstract class DBClient {
   /**
    * Runs a function in a transaction. The function must receive one parameter that will be of class
@@ -10,4 +11,11 @@ export abstract class DBClient {
    * @returns {Promise} A promise that will execute the whole transaction
    */
   public abstract runInTransaction(readonly: boolean, func: (transaction: DBTransaction) => Promise<any>): Promise<any>;
+
+  /**
+   * Shorthand for a single readonly query
+   * @param sql query to run
+   * @param binds binds
+   */
+  public abstract read<T>(sql: string, ...binds: any[]): Promise<T[]>;
 }

@@ -17,7 +17,7 @@ class NewrelichandlerWrapper extends RabbitmqConsumerHandler {
     super();
   }
   async handle(message: Message): Promise<void> {
-    newrelic.startBackgroundTransaction(this.baseHandler.constructor.name, 'RabbitMQConsumer', async () => {
+    await newrelic.startBackgroundTransaction(this.baseHandler.constructor.name, 'RabbitMQConsumer', async () => {
       const transaction = newrelic.getTransaction();
       try {
         await this.baseHandler.handle(message);
@@ -135,7 +135,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
    */
   getTtl(retriesCount = 1): number {
     if (this.allowRetry(retriesCount)) {
-      return Math.pow(this.consumerConfig.retryDelayFactor, retriesCount - 1)
+      return Math.pow(retriesCount, this.consumerConfig.retryDelayFactor)
         * this.consumerConfig.retryDelayInMinute * 60 * 1000;
     }
 

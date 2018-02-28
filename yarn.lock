@@ -97,9 +97,9 @@
   dependencies:
     moment ">=2.14.0"
 
-"@types/pg@^6.1.43":
-  version "6.1.43"
-  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-6.1.43.tgz#5e5bd8e91a6b382e2a53dd6373ca7e6793d02cc2"
+"@types/pg@6.1.45":
+  version "6.1.45"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-6.1.45.tgz#bfca89900b4abb506e233575a49d41e3d1c83029"
   dependencies:
     "@types/node" "*"
     "@types/pg-types" "*"
