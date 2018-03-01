@@ -1,4 +1,5 @@
 import { connect, Connection, Channel } from 'amqplib';
+import { isFatalError } from 'amqplib/lib/connection';
 import { Logger } from '../log/LogManager';
 import { RabbitmqProducerConfig, RabbitmqClientConfig, DEFAULT_MAX_CONNECTION_ATTEMPTS } from './RabbitmqConfig';
 
@@ -159,15 +160,15 @@ export abstract class RabbitmqClient {
         return;
       } catch (e) {
         this.logger.error(e, 'Failed channel re-creation attempt');
-        if (e.message.search(/Connection closed/gi) !== -1) {
-          this.logger.error(`Cannot recreate channel on closed connection`);
+        if (isFatalError(e)) {
+          this.logger.error('Cannot recreate channel on closed connection');
           return;
         }
       }
     }
     this.logger.error(`Couldn't re-create channel after ${this.getMaxConnectionAttempts()} attempts`);
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
-      this.logger.error(`Cowardly refusing to continue. Calling shutdown function`);
+      this.logger.error('Cowardly refusing to continue. Calling shutdown function');
       this.shutdownFunction();
     }
   }
