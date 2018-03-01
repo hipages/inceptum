@@ -96,13 +96,14 @@ export abstract class RabbitmqClient {
       }
     }
     const newConnection = await connect(this.clientConfig);
-    newConnection.on('close', () => { this.handleClientClosed(); });
-    newConnection.on('error', (err) => { this.handleClientError(err); });
+    newConnection.on('close', () => { this.handleConnectionClosed(); });
+    newConnection.on('error', (err) => { this.handleConnectionError(err); });
     this.connection = newConnection;
+    this.logger.info(`RabbitMQ connection established`);
     await this.createChannel();
   }
 
-  protected handleClientError(err?) {
+  protected handleConnectionError(err?) {
     if (err) {
       this.logger.error(err, 'Client error. Ignoring');
     } else {
@@ -110,7 +111,7 @@ export abstract class RabbitmqClient {
     }
   }
 
-  protected async handleClientClosed() {
+  protected async handleConnectionClosed() {
     if (!this.closed) {
       // We haven't been explicitly closed, so we should reopen the channel
       this.logger.warn('Client was closed unexpectedly... reconnecting');
@@ -144,12 +145,12 @@ export abstract class RabbitmqClient {
     const newChannel = await this.connection.createChannel();
     newChannel.on('close', (err?) => { this.handleChannelClosed(err); });
     newChannel.on('error', (err) => { this.handleChannelError(err); });
-
     this.channel = newChannel;
+    this.logger.info(`RabbitMQ channel opened`);
     this.channelReady();
   }
 
-  protected async recreateClient() {
+  protected async recreateChannel() {
     let attempts = 0;
     while (attempts < this.getMaxConnectionAttempts()) {
       try {
@@ -158,6 +159,10 @@ export abstract class RabbitmqClient {
         return;
       } catch (e) {
         this.logger.error(e, 'Failed channel re-creation attempt');
+        if (e.message.search(/Connection closed/gi) !== -1) {
+          this.logger.error(`Cannot recreate channel on closed connection`);
+          return;
+        }
       }
     }
     this.logger.error(`Couldn't re-create channel after ${this.getMaxConnectionAttempts()} attempts`);
@@ -169,14 +174,14 @@ export abstract class RabbitmqClient {
 
   protected handleChannelError(err) {
     this.logger.error(err, 'Channel error, recreating channel');
-    this.recreateClient();
+    this.recreateChannel();
   }
 
   protected handleChannelClosed(err?) {
     if (!this.closed) {
       // We haven't been explicitly closed, so we should reopen the channel
       this.logger.warn('Channel was closed unexpectedly... recreating');
-      this.recreateClient();
+      this.recreateChannel();
     }
   }
 
