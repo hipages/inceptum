@@ -1,6 +1,8 @@
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import { initializeMiddleware } from 'swagger-tools';
+import { JwtTokenClient } from '../jwt/JwtTokenClient';
+import { UnauthorizedError } from '../web/errors/UnauthorizedError';
 
 export default class SwaggerMetadataMiddleware {
   swagger: object;
@@ -34,18 +36,35 @@ export default class SwaggerMetadataMiddleware {
       throw e1;
     }
   }
+
+  jwtHandler(req, authOrSecDef, scopesOrApiKey, callback) {
+    const jwt = new JwtTokenClient();
+    try {
+      const token = jwt.verify(scopesOrApiKey);
+      if (token !== null) {
+        req.decodedToken = token.payload;
+        return callback();
+      }
+    } catch (e) {
+      return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
+    }
+    return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
+}
+
   register(expressApp): Promise<void> {
     return new Promise<void>((resolve) => {
       initializeMiddleware(this.swagger, (swaggerTools) => {
         // logger.debug('Adding swagger middleware');
         const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
         const swaggerValidatorFunc = swaggerTools.swaggerValidator();
+        const swaggerSecurityFunc = swaggerTools.swaggerSecurity({jwt: this.jwtHandler});
         expressApp.use((req, res, next) => {
           swaggerMetadataFunc(req, res, (err) => {
             if (err) { return next(err); }
             return next();
           });
         });
+        expressApp.use(swaggerSecurityFunc);
         expressApp.use(swaggerValidatorFunc);
         // logger.debug('Adding swagger middleware - Done');
         resolve();
