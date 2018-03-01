@@ -12,7 +12,11 @@ export interface RabbitmqClientConfig {
   mgtHttpHost: string,
   mgtHttpPort: number,
   mgtHttpTheme: string,
+  maxConnectionAttempts?: number,
+  exitOnIrrecoverableReconnect?: boolean,
 }
+
+export const DEFAULT_MAX_CONNECTION_ATTEMPTS = 3;
 
 export interface RabbitmqProducerConfig {
   exchangeName: string,

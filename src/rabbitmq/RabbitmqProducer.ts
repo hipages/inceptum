@@ -1,6 +1,9 @@
 import { connect, Connection, Channel } from 'amqplib';
+import { LogManager } from '../log/LogManager';
 import { RabbitmqProducerConfig, RabbitmqBackPressureStrategy, RabbitmqClientConfig } from './RabbitmqConfig';
 import { PublishOptions, RabbitmqClient } from './RabbitmqClient';
+
+const logger = LogManager.getLogger(__filename);
 
 export class RabbitmqProducer extends RabbitmqClient {
     protected producerConfig: RabbitmqProducerConfig;
@@ -12,6 +15,7 @@ export class RabbitmqProducer extends RabbitmqClient {
             super(clientConfig, name);
             this.producerConfig = {...producerConfig};
             this.producerConfig.backPressureStrategy = producerConfig.backPressureStrategy || RabbitmqBackPressureStrategy.ERROR;
+            this.logger = logger;
     }
 
     /**
