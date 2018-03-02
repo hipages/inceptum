@@ -30,11 +30,13 @@ export default class MetricsPlugin implements Plugin {
     const context = app.getContext();
     const mainExpress: e.Express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
 
-    mainExpress.use(promBundle({
-      includeMethod: true,
-      buckets: [0.5, 0.75, 0.9, 0.99],
-      autoregister: false,
-    }));
+    if (mainExpress) {
+      mainExpress.use(promBundle({
+        includeMethod: true,
+        buckets: [0.5, 0.75, 0.9, 0.99],
+        autoregister: false,
+      }));
+    }
 
     const adminExpress: e.Express = pluginContext.get(AdminPortPlugin.CONTEXT_APP_KEY);
     if (adminExpress) {
