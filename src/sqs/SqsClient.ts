@@ -24,6 +24,7 @@ export class SqsClient {
   constructor(config: SqsClientConfigObject, name: string) {
     this.name = name;
 
+    // tslint:disable-next-line
     this.configuration = Object.assign(
         {},
         {

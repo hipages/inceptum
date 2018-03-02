@@ -55,6 +55,7 @@ export class SqsWorker {
   constructor(configuration: SqsWorkerConfigObject, name: string) {
     this.name = name;
 
+    // tslint:disable-next-line
     this.configuration = Object.assign(
         {},
         {
@@ -68,6 +69,7 @@ export class SqsWorker {
 
 
   initialise() {
+    // tslint:disable-next-line
     const conf = Object.assign(
         {},
         this.configuration,

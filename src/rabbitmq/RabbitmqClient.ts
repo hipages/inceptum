@@ -127,6 +127,7 @@ export abstract class RabbitmqClient {
         }
       }
       this.logger.error(`Couldn't reconnect after ${this.getMaxConnectionAttempts()} attempts`);
+      // tslint:disable-next-line
       if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
         this.logger.error('Cowardly refusing to continue. Calling shutdown function');
         this.shutdownFunction();
@@ -167,6 +168,7 @@ export abstract class RabbitmqClient {
       }
     }
     this.logger.error(`Couldn't re-create channel after ${this.getMaxConnectionAttempts()} attempts`);
+    // tslint:disable-next-line
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
       this.logger.error('Cowardly refusing to continue. Calling shutdown function');
       this.shutdownFunction();

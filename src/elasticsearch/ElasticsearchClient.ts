@@ -16,6 +16,7 @@ export class ElasticsearchClient {
 
     constructor(name: string, config: ElasticsearchClientConfigObject) {
         this.name = name;
+        // tslint:disable-next-line
         this.configuration = Object.assign({}, config);
     }
 
