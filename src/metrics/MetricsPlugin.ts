@@ -37,6 +37,7 @@ export default class MetricsPlugin implements Plugin {
   }
 
   didStop() {
+    prometheus.register.clear();
     if (this.prometheusTimer) {
       Logger.info('Shutting down prometheus interval');
       clearInterval(this.prometheusTimer);
