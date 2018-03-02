@@ -1,4 +1,4 @@
-import * as elasticsearch from 'elasticsearch';
+import * as Elasticsearch from 'elasticsearch';
 
 export interface ElasticsearchClientConfigObject {
     hosts?: any,
@@ -12,7 +12,7 @@ export class ElasticsearchClient {
     public name: string;
     public configuration: ElasticsearchClientConfigObject;
 
-    private connection: elasticsearch.Client;
+    private connection: Elasticsearch.Client;
 
     constructor(name: string, config: ElasticsearchClientConfigObject) {
         this.name = name;
@@ -20,7 +20,7 @@ export class ElasticsearchClient {
     }
 
     initialise() {
-        this.connection = new elasticsearch.Client(this.configuration);
+        this.connection = new Elasticsearch.Client(this.configuration);
     }
 
     getClientConfiguration() {

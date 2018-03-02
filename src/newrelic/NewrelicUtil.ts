@@ -19,6 +19,7 @@ export abstract class NewRelic {
   abstract getTransaction();
   abstract addCustomAttributes(attributes: {});
   abstract addCustomAttribute(name: string, value: string | number);
+  abstract recordMetric(name: string);
 }
 
 export class NewrelicUtil {
