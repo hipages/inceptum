@@ -52,12 +52,12 @@ export interface CallSite {
 }
 
 export class ExtendedError extends Error {
-  cause: Error;
+  causingError: Error;
   structuredStackTrace: Array<CallSite>;
   constructor(message: string, cause?: Error) {
     super(message);
     this.name = this.constructor.name;
-    this.cause = cause;
+    this.causingError = cause;
   }
   getStructuredStackTrace(): Array<CallSite> {
     if (this.stack.length === 0) {
@@ -65,8 +65,8 @@ export class ExtendedError extends Error {
     }
     return this.structuredStackTrace;
   }
-  getCause(): Error {
-    return this.cause;
+  cause(): Error {
+    return this.causingError;
   }
 }
 
