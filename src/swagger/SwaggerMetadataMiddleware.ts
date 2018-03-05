@@ -42,7 +42,7 @@ export default class SwaggerMetadataMiddleware {
     try {
       const token = jwt.verify(scopesOrApiKey);
       if (token !== null) {
-        req.decodedToken = token.payload;
+        req.decodedToken = token;
         return callback();
       }
     } catch (e) {
