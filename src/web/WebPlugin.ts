@@ -1,6 +1,7 @@
 // tslint:disable:prefer-function-over-method
 import * as http from 'http';
 import * as e from 'express';
+import * as promBundle from 'express-prom-bundle';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
@@ -54,6 +55,12 @@ export default class WebPlugin implements Plugin {
     express.set('trust proxy', true); // stop redirecting to http internally https://expressjs.com/en/guide/behind-proxies.html
     pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
+
+    express.use(promBundle({
+      includeMethod: true,
+      buckets: [0.5, 0.75, 0.9, 0.99],
+      autoregister: false,
+    }));
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
     definition.withLazyLoading(false);
