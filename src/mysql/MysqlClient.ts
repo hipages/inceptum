@@ -1,5 +1,5 @@
 import * as mysql from 'mysql';
-import { Summary, Gauge, Counter, register } from 'prom-client';
+import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
 import { DBTransaction } from '../db/DBTransaction';
 import { ConnectionPool } from '../db/ConnectionPool';
 import { ConfigurationObject, PoolConfig } from '../db/ConfigurationObject';
@@ -100,11 +100,21 @@ const connectionsCounter = new Counter({
   help: 'Number of established connections in all time',
   labelNames: ['poolName'],
 });
-const durationsHistogram = new Summary({
+const acquireDurationsHistogram = new Histogram({
   name: 'db_pool_acquire_time',
   help: 'Time required to acquire a connection',
   labelNames: ['poolName'],
-  percentiles: [0.5, 0.75, 0.9, 0.99]});
+  buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3]});
+// const sqlExecutionDurationsHistogram = new Histogram({
+//   name: 'db_sql_execute_time',
+//   help: 'Time required to execute an SQL statement',
+//   labelNames: ['poolName', 'readonly'],
+//   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5]});
+const transactionExecutionDurationsHistogram = new Histogram({
+  name: 'db_transaction_execute_time',
+  help: 'Time required to execute a transaction',
+  labelNames: ['poolName', 'readonly'],
+  buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5]});
 
 class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnection> {
 
@@ -121,7 +131,7 @@ class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnect
     this.numConnections = connectionsCounter.labels(name);
     this.enqueueTimes = [];
     this.setupPool();
-    this.durationHistogram = durationsHistogram.labels(name);
+    this.durationHistogram = acquireDurationsHistogram.labels(name);
   }
 
   setupPool() {
@@ -257,6 +267,7 @@ export class MysqlClient extends DBClient {
     const transaction = TransactionManager.newTransaction(readonly);
     const mysqlTransaction = new MysqlTransaction(this, transaction);
 
+    const timer = transactionExecutionDurationsHistogram.labels(this.name, readonly ? 'true' : 'false').startTimer();
     try {
       await mysqlTransaction.begin();
       const resp = await func(mysqlTransaction);
@@ -267,6 +278,7 @@ export class MysqlClient extends DBClient {
       throw err;
     } finally {
       await mysqlTransaction.end();
+      timer();
     }
 
 
