@@ -1,5 +1,6 @@
 import { Channel } from 'amqplib';
 import * as stringify from 'json-stringify-safe';
+import { Counter, Histogram } from 'prom-client';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { RabbitmqClient } from './RabbitmqClient';
@@ -28,8 +29,32 @@ class NewrelichandlerWrapper extends RabbitmqConsumerHandler {
   }
 }
 
+const rabbitmqConsumeTime = new Histogram({
+  name: 'rabbitmq_consume_time',
+  help: 'Time required to consumer a messages from RabbitMQ',
+  labelNames: ['name'],
+  buckets: [0.003, 0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 5]});
+const rabbitmqConsumeErrorCounter = new Counter({
+  name: 'rabbitmq_consume_error_counter',
+  help: 'Number of errors encountered when consuming messages',
+  labelNames: ['name'],
+});
+const rabbitmqConsumeDLQCounter = new Counter({
+  name: 'rabbitmq_consume_to_dlq_counter',
+  help: 'Number of messages sent to the DLQ',
+  labelNames: ['name'],
+});
+const rabbitmqConsumeDelayedCounter = new Counter({
+  name: 'rabbitmq_consume_delayed_counter',
+  help: 'Number of messages sent to the delay queue',
+  labelNames: ['name'],
+});
 
 export class RabbitmqConsumer extends RabbitmqClient {
+  consumeFailuresDelayed: Counter.Internal;
+  consumeFailuresDLQ: Counter.Internal;
+  consumeFailures: Counter.Internal;
+  consumeDurationHistogram: Histogram.Internal;
   protected consumerConfig: RabbitmqConsumerConfig;
   protected messageHandler: RabbitmqConsumerHandler;
 
@@ -43,6 +68,11 @@ export class RabbitmqConsumer extends RabbitmqClient {
       this.consumerConfig = {...consumerConfig};
       this.consumerConfig.options = this.consumerConfig.options || {};
       this.logger = logger;
+      this.consumeDurationHistogram = rabbitmqConsumeTime.labels(name);
+      this.consumeFailures = rabbitmqConsumeErrorCounter.labels(name);
+      this.consumeFailuresDLQ = rabbitmqConsumeDLQCounter.labels(name);
+      this.consumeFailuresDelayed = rabbitmqConsumeDelayedCounter.labels(name);
+
   }
 
   async init(): Promise<void> {
@@ -70,15 +100,18 @@ export class RabbitmqConsumer extends RabbitmqClient {
   }
 
   async handleMessage(message: Message) {
+    const timer = this.consumeDurationHistogram.startTimer();
     try {
       await this.messageHandler.handle(message);
       this.channel.ack(message);
     } catch (e) {
       this.logger.error(e, 'failed to handle message');
+      this.consumeFailures.inc();
       NewrelicUtil.noticeError(e, message);
       const retriesCount = ++message.properties.headers.retriesCount;
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {
         // add to dlq
+        this.consumeFailuresDLQ.inc();
         try {
           this.sendMessageToDlq(message);
           this.channel.ack(message);
@@ -88,6 +121,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
           this.channel.nack(message);
         }
       } else {
+        this.consumeFailuresDelayed.inc();
         try {
           this.sendMessageToDelayedQueue(message, retriesCount, e);
           this.channel.ack(message);
@@ -98,6 +132,8 @@ export class RabbitmqConsumer extends RabbitmqClient {
           this.channel.nack(message);
         }
       }
+    } finally {
+      timer();
     }
   }
 
