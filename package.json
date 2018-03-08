@@ -36,7 +36,6 @@
   },
   "dependencies": {
     "@types/amqplib": "^0.5.5",
-    "@types/axios": "^0.14.0",
     "@types/bunyan": "1.8.0",
     "@types/elasticsearch": "^5.0.16",
     "@types/jsonwebtoken": "^7.2.5",
