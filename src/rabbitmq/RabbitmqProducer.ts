@@ -44,24 +44,29 @@ export class RabbitmqProducer extends RabbitmqClient {
         optionsPublish.headers = {
             retriesCount: 0,
         };
-        while (!this.channel.publish(this.producerConfig.exchangeName, routingKey, new Buffer(msg), optionsPublish)) {
-            if (this.producerConfig.backPressureStrategy === RabbitmqBackPressureStrategy.ERROR) {
-                throw new Error('Failed to publish message');
-            }
-            if (optionsPublish.headers.retriesCount >= 3) {
-                throw new Error('Failed to publish message after 3 attempts');
-            }
+        const timer = this.publishDurationHistogram.startTimer();
+        try {
+            while (!this.channel.publish(this.producerConfig.exchangeName, routingKey, new Buffer(msg), optionsPublish)) {
+                if (this.producerConfig.backPressureStrategy === RabbitmqBackPressureStrategy.ERROR) {
+                    throw new Error('Failed to publish message');
+                }
+                if (optionsPublish.headers.retriesCount >= 3) {
+                    throw new Error('Failed to publish message after 3 attempts');
+                }
 
-            this.publishFailures.inc();
-            optionsPublish.headers.retriesCount++;
+                this.publishFailures.inc();
+                optionsPublish.headers.retriesCount++;
 
-            this.logger.error(`publish failed. ====> ${msg}`);
-            await new Promise<void>((resolve: () => void, reject: () => void) => {
-                this.channel.once('drain', function() {
-                    this.logger.info(`drain event received. ====> ${msg}`);
-                    resolve();
+                this.logger.error(`publish failed. ====> ${msg}`);
+                await new Promise<void>((resolve: () => void, reject: () => void) => {
+                    this.channel.once('drain', function() {
+                        this.logger.info(`drain event received. ====> ${msg}`);
+                        resolve();
+                    });
                 });
-            });
+            }
+        } finally {
+            timer();
         }
 
         return true;
