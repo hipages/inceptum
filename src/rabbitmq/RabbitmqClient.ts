@@ -1,6 +1,7 @@
 import { connect, Connection, Channel } from 'amqplib';
 import { isFatalError } from 'amqplib/lib/connection';
 import { Logger } from '../log/LogManager';
+import { ExtendedError } from '../util/ErrorUtil';
 import { RabbitmqProducerConfig, RabbitmqClientConfig, DEFAULT_MAX_CONNECTION_ATTEMPTS } from './RabbitmqConfig';
 
 export interface PublishOptions {
@@ -96,12 +97,17 @@ export abstract class RabbitmqClient {
         // Do nothing... we tried to play nice
       }
     }
-    const newConnection = await connect(this.clientConfig);
-    newConnection.on('close', () => { this.handleConnectionClosed(); });
-    newConnection.on('error', (err) => { this.handleConnectionError(err); });
-    this.connection = newConnection;
-    this.logger.info('Connection established');
-    await this.createChannel();
+
+    try {
+      const newConnection = await connect(this.clientConfig);
+      newConnection.on('close', () => { this.handleConnectionClosed(); });
+      newConnection.on('error', (err) => { this.handleConnectionError(err); });
+      this.connection = newConnection;
+      this.logger.info('Connection established');
+      await this.createChannel();
+    } catch (e) {
+      throw new ExtendedError('Failed to create connection', e);
+    }
   }
 
   protected handleConnectionError(err?) {
@@ -144,12 +150,17 @@ export abstract class RabbitmqClient {
         // Do nothing... we tried to play nice
       }
     }
-    const newChannel = await this.connection.createChannel();
-    newChannel.on('close', (err?) => { this.handleChannelClosed(err); });
-    newChannel.on('error', (err) => { this.handleChannelError(err); });
-    this.channel = newChannel;
-    this.logger.info('Channel opened');
-    this.channelReady();
+
+    try {
+      const newChannel = await this.connection.createChannel();
+      newChannel.on('close', (err?) => { this.handleChannelClosed(err); });
+      newChannel.on('error', (err) => { this.handleChannelError(err); });
+      this.channel = newChannel;
+      this.logger.info('Channel opened');
+      this.channelReady();
+    } catch (e) {
+      throw new ExtendedError('Failed to create channel', e);
+    }
   }
 
   protected async recreateChannel() {
