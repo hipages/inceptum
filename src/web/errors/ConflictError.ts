@@ -6,7 +6,7 @@ import HttpError from '../HttpError';
  * This code is only allowed in situations where it is expected that the user might be able to resolve
  * the conflict and resubmit the request.
  */
-export class NotFoundError extends HttpError {
+export class ConflictError extends HttpError {
 
     constructor(message: string, cause?: Error) {
         super(409, message, cause);
