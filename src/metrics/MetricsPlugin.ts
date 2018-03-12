@@ -8,13 +8,19 @@ import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import AdminPortPlugin from '../web/AdminPortPlugin';
 import { LogManager } from '../log/LogManager';
 import WebPlugin from '../web/WebPlugin';
+import { OSMetrics, OSMetricsService, OSMetricNames } from './OSMetricsService';
 
 const Logger = LogManager.getLogger(__filename);
 
 export default class MetricsPlugin implements Plugin {
+  statsTimer: number;
+  loadStats: prometheus.Gauge;
+  cpuStats: prometheus.Counter;
+  lastMetrics: OSMetrics;
   name = 'MetricsPlugin';
 
   prometheusTimer: number;
+  osMetricsService = new OSMetricsService();
 
   getName() {
     return this.name;
@@ -25,6 +31,7 @@ export default class MetricsPlugin implements Plugin {
     prometheus.register.setDefaultLabels({app: app.getConfig('app.name', 'not_set')});
     const startGcStats = gcStats();
     startGcStats();
+    this.registerOSMetrics(app);
 
     const context = app.getContext();
     const adminExpress: e.Express = pluginContext.get(AdminPortPlugin.CONTEXT_APP_KEY);
@@ -37,7 +44,49 @@ export default class MetricsPlugin implements Plugin {
     }
   }
 
+  registerOSMetrics(app: BaseApp) {
+    if (app.getConfig('metrics.osmetrics.enabled', 'true') !== 'false') {
+      this.lastMetrics = this.osMetricsService.getOSMetrics();
+      if (this.lastMetrics.user !== undefined) {
+        // We're able to collect cpu stats. Let's register this Counter
+        this.cpuStats = new prometheus.Counter({
+          name: 'proc_cpu',
+          help: 'CPU stats from the OS',
+          labelNames: ['type'],
+        });
+      } else {
+        Logger.info('Can\'t collect cpu stats (this OS doesn\'t have procfs mounted!. Skipping');
+      }
+      if (this.lastMetrics.load1 !== undefined) {
+        // We're able to collect load stats. Let's register this Gauge
+        this.loadStats = new prometheus.Gauge({
+          name: 'proc_load',
+          help: 'Load information',
+          labelNames: ['period'],
+        });
+      } else {
+        Logger.info('Can\'t collect load average stats (this OS doesn\'t have procfs mounted!. Skipping');
+      }
+      const interval = app.getConfig('metrics.osmetrics.refreshMillis', 20000);
+      this.statsTimer = setInterval(() => {this.pushStats();}, typeof interval === 'string' ? parseInt(interval, 10) : interval);
+    }
+  }
+
+  pushStats() {
+    const newStats = this.osMetricsService.getOSMetrics();
+    OSMetricNames.forEach((name) => this.pushIndividualStat(name, newStats));
+  }
+
+  pushIndividualStat(name: string, newStats: OSMetrics): void {
+    if (newStats[name] !== undefined && this.cpuStats[name] !== undefined) {
+      this.cpuStats.inc({type: name}, newStats[name] - this.cpuStats[name]);
+    }
+  }
+
   didStop() {
+    if (this.statsTimer) {
+      clearInterval(this.statsTimer);
+    }
     prometheus.register.clear();
     if (this.prometheusTimer) {
       Logger.info('Shutting down prometheus interval');
