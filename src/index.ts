@@ -6,9 +6,12 @@ export { BaseSingletonDefinition } from './ioc/objectdefinition/BaseSingletonDef
 export { InceptumApp } from './app/InceptumApp';
 export * from './log/LogManager';
 export { ExtendedError } from './util/ErrorUtil';
-export { ForbiddenError } from './web/errors/ForbiddenError';
 export { BadRequestError } from './web/errors/BadRequestError';
 export { UnauthorizedError } from './web/errors/UnauthorizedError';
+export { ForbiddenError } from './web/errors/ForbiddenError';
+export { NotFoundError } from './web/errors/NotFoundError';
+export { ConflictError } from './web/errors/ConflictError';
+export { UnprocessableEntityError } from './web/errors/UnprocessableEntityError';
 export { DBClient } from './db/DBClient';
 export { DBTransaction } from './db/DBTransaction';
 export { SqsHandler } from './sqs/SqsWorker';
