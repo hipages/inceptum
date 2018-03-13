@@ -91,7 +91,7 @@ export default class MetricsPlugin implements Plugin {
 
   pushIndividualLoadStat(name: string, newStats: OSMetrics): void {
     if (newStats[name] !== undefined && this.lastMetrics[name] !== undefined) {
-      this.loadStats.set({type: name}, newStats[name]);
+      this.loadStats.set({period: name}, newStats[name]);
     }
   }
 
