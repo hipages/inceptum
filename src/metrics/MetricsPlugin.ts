@@ -8,7 +8,7 @@ import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import AdminPortPlugin from '../web/AdminPortPlugin';
 import { LogManager } from '../log/LogManager';
 import WebPlugin from '../web/WebPlugin';
-import { OSMetrics, OSMetricsService, OSMetricNames } from './OSMetricsService';
+import { OSMetrics, OSMetricsService, CPUOSMetricNames, LoadOSMetricNames } from './OSMetricsService';
 
 const Logger = LogManager.getLogger(__filename);
 
@@ -74,12 +74,24 @@ export default class MetricsPlugin implements Plugin {
 
   pushStats() {
     const newStats = this.osMetricsService.getOSMetrics();
-    OSMetricNames.forEach((name) => this.pushIndividualStat(name, newStats));
+    if (this.cpuStats) {
+      CPUOSMetricNames.forEach((name) => this.pushIndividualCPUStat(name, newStats));
+    }
+    if (this.loadStats) {
+      LoadOSMetricNames.forEach((name) => this.pushIndividualLoadStat(name, newStats));
+    }
+    this.lastMetrics = newStats;
   }
 
-  pushIndividualStat(name: string, newStats: OSMetrics): void {
-    if (newStats[name] !== undefined && this.cpuStats[name] !== undefined) {
-      this.cpuStats.inc({type: name}, newStats[name] - this.cpuStats[name]);
+  pushIndividualCPUStat(name: string, newStats: OSMetrics): void {
+    if (newStats[name] !== undefined && this.lastMetrics[name] !== undefined) {
+      this.cpuStats.inc({type: name}, newStats[name] - this.lastMetrics[name]);
+    }
+  }
+
+  pushIndividualLoadStat(name: string, newStats: OSMetrics): void {
+    if (newStats[name] !== undefined && this.lastMetrics[name] !== undefined) {
+      this.loadStats.set({type: name}, newStats[name]);
     }
   }
 

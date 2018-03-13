@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import { LogManager } from '../log/LogManager';
 
-export const OSMetricNames = [ 'load15', 'load5', 'load1', 'ctxtSwaps', 'steal', 'softirq', 'irq', 'iowait', 'idle', 'system', 'nice', 'user' ];
+export const CPUOSMetricNames = [ 'ctxtSwaps', 'steal', 'softirq', 'irq', 'iowait', 'idle', 'system', 'nice', 'user' ];
+export const LoadOSMetricNames = [ 'load15', 'load5', 'load1' ];
 
 export class OSMetrics {
   load15: number;
@@ -37,6 +38,7 @@ export class OSMetricsService {
 
   readCPUStat(oSMetrics: OSMetrics): void {
     const fileContent = this.procStatContentReader();
+    // logger.debug(`Got ${PROC_STAT}: ${fileContent}`);
     this.parseCPUStatFile(fileContent, oSMetrics);
   }
 
@@ -49,6 +51,7 @@ export class OSMetricsService {
 
   readLoadAvg(oSMetrics: OSMetrics): void {
     const fileContent = this.procLoadAvgContentReader();
+    // logger.debug(`Got ${PROC_LOADAVG}: ${fileContent}`);
     this.parseLoadAvgFile(fileContent, oSMetrics);
   }
 
