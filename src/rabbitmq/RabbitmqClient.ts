@@ -31,6 +31,7 @@ export interface ConsumeOptions {
   exclusive?: boolean,
   priority?: number,
   arguments?: any,
+  prefetch?: number,
 }
 
 export interface RepliesConsume {

@@ -91,6 +91,9 @@ export class RabbitmqConsumer extends RabbitmqClient {
    * Subscribe to a queue
    */
   async subscribe(queueName: string, consumeOptions: ConsumeOptions = {}): Promise<RepliesConsume> {
+    if (consumeOptions.prefetch && consumeOptions.prefetch > 0) {
+      this.channel.prefetch(consumeOptions.prefetch);
+    }
     return await this.channel.consume(
       queueName,
       (message: Message) => {
