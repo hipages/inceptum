@@ -181,6 +181,18 @@ class StringifyTransform extends stream.Transform {
   }
 }
 
+class ConsoleRawStream extends stream.Writable {
+  constructor() {
+    super({objectMode: true});
+  }
+  _write(rec: any, encoding: string, cb: Function): boolean {
+    if (rec.level < bunyan.WARN) {
+      return process.stdout.write(`${stringify(rec)}\n`, encoding, cb);
+    }
+    return process.stderr.write(`${stringify(rec)}\n`, encoding, cb);
+  }
+}
+
 export class LogManagerInternal {
   static setAppName;
   static getLogger;
@@ -325,6 +337,13 @@ export class LogManagerInternal {
           level,
           name: streamConfig.name,
         };
+      case 'json':
+          return {
+              type: 'raw',
+              stream: this.getUnderlyingStream(streamName),
+              closeOnExit: false,
+              level,
+          };
       case 'file':
         return {
           type: 'raw',
@@ -356,6 +375,13 @@ export class LogManagerInternal {
             const prettyStream = new PrettyStream();
             prettyStream.pipe(process.stdout);
             this.streamCache.set(streamName, prettyStream);
+          }
+          break;
+        case 'json':
+          {
+            const levelStringifyTransform = new LevelStringifyTransform();
+            levelStringifyTransform.pipe(new ConsoleRawStream());
+            this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
         case 'file':
