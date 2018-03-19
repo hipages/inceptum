@@ -216,7 +216,8 @@ export interface MySQLPoolConfig extends PoolConfig {
   /**
    * The number of requests to do during startup to warm up the pool of connections. This will happen during the StartUp phase of the
    * object. This means that it will increase the startup time. All the requests are fired in parallel so that the pool will request
-   * as many connections, instead of simply returning the same connection multiple times. (Default: 3 or connectionLimit, whichever is less)
+   * as many connections, instead of simply returning the same connection multiple times. (Default: 3 or connectionLimit, whichever is less).
+   * Use 0 to disable
    */
   warmupRequests?: number,
 }
