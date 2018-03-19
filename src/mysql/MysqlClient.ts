@@ -7,6 +7,7 @@ import { Transaction, TransactionManager } from '../transaction/TransactionManag
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { DBClient } from '../db/DBClient';
+import { StartMethod, StopMethod } from '../ioc/Decorators';
 
 const log = LogManager.getLogger(__filename);
 
@@ -212,6 +213,12 @@ export interface MySQLPoolConfig extends PoolConfig {
    */
   queueLimit?: number,
 
+  /**
+   * The number of requests to do during startup to warm up the pool of connections. This will happen during the StartUp phase of the
+   * object. This means that it will increase the startup time. All the requests are fired in parallel so that the pool will request
+   * as many connections, instead of simply returning the same connection multiple times. (Default: 3 or connectionLimit, whichever is less)
+   */
+  warmupRequests?: number,
 }
 
 export interface MySQLConfigurationObject extends ConfigurationObject<MySQLPoolConfig> {
@@ -222,8 +229,6 @@ export interface MySQLConfigurationObject extends ConfigurationObject<MySQLPoolC
  * A MySQL client you can use to execute queries against MySQL
  */
 export class MysqlClient extends DBClient {
-  static startMethod = 'initialise';
-  static stopMethod = 'shutdown';
 
   configuration: MySQLConfigurationObject;
   name: string;
@@ -242,16 +247,36 @@ export class MysqlClient extends DBClient {
     this.connectionPoolCreator = (config: MySQLPoolConfig) => new MetricsAwareConnectionPoolWrapper(mysql.createPool(config), this.name);
   }
   // configuration and name are two properties set by MysqlConfigManager
-  initialise() {
+  @StartMethod
+  async initialise() {
     this.enable57Mode = this.configuration.enable57Mode || false;
     if (this.configuration.master) {
       this.masterPool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.master));
+      if (this.configuration.master.warmupRequests && this.configuration.master.warmupRequests > 0) {
+        log.debug(`Warming up master connection pool for ${this.name} (${this.configuration.master.warmupRequests} requests)`);
+        await this.warmupPool(this.masterPool, this.configuration.master);
+      }
     }
     if (this.configuration.slave) {
       this.slavePool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.slave));
+      if (this.configuration.slave.warmupRequests && this.configuration.slave.warmupRequests > 0) {
+        log.debug(`Warming up slave connection pool for ${this.name} (${this.configuration.slave.warmupRequests} requests)`);
+        await this.warmupPool(this.slavePool, this.configuration.slave);
+      }
     }
     if (!this.masterPool && !this.slavePool) {
       throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
+    }
+  }
+
+  private async warmupPool(connectionPool: ConnectionPool<mysql.IConnection>, poolConfig: MySQLPoolConfig) {
+    if (poolConfig.warmupRequests && poolConfig.warmupRequests > 0) {
+      const effectiveNumber = poolConfig.warmupRequests <= poolConfig.connectionLimit ? poolConfig.warmupRequests : poolConfig.connectionLimit;
+      const requests = [];
+      for (let i = 0; i < effectiveNumber; i++) {
+        requests.push(getConnectionPromise(connectionPool));
+      }
+      await Promise.all(requests);
     }
   }
 
@@ -280,34 +305,13 @@ export class MysqlClient extends DBClient {
       await mysqlTransaction.end();
       timer();
     }
-
-
-    // return mysqlTransaction.begin()
-    //   .then(async () => await func(mysqlTransaction))
-    //   .catch((err) => {
-    //     log.error({ err }, 'There was an error running in transaction');
-    //     transaction.markError(err);
-    //     throw err;
-    //   })
-    //   .then(async (result) => {
-    //     await mysqlTransaction.end();
-    //     return result;
-    //   }, async (reason) => {
-    //     await mysqlTransaction.end();
-    //     throw reason;
-    //   });
-
-
-      // .finally((result) => {
-      //   mysqlTransaction.end();
-      //   return Promise.resolve(result); // TODO This weird?
-      // });
   }
 
   async read<T>(sql: string, ...binds: any[]): Promise<T[]> {
     return this.runInTransaction(true, (client) => client.query(sql, ...binds));
   }
 
+  @StopMethod
   shutdown() {
     if (this.masterPool) {
       this.masterPool.end();
@@ -329,6 +333,7 @@ export class MysqlClient extends DBClient {
       waitForConnections: true,
       queueLimit: 10,
       connectTimeout: 3000, // 3 seconds should be more than enough
+      warmupRequests: 3, // How many requests to do on startup so that the pool is a bit warm
     };
     Object.assign(full, partial);
     return full;
