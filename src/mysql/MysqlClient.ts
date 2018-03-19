@@ -279,7 +279,12 @@ export class MysqlClient extends DBClient {
       for (let i = 0; i < effectiveNumber; i++) {
         requests.push(getConnectionPromise(connectionPool));
       }
-      await Promise.all(requests);
+      const connections = await Promise.all(requests);
+      connections.forEach((connection) => {
+        if (connection) {
+          connection.release();
+        }
+      });
     }
   }
 
