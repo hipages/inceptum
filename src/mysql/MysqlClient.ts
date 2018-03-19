@@ -252,17 +252,19 @@ export class MysqlClient extends DBClient {
   async initialise() {
     this.enable57Mode = this.configuration.enable57Mode || false;
     if (this.configuration.master) {
-      this.masterPool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.master));
-      if (this.configuration.master.warmupRequests && this.configuration.master.warmupRequests > 0) {
-        log.debug(`Warming up master connection pool for ${this.name} (${this.configuration.master.warmupRequests} requests)`);
-        await this.warmupPool(this.masterPool, this.configuration.master);
+      const fullMasterConfig = this.getFullPoolConfig(this.configuration.master);
+      this.masterPool = this.connectionPoolCreator(fullMasterConfig);
+      if (fullMasterConfig.warmupRequests && fullMasterConfig.warmupRequests > 0) {
+        log.debug(`Warming up master connection pool for ${this.name} (${fullMasterConfig.warmupRequests} requests)`);
+        await this.warmupPool(this.masterPool, fullMasterConfig);
       }
     }
     if (this.configuration.slave) {
-      this.slavePool = this.connectionPoolCreator(this.getFullPoolConfig(this.configuration.slave));
-      if (this.configuration.slave.warmupRequests && this.configuration.slave.warmupRequests > 0) {
-        log.debug(`Warming up slave connection pool for ${this.name} (${this.configuration.slave.warmupRequests} requests)`);
-        await this.warmupPool(this.slavePool, this.configuration.slave);
+      const fullSlaveConfig = this.getFullPoolConfig(this.configuration.slave);
+      this.slavePool = this.connectionPoolCreator(fullSlaveConfig);
+      if (fullSlaveConfig.warmupRequests && fullSlaveConfig.warmupRequests > 0) {
+        log.debug(`Warming up slave connection pool for ${this.name} (${fullSlaveConfig.warmupRequests} requests)`);
+        await this.warmupPool(this.slavePool, fullSlaveConfig);
       }
     }
     if (!this.masterPool && !this.slavePool) {
