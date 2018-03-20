@@ -78,7 +78,9 @@ export class PostgresTransaction extends DBTransaction {
   }
 
   async doTransactionEnd(): Promise<void> {
-    this.connection.release();
+    if (this.connection) {
+      this.connection.release();
+    }
   }
 }
 
