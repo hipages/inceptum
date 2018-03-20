@@ -60,20 +60,18 @@ export class Transaction {
    * @return {Promise} A promise that executes all the callbacks necessary
    */
   async end(): Promise<void> {
-    if (!this.began) {
-      // console.log('Transaction never got started, so can\'t be finished');
-      throw new TransactionError('Transaction never got started, so can\'t be finished');
-    }
-    if (this.finished) {
-      // console.log('Transaction is already finished');
-      throw new TransactionError('Transaction is already finished');
-    }
-    this.finished = true;
-    if (this.error) {
-      // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
-      await this.callListeners(this.rollbackListeners);
-    } else {
-      await this.callListeners(this.commitListeners);
+    if (this.began) {
+      if (this.finished) {
+        // console.log('Transaction is already finished');
+        throw new TransactionError('Transaction is already finished');
+      }
+      this.finished = true;
+      if (this.error) {
+        // console.log(`Emitting rollback for ${this.error} ${this.error.stack}`);
+        await this.callListeners(this.rollbackListeners);
+      } else {
+        await this.callListeners(this.commitListeners);
+      }
     }
     await this.callListeners(this.endListeners);
   }
