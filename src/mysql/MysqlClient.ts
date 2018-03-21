@@ -190,7 +190,7 @@ export class MysqlClient extends DBClient {
       const effectiveNumber = poolConfig.warmupRequests <= poolConfig.connectionLimit ? poolConfig.warmupRequests : poolConfig.connectionLimit;
       const requests = [];
       for (let i = 0; i < effectiveNumber; i++) {
-        connectionPool.getConnection().then(conn => conn.release());
+        connectionPool.getConnection().then((conn) => conn.release());
       }
       await Promise.all(requests);
     }

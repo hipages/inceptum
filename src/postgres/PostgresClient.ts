@@ -24,19 +24,6 @@ export class PostgresTransaction extends DBTransaction {
   }
 
   // tslint:disable-next-line:prefer-function-over-method
-  private getConnectionPromise(connectionPool: ConnectionPool<pg.Client>): Promise<pg.Client> {
-    return new Promise<any>((resolve, reject) => {
-      connectionPool.getConnection((err, connection) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(connection);
-        }
-      });
-    });
-  }
-
-
   // tslint:disable-next-line:prefer-function-over-method
   runQueryOnPool(connection: pg.Client, sql: string, bindsArr: Array<any>): Promise<any> {
     log.debug(`sql: ${sql} ${(bindsArr && (bindsArr.length > 0)) ? `| ${bindsArr}` : ''}`);
@@ -57,8 +44,9 @@ export class PostgresTransaction extends DBTransaction {
 
   protected async runQueryPrivate(sql: string, bindsArr: any[]): Promise<any> {
     if (!this.connection) {
+      const pool = this.postgresClient.getConnectionPoolForReadonly(this.transaction.isReadonly());
       // tslint:disable-next-line:no-invalid-this
-      this.connection = await this.getConnectionPromise(this.postgresClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
+      this.connection = await pool.getConnection();
     }
     return await this.runQueryOnPool(this.connection, `/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr);
   }
@@ -100,10 +88,8 @@ class PostgresConnectionPool implements ConnectionPool<pg.Client> {
   end() {
     return this.instance.end();
   }
-  getConnection(cb) {
-    this.instance.connect((err, connection) => {
-      cb(err, connection);
-    });
+  async getConnection() {
+    return this.instance.connect();
   }
 }
 
