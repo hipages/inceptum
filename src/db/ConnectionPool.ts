@@ -1,6 +1,6 @@
 
 
 export interface ConnectionPool<T> {
-  getConnection(cb: (err: Error, connection: T) => void): void,
+  getConnection(): Promise<T>,
   end(): void,
 }

@@ -8,20 +8,10 @@ import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { DBClient } from '../db/DBClient';
 import { StartMethod, StopMethod } from '../ioc/Decorators';
+import MysqlConnectionPool from './MysqlConnectionPool';
 
 const log = LogManager.getLogger(__filename);
 
-function getConnectionPromise(connectionPool: ConnectionPool<mysql.IConnection>): Promise<mysql.IConnection> {
-  return new Promise<any>((resolve, reject) => {
-    connectionPool.getConnection((err, connection) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(connection);
-      }
-    });
-  });
-}
 
 export class MysqlTransaction extends DBTransaction {
   mysqlClient: MysqlClient;
@@ -44,7 +34,6 @@ export class MysqlTransaction extends DBTransaction {
     if (!Array.isArray(bindsArr)) {
       bindsArr = [];
     }
-
     return new Promise<any>((resolve, reject) =>
       this.connection.query(sql, bindsArr, (err, rows) => {
         if (err) {
@@ -56,21 +45,13 @@ export class MysqlTransaction extends DBTransaction {
     );
   }
 
-  protected runQueryPrivate(sql: string, bindsArr: any[]): Promise<any> {
-    return PromiseUtil.try(() => {
-      // tslint:disable-next-line:no-invalid-this
-      if (!this.connection) {
-        // tslint:disable-next-line:no-invalid-this
-        return getConnectionPromise(this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly()));
-      }
-      // tslint:disable-next-line:no-invalid-this
-      return this.connection;
-    })
-    // tslint:disable-next-line:no-invalid-this
-    .then((connection) => { this.connection = connection; return connection; })
-    // tslint:disable-next-line:no-invalid-this
-    .then((connection) => this.runQueryOnPool(`/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr));
-  }
+  protected async runQueryPrivate(sql: string, bindsArr: any[]): Promise<any> {
+    if (!this.connection) {
+      const pool  = this.mysqlClient.getConnectionPoolForReadonly(this.transaction.isReadonly());
+      this.connection = await pool.getConnection();
+    }
+    return this.runQueryOnPool(`/* Transaction Id ${this.transaction.id} */ ${sql}`, bindsArr);
+}
 
 
   public runQueryAssocPrivate(sql: string, bindsObj: object): Promise<any> {
@@ -93,81 +74,11 @@ export class MysqlTransaction extends DBTransaction {
   }
 }
 
-const activeGauge = new Gauge({
-  name: 'db_pool_active_connections',
-  help: 'Number of active connections in the pool',
-  labelNames: ['poolName'],
-});
-const connectionsCounter = new Counter({
-  name: 'db_pool_connections',
-  help: 'Number of established connections in all time',
-  labelNames: ['poolName'],
-});
-const acquireDurationsHistogram = new Histogram({
-  name: 'db_pool_acquire_time',
-  help: 'Time required to acquire a connection',
-  labelNames: ['poolName'],
-  buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3]});
-// const sqlExecutionDurationsHistogram = new Histogram({
-//   name: 'db_sql_execute_time',
-//   help: 'Time required to execute an SQL statement',
-//   labelNames: ['poolName', 'readonly'],
-//   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5]});
 const transactionExecutionDurationsHistogram = new Histogram({
   name: 'db_transaction_execute_time',
   help: 'Time required to execute a transaction',
   labelNames: ['poolName', 'readonly'],
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5]});
-
-class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnection> {
-
-  instance: mysql.IPool;
-  active: Gauge.Internal;
-  numConnections: Counter.Internal;
-  enqueueTimes: Array<number>;
-  durationHistogram: Summary.Internal; // todo
-  config: MySQLPoolConfig;
-
-  constructor(instance: mysql.IPool, name: string) {
-    this.instance = instance;
-    this.active = activeGauge.labels(name);
-    this.numConnections = connectionsCounter.labels(name);
-    this.enqueueTimes = [];
-    this.setupPool();
-    this.durationHistogram = acquireDurationsHistogram.labels(name);
-  }
-
-  setupPool() {
-    const self = this;
-    if (this.instance.on) {
-      this.instance.on('acquire', () => {
-        self.active.inc();
-        if (this.enqueueTimes.length > 0) {
-          const start = this.enqueueTimes.shift();
-          self.registerWaitTime(Date.now() - start);
-        }
-      });
-      this.instance.on('connection', () => { self.numConnections.inc(); });
-      this.instance.on('enqueue', () => {
-        self.enqueueTimes.push(Date.now());
-      });
-      this.instance.on('release', () => {
-        self.active.dec();
-      });
-    }
-  }
-  registerWaitTime(duration) {
-    this.durationHistogram.observe(duration);
-  }
-  end() {
-    return this.instance.end();
-  }
-  getConnection(cb) {
-    this.instance.getConnection((err, connection) => {
-      cb(err, connection);
-    });
-  }
-}
 
 export interface MySQLPoolConfig extends PoolConfig {
 
@@ -247,7 +158,7 @@ export class MysqlClient extends DBClient {
     this.masterPool = null;
     this.slavePool = null;
     this.enable57Mode = false;
-    this.connectionPoolCreator = (config: MySQLPoolConfig) => new MetricsAwareConnectionPoolWrapper(mysql.createPool(config), this.name);
+    this.connectionPoolCreator = (config: MySQLPoolConfig) => new MysqlConnectionPool(config, this.name);
   }
   // configuration and name are two properties set by MysqlConfigManager
   @StartMethod
@@ -279,14 +190,9 @@ export class MysqlClient extends DBClient {
       const effectiveNumber = poolConfig.warmupRequests <= poolConfig.connectionLimit ? poolConfig.warmupRequests : poolConfig.connectionLimit;
       const requests = [];
       for (let i = 0; i < effectiveNumber; i++) {
-        requests.push(getConnectionPromise(connectionPool));
+        connectionPool.getConnection().then(conn => conn.release());
       }
-      const connections = await Promise.all(requests);
-      connections.forEach((connection) => {
-        if (connection) {
-          connection.release();
-        }
-      });
+      await Promise.all(requests);
     }
   }
 
@@ -360,9 +266,10 @@ export class MysqlClient extends DBClient {
 
   async ping(readonly: boolean): Promise<void> {
     log.debug('Doing ping');
-    const connection = await getConnectionPromise(this.getConnectionPoolForReadonly(readonly));
+    const pool = this.getConnectionPoolForReadonly(readonly);
+    const connection = await pool.getConnection();
     log.debug('Got connection for ping');
-    return await new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
+    return new Promise<void>((resolve, reject) => connection.query('SELECT 1', (err, res) => {
       log.debug('Result from select');
       connection.release();
       if (err) {
@@ -373,5 +280,3 @@ export class MysqlClient extends DBClient {
     }));
   }
 }
-
-// export const TestUtil = { runQueryOnPool };
