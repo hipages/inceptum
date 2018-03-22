@@ -61,7 +61,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
   constructor(
     clientConfig: RabbitmqClientConfig,
     name: string,
-    consumerConfig,
+    consumerConfig: RabbitmqConsumerConfig,
     handler: RabbitmqConsumerHandler) {
       super(clientConfig, name);
       this.messageHandler = newrelic ? new NewrelichandlerWrapper(handler) : handler;
@@ -78,7 +78,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
   async init(): Promise<void> {
     try {
       await super.init();
-      await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig.options);
+      await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig);
     } catch (e) {
       const c = { ...this.consumerConfig };
       this.logger.error(e, `failed to subscribe with config - ${c.toString()}`);
@@ -90,16 +90,16 @@ export class RabbitmqConsumer extends RabbitmqClient {
   /**
    * Subscribe to a queue
    */
-  async subscribe(queueName: string, consumeOptions: ConsumeOptions = {}): Promise<RepliesConsume> {
-    if (consumeOptions.prefetch && consumeOptions.prefetch > 0) {
-      this.channel.prefetch(consumeOptions.prefetch);
+  async subscribe(queueName: string, consumerConfig: RabbitmqConsumerConfig): Promise<RepliesConsume> {
+    if (consumerConfig.prefetch && consumerConfig.prefetch > 0) {
+      this.channel.prefetch(consumerConfig.prefetch);
     }
     return await this.channel.consume(
       queueName,
       (message: Message) => {
           this.handleMessage(message);
       },
-      consumeOptions);
+      consumerConfig.options);
   }
 
   async handleMessage(message: Message) {
