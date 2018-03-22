@@ -1,5 +1,6 @@
 import * as mysql from 'mysql';
 import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
+import { createPool, Pool, Factory, Options } from 'generic-pool';
 import { DBTransaction } from '../db/DBTransaction';
 import { ConnectionPool } from '../db/ConnectionPool';
 import { ConfigurationObject, PoolConfig } from '../db/ConfigurationObject';
@@ -119,53 +120,56 @@ const transactionExecutionDurationsHistogram = new Histogram({
   labelNames: ['poolName', 'readonly'],
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5]});
 
+
+class MySQLConnectionFactory implements Factory<mysql.IConnection> {
+  
+  async create(): Promise<mysql.IConnection> {
+    
+  }
+  destroy(client: mysql.IConnection): PromiseLike<undefined> {
+    throw new Error("Method not implemented.");
+  }
+  validate(client: mysql.IConnection): PromiseLike<boolean> {
+    throw new Error("Method not implemented.");
+  }
+}
+
 class MetricsAwareConnectionPoolWrapper implements ConnectionPool<mysql.IConnection> {
 
-  instance: mysql.IPool;
-  active: Gauge.Internal;
-  numConnections: Counter.Internal;
+  instance: Pool<mysql.IConnection>;
+  activeConnectionsGauge: Gauge.Internal;
+  establishedConnectionsCounter: Counter.Internal;
   enqueueTimes: Array<number>;
-  durationHistogram: Summary.Internal; // todo
+  acquireHistogram: Histogram.Internal; // todo
   config: MySQLPoolConfig;
 
-  constructor(instance: mysql.IPool, name: string) {
-    this.instance = instance;
-    this.active = activeGauge.labels(name);
-    this.numConnections = connectionsCounter.labels(name);
-    this.enqueueTimes = [];
-    this.setupPool();
-    this.durationHistogram = acquireDurationsHistogram.labels(name);
+  constructor(instance: Pool<mysql.IConnection>, name: string) {
+    this.instance = createPool(;
+    this.activeConnectionsGauge = activeGauge.labels(name);
+    this.establishedConnectionsCounter = connectionsCounter.labels(name);
+    this.acquireHistogram = acquireDurationsHistogram.labels(name);
   }
 
-  setupPool() {
-    const self = this;
-    if (this.instance.on) {
-      this.instance.on('acquire', () => {
-        self.active.inc();
-        if (this.enqueueTimes.length > 0) {
-          const start = this.enqueueTimes.shift();
-          self.registerWaitTime(Date.now() - start);
-        }
-      });
-      this.instance.on('connection', () => { self.numConnections.inc(); });
-      this.instance.on('enqueue', () => {
-        self.enqueueTimes.push(Date.now());
-      });
-      this.instance.on('release', () => {
-        self.active.dec();
-      });
+  async end() {
+    await this.instance.drain();
+    await this.instance.clear();
+  }
+
+  async release(connection: mysql.IConnection) {
+    this.activeConnectionsGauge.dec();
+    this.instance.release(connection);
+  }
+
+  async getConnection(): Promise<mysql.IConnection> {
+    const timer = this.acquireHistogram.startTimer();
+    try {
+      const conn = this.instance.acquire();
+      this.activeConnectionsGauge.inc();
+      conn['__lastUseTimer'] = this.u
+      return conn;
+    } finally {
+      timer();
     }
-  }
-  registerWaitTime(duration) {
-    this.durationHistogram.observe(duration);
-  }
-  end() {
-    return this.instance.end();
-  }
-  getConnection(cb) {
-    this.instance.getConnection((err, connection) => {
-      cb(err, connection);
-    });
   }
 }
 
