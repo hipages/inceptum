@@ -71,33 +71,37 @@ mysql:
 postgres:
   PostgresClient:
     master:
-      user: postgres
-      database: postgres
-      password:
-      port: 5432
-      host: localhost
-      max: 5
+      max: 10
       min: 1
-      refreshIdle: true
-      idleTimeoutMillis: 20000
-      # reapIntervalMillis: number;
-      # returnToHead?: boolean;
-      application_name: test
-      # Promise?: PromiseConstructorLik
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
+      connectionConfig:
+        host: localhost
+        port: 5432
+        user: postgres
+        password: 
+        database: postgres
+        application_name: test
     slave:
-      user: postgres
-      database: postgres
-      password:
-      port: 5432
-      host: localhost
-      max: 5
+      max: 10
       min: 1
-      refreshIdle: true
-      idleTimeoutMillis: 20000
-      # reapIntervalMillis: number;
-      # returnToHead?: boolean;
-      application_name: test
-      # Promise?: PromiseConstructorLik
+      maxWaitingClients: 10
+      testOnBorrow: false
+      acquireTimeoutMillis: 2000
+      evictionRunIntervalMillis: 30000
+      numTestsPerRun: 3
+      idleTimeoutMillis: 30000
+      connectionConfig:
+        host: localhost
+        port: 5432
+        user: postgres
+        password: 
+        database: postgres
+        application_name: test
 
 SqsWorker:
   myTestSqsWorker:
