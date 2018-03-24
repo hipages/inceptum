@@ -101,7 +101,7 @@ class PostgresConnectionFactory implements Factory<Client> {
   }
 
   async create(): Promise<Client> {
-    LOGGER.debug(`Creating new connection for pool ${this.name}`);
+    LOGGER.trace(`Creating new connection for pool ${this.name}`);
     const connection = new Client(this.connConfig);
     await new Promise<void>((resolve, reject) => connection.connect((err) => {
       if (err) {
@@ -113,7 +113,7 @@ class PostgresConnectionFactory implements Factory<Client> {
     return connection;
   }
   async destroy(connection: Client): Promise<undefined> {
-    LOGGER.debug(`Destroying connection for pool ${this.name}`);
+    LOGGER.trace(`Destroying connection for pool ${this.name}`);
     await new Promise<void>((resolve, reject) => connection.end((err) => {
       if (err) {
         reject(err);
@@ -124,7 +124,7 @@ class PostgresConnectionFactory implements Factory<Client> {
     return undefined;
   }
   validate(connection: Client): PromiseLike<boolean> {
-    LOGGER.debug(`Validating connection for pool ${this.name}`);
+    LOGGER.trace(`Validating connection for pool ${this.name}`);
     return new Promise<boolean>((resolve, reject) => {
       connection.query('SELECT 1', (err, results) => {
         if (err) {

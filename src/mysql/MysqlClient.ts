@@ -98,7 +98,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
   }
 
   async create(): Promise<mysql.IConnection> {
-    LOGGER.debug(`Creating new connection for pool ${this.name}`);
+    LOGGER.trace(`Creating new connection for pool ${this.name}`);
     const connection = mysql.createConnection(this.connConfig);
     await new Promise<void>((resolve, reject) => connection.connect((err) => {
       if (err) {
@@ -110,7 +110,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     return connection;
   }
   destroy(connection: mysql.IConnection): Promise<undefined> {
-    LOGGER.debug(`Destroying connection for pool ${this.name}`);
+    LOGGER.trace(`Destroying connection for pool ${this.name}`);
     return new Promise<undefined>((resolve, reject) => {
       connection.end((err) => {
         if (err) {
@@ -122,7 +122,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     });
   }
   validate(connection: mysql.IConnection): PromiseLike<boolean> {
-    LOGGER.debug(`Validating connection for pool ${this.name}`);
+    LOGGER.trace(`Validating connection for pool ${this.name}`);
     return new Promise<boolean>((resolve, reject) => {
       connection.query('SELECT 1', (err, results) => {
         if (err) {

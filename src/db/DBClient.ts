@@ -141,7 +141,7 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
   }
 
   async ping(readonly: boolean): Promise<void> {
-    LOGGER.debug('Doing ping');
+    LOGGER.trace('Doing ping');
     const pool = this.getPoolForReadonly(readonly);
     const dbTransaction = this.getNewDBTransaction(pool);
     await dbTransaction.runQueryWithoutTransaction(this.getPingQuery());
