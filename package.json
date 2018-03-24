@@ -38,6 +38,7 @@
     "@types/amqplib": "^0.5.5",
     "@types/bunyan": "1.8.0",
     "@types/elasticsearch": "^5.0.16",
+    "@types/generic-pool": "^3.1.2",
     "@types/jsonwebtoken": "^7.2.5",
     "@types/mocha": "^2.2.41",
     "@types/pg": "6.1.45",
