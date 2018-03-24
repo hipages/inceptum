@@ -40,9 +40,8 @@ export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
   testOnBorrow: false,
   acquireTimeoutMillis: 1000,
   evictionRunIntervalMillis: 30000,
-  numTestsPerRun: 3,
-  softIdleTimeoutMillis: 20000,
-  idleTimeoutMillis: 60000,
+  numTestsPerRun: 2,
+  idleTimeoutMillis: 30000,
 };
 
 /**
