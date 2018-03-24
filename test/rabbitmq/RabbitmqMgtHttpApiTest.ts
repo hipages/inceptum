@@ -6,7 +6,7 @@ import * as sinon from 'sinon';
 import * as config from 'config';
 import { RabbitmqMgtHttpApi } from '../../src/rabbitmq/RabbitmqMgtHttpApi';
 
-@suite
+@suite('rabbitmq/RabbitmqMgtHttpApi')
 class RabbitmqMgtHttpApiTest {
 
   protected axiosRequestStub;

@@ -49,7 +49,7 @@ async function promisify<T>(promiseLike: PromiseLike<T>): Promise<T> {
   return new Promise<T>((resolve, reject) => {promiseLike.then(resolve, reject);});
 }
 
-class InstrumentedFactory<T> implements Factory<T> {
+export class InstrumentedFactory<T> implements Factory<T> {
   connectErrorsCounter: Counter.Internal;
   connectTimeHistogram: Histogram.Internal;
   factory: Factory<T>;
@@ -127,7 +127,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
   private getGenericPoolOptions(): Options {
     return {
       acquireTimeoutMillis: this.options.acquireTimeoutMillis,
-      autostart: true,
+      autostart: false,
       evictionRunIntervalMillis: this.options.evictionRunIntervalMillis,
       fifo: false,
       idleTimeoutMillis: this.options.idleTimeoutMillis,
@@ -152,5 +152,8 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
   async stop() {
     await promisify(this.pool.drain());
     await promisify(this.pool.clear());
+  }
+  getOptions(): PoolConfig<CC> {
+    return {... this.options};
   }
 }
