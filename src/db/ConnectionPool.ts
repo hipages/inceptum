@@ -1,6 +1,42 @@
 import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
 import { createPool, Pool, Factory, Options } from 'generic-pool';
-import { PoolConfig, DEFAULT_CONNECTION_POOL_OPTIONS, ConnectionConfig } from './DBClient';
+
+/**
+ * Sensible defaults for the connection pool options
+ */
+export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
+  max: 10,
+  min: 2,
+  maxWaitingClients: 10,
+  testOnBorrow: false,
+  acquireTimeoutMillis: 1000,
+  evictionRunIntervalMillis: 30000,
+  numTestsPerRun: 2,
+  idleTimeoutMillis: 30000,
+};
+
+/**
+ * Base interface for the configuration information needed to create a new connection
+ */
+export interface ConnectionConfig {}
+
+/**
+ * Class for the config of a Pool.
+ * This class is not supposed to be extended, as the framework does not expose methods to override the creation of the
+ * connection pools.
+ */
+export interface PoolConfig<C extends ConnectionConfig> {
+  max?: number,
+  min?: number,
+  maxWaitingClients?: number,
+  testOnBorrow?: boolean,
+  acquireTimeoutMillis?: number,
+  evictionRunIntervalMillis?: number,
+  numTestsPerRun?: number,
+  softIdleTimeoutMillis?: number,
+  idleTimeoutMillis?: number,
+  connectionConfig?: C,
+}
 
 export abstract class ConnectionPool<T> {
   abstract getName(): string;
@@ -81,6 +117,12 @@ export class InstrumentedFactory<T> implements Factory<T> {
   }
 }
 
+enum PoolStatus {
+  NOT_STARTED,
+  STARTED,
+  STOPPED,
+}
+
 export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends ConnectionPool<C> {
   readonly: boolean;
   name: string;
@@ -90,6 +132,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
   pool: Pool<C>;
   acquireTimeHistogram: Histogram.Internal;
   options: PoolConfig<CC>;
+  private status = PoolStatus.NOT_STARTED;
 
   constructor(factory: Factory<C>, options: PoolConfig<CC>, name: string, readonly: boolean) {
     super();
@@ -111,6 +154,9 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     return this.readonly;
   }
   async getConnection(): Promise<C> {
+    if (this.status !== PoolStatus.STARTED) {
+      throw new Error(`Can't acquire connections from connection pool ${this.name}. The pool is not started`);
+    }
     const timer = this.acquireTimeHistogram.startTimer();
     try {
       const connection = await promisify(this.pool.acquire());
@@ -147,9 +193,20 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     this.pool.release(connection);
   }
   async start() {
+    if (this.status !== PoolStatus.NOT_STARTED) {
+      throw new Error(`Can't start a connection pool that isn't in NOT_STARTED state. Pool: ${this.name}, Current Status: ${this.status}`);
+    }
+    this.status = PoolStatus.STARTED;
     await this.pool['start']();
+    // The pool needs to get into a good state. Waiting a bit has proven a good solution.
+    await new Promise<void>((resolve) => setTimeout(resolve, 30));
   }
+
   async stop() {
+    if (this.status !== PoolStatus.STARTED) {
+      throw new Error(`Can't stop a connection pool that isn't in STARTED state. Pool: ${this.name}, Current Status: ${this.status}`);
+    }
+    this.status = PoolStatus.STOPPED;
     await promisify(this.pool.drain());
     await promisify(this.pool.clear());
   }

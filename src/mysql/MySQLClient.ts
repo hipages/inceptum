@@ -1,11 +1,11 @@
 import * as mysql from 'mysql';
 import { createPool, Pool, Factory, Options } from 'generic-pool';
 import { DBTransaction } from '../db/DBTransaction';
-import { ConnectionPool } from '../db/ConnectionPool';
+import { ConnectionPool, PoolConfig, ConnectionConfig } from '../db/ConnectionPool';
 import { Transaction } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
-import { DBClient, DBClientConfig, PoolConfig, ConnectionConfig } from '../db/DBClient';
+import { DBClient, DBClientConfig } from '../db/DBClient';
 
 const LOGGER = LogManager.getLogger(__filename);
 

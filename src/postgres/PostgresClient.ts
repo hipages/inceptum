@@ -1,8 +1,8 @@
 import { Client } from 'pg';
 import { Factory } from 'generic-pool';
-import { DBClient, ConnectionConfig, DBClientConfig } from '../db/DBClient';
+import { DBClient, DBClientConfig } from '../db/DBClient';
 import { DBTransaction } from '../db/DBTransaction';
-import { ConnectionPool } from '../db/ConnectionPool';
+import { ConnectionConfig, ConnectionPool } from '../db/ConnectionPool';
 import { Transaction } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';

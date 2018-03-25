@@ -2,47 +2,9 @@ import { createPool, Factory } from 'generic-pool';
 import { Transaction } from '../transaction/TransactionManager';
 import { LogManager } from '../log/LogManager';
 import { DBTransaction } from './DBTransaction';
-import { ConnectionPool, InstrumentedConnectionPool } from './ConnectionPool';
+import { ConnectionPool, InstrumentedConnectionPool, ConnectionConfig, PoolConfig } from './ConnectionPool';
 
 const LOGGER = LogManager.getLogger(__filename);
-
-
-/**
- * Base interface for the configuration information needed to create a new connection
- */
-export interface ConnectionConfig {}
-
-/**
- * Class for the config of a Pool.
- * This class is not supposed to be extended, as the framework does not expose methods to override the creation of the
- * connection pools.
- */
-export interface PoolConfig<C extends ConnectionConfig> {
-  max: number,
-  min: number,
-  maxWaitingClients: number,
-  testOnBorrow?: boolean,
-  acquireTimeoutMillis?: number,
-  evictionRunIntervalMillis?: number,
-  numTestsPerRun?: number,
-  softIdleTimeoutMillis?: number,
-  idleTimeoutMillis?: number,
-  connectionConfig?: C,
-}
-
-/**
- * Sensible defaults for the connection pool options
- */
-export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
-  max: 10,
-  min: 2,
-  maxWaitingClients: 10,
-  testOnBorrow: false,
-  acquireTimeoutMillis: 1000,
-  evictionRunIntervalMillis: 30000,
-  numTestsPerRun: 2,
-  idleTimeoutMillis: 30000,
-};
 
 /**
  * Configuration for a DBClient, this includes master and slave connection pool configurations.

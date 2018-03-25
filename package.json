@@ -96,7 +96,7 @@
     "mocha": "^2.5.3",
     "mocha-lcov-reporter": "^1.2.0",
     "mocha-typescript": "1.1.2",
-    "must": "^0.13.2",
+    "must": "^0.13.4",
     "nyc": "^11.1.0",
     "sinon": "1.17.7",
     "ts-mockito": "^2.2.7",
