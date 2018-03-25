@@ -57,9 +57,19 @@ const acquireErrorsCounter = new Counter({
   help: 'Number of times an acquire attempt fails',
   labelNames: ['poolName', 'readonly'],
 });
+const validateFailedCounter = new Counter({
+  name: 'db_pool_validate_failed_counter',
+  help: 'Number of times a validation fails',
+  labelNames: ['poolName', 'readonly'],
+});
 const activeGauge = new Gauge({
   name: 'db_pool_active_connections_gauge',
   help: 'Number of active connections in the pool',
+  labelNames: ['poolName', 'readonly'],
+});
+const totalGauge = new Gauge({
+  name: 'db_pool_total_connections_gauge',
+  help: 'Number of total connections in the pool',
   labelNames: ['poolName', 'readonly'],
 });
 const acquireTimeHistogram = new Histogram({
@@ -86,19 +96,25 @@ async function promisify<T>(promiseLike: PromiseLike<T>): Promise<T> {
 }
 
 export class InstrumentedFactory<T> implements Factory<T> {
+  validateFailedCounter: Counter.Internal;
   connectErrorsCounter: Counter.Internal;
   connectTimeHistogram: Histogram.Internal;
+  totalGauge: Gauge.Internal;
   factory: Factory<T>;
   constructor(factory: Factory<T>, name: string, readonly: boolean) {
     this.factory = factory;
     const labels = [name, readonly ? 'true' : 'false'];
     this.connectTimeHistogram = connectTimeHistogram.labels(...labels);
     this.connectErrorsCounter = connectErrorsCounter.labels(...labels);
+    this.totalGauge = totalGauge.labels(...labels);
+    this.validateFailedCounter = validateFailedCounter.labels(...labels);
   }
   async create(): Promise<T> {
     const timer = this.connectTimeHistogram.startTimer();
     try {
-      return await promisify(this.factory.create());
+      const connection = await promisify(this.factory.create());
+      this.totalGauge.inc();
+      return connection;
     } catch (e) {
       this.connectErrorsCounter.inc();
       throw e;
@@ -107,11 +123,19 @@ export class InstrumentedFactory<T> implements Factory<T> {
     }
   }
   async destroy(client: T): Promise<undefined> {
-    return await promisify(this.factory.destroy(client));
+    try {
+      return await promisify(this.factory.destroy(client));
+    } finally {
+      this.totalGauge.dec();
+    }
   }
   async validate(client: T): Promise<boolean> {
     if (this.factory.validate) {
-      return await promisify(this.factory.validate(client));
+      const resp = await promisify(this.factory.validate(client));
+      if (!resp) {
+        this.validateFailedCounter.inc();
+      }
+      return resp;
     }
     return true;
   }
