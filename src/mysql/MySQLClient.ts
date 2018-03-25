@@ -87,6 +87,9 @@ export class MySQLTransaction extends DBTransaction<mysql.IConnection> {
       }),
     );
   }
+  getTransactionBeginSQL(): string {
+    return (this.isReadonly()) ? 'START TRANSACTION READ ONLY' : 'START TRANSACTION READ WRITE';
+  }
 }
 
 class MySQLConnectionFactory implements Factory<mysql.IConnection> {
@@ -154,8 +157,8 @@ export class MySQLClient extends DBClient<mysql.IConnection, MySQLTransaction, M
     return new MySQLConnectionFactory(name, connectionConfig);
   }
 
-  getNewDBTransaction(connectionPool: ConnectionPool<mysql.IConnection>): MySQLTransaction {
-    return new MySQLTransaction(connectionPool);
+  getNewDBTransaction(readonly: boolean, connectionPool: ConnectionPool<mysql.IConnection>): MySQLTransaction {
+    return new MySQLTransaction(this.clientConfiguration.name, readonly, connectionPool);
   }
   getPingQuery(): string {
     return 'SELECT 1';

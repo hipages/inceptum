@@ -30,7 +30,7 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
     this.clientConfiguration = clientConfiguration;
   }
 
-  abstract getNewDBTransaction(connectionPool: ConnectionPool<C>): T;
+  abstract getNewDBTransaction(readonly: boolean, connectionPool: ConnectionPool<C>): T;
 
   abstract getDefaultConnectionConfig(): CC;
 
@@ -43,7 +43,7 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
    * @returns {Promise} A promise that will execute the whole transaction
    */
   async runInTransaction(readonly: boolean, func: (transaction: DBTransaction<C>) => Promise<any>): Promise<any> {
-    const dbTransaction = this.getNewDBTransaction(this.getPoolForReadonly(readonly));
+    const dbTransaction = this.getNewDBTransaction(readonly, this.getPoolForReadonly(readonly));
     try {
       await dbTransaction.begin();
       const resp = await func(dbTransaction);
@@ -106,7 +106,7 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
   async ping(readonly: boolean): Promise<void> {
     LOGGER.trace('Doing ping');
     const pool = this.getPoolForReadonly(readonly);
-    const dbTransaction = this.getNewDBTransaction(pool);
+    const dbTransaction = this.getNewDBTransaction(true, pool);
     await dbTransaction.runQueryWithoutTransaction(this.getPingQuery());
   }
 

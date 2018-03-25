@@ -1,5 +1,5 @@
 
-import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
+import { Summary, Gauge, Counter, register, Histogram, labelValues } from 'prom-client';
 import { Transaction } from '../transaction/TransactionManager';
 import { LogManager } from '../log/LogManager';
 import { ConnectionPool } from './ConnectionPool';
@@ -9,16 +9,21 @@ const LOGGER = LogManager.getLogger(__filename);
 const transactionExecutionDurationsHistogram = new Histogram({
   name: 'db_transaction_execute_time',
   help: 'Time required to execute a transaction',
-  labelNames: ['poolName', 'readonly'],
+  labelNames: ['clientName', 'readonly'],
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3, 1, 5],
 });
 const rolledBackTransactionsCounter = new Counter({
   name: 'db_transaction_rollback_counter',
   help: 'Number of times transactions have been rolled back',
-  labelNames: ['poolName', 'readonly'],
+  labelNames: ['clientName', 'readonly'],
 });
 
 export abstract class DBTransaction<C> {
+  protected timer: (labels?: labelValues) => void;
+  protected rolledBackTransactionsCounter: Counter.Internal;
+  protected transactionExecutionDurationsHistogram: Histogram.Internal;
+  protected clientName: string;
+  protected readonly: boolean;
   protected connectionPool: ConnectionPool<C>;
   protected connection: C;
   protected transaction: Transaction;
@@ -28,9 +33,14 @@ export abstract class DBTransaction<C> {
    *
    * @param transaction
    */
-  constructor(connectionPool: ConnectionPool<C>) {
+  constructor(clientName: string, readonly: boolean, connectionPool: ConnectionPool<C>) {
     this.transaction = new Transaction();
+    this.clientName = clientName;
+    this.readonly = readonly;
     this.connectionPool = connectionPool;
+    const labels = [clientName, readonly ? 'true' : 'false'];
+    this.transactionExecutionDurationsHistogram = transactionExecutionDurationsHistogram.labels(...labels);
+    this.rolledBackTransactionsCounter = rolledBackTransactionsCounter.labels(...labels);
   }
 
   /**
@@ -54,6 +64,7 @@ export abstract class DBTransaction<C> {
   }
 
   async begin(): Promise<void> {
+    this.timer = this.transactionExecutionDurationsHistogram.startTimer();
     await this.obtainConnection();
     await this.doTransactionBegin();
     this.transaction.begin();
@@ -119,6 +130,7 @@ export abstract class DBTransaction<C> {
 
   doTransactionRollback(): Promise<void> {
     this.rolledBack = true;
+    this.rolledBackTransactionsCounter.inc();
     return this.sanitizeAndRunQueryInConnection(this.getTransactionRollbackSQL());
   }
 
@@ -135,10 +147,20 @@ export abstract class DBTransaction<C> {
   }
 
   async end(): Promise<void> {
-    await this.transaction.end();
+    try {
+      await this.transaction.end();
+    } finally {
+      if (this.timer) {
+        this.timer();
+      }
+    }
   }
 
   public isRolledBack(): boolean {
     return this.rolledBack;
+  }
+
+  public isReadonly(): boolean {
+    return this.readonly;
   }
 }

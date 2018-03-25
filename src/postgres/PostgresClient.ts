@@ -149,8 +149,8 @@ export class PostgresClient extends DBClient<Client, PostgresTransaction, Postgr
     return new PostgresConnectionFactory(name, connectionConfig);
   }
 
-  getNewDBTransaction(connectionPool: ConnectionPool<Client>): PostgresTransaction {
-    return new PostgresTransaction(connectionPool);
+  getNewDBTransaction(readonly: boolean, connectionPool: ConnectionPool<Client>): PostgresTransaction {
+    return new PostgresTransaction(this.clientConfiguration.name, readonly, connectionPool);
   }
   getPingQuery(): string {
     return 'SELECT 1';
