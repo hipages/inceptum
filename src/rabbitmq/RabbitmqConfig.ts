@@ -1,3 +1,5 @@
+import { ConsumeOptions } from './RabbitmqClient';
+
 export enum RabbitmqBackPressureStrategy {
   ERROR,
   BLOCK,
@@ -31,5 +33,6 @@ export interface RabbitmqConsumerConfig {
   retryDelayInMinute: number,
   retryDelayFactor: number,
   messageHandler?: string,
-  options?: object,
+  prefetch?: number,
+  options?: ConsumeOptions,
 }
