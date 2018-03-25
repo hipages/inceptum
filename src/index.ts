@@ -13,6 +13,8 @@ export { NotFoundError } from './web/errors/NotFoundError';
 export { ConflictError } from './web/errors/ConflictError';
 export { UnprocessableEntityError } from './web/errors/UnprocessableEntityError';
 export { DBClient } from './db/DBClient';
+export { MySQLClient } from './mysql/MySQLClient';
+export { PostgresClient } from './postgres/PostgresClient';
 export { DBTransaction } from './db/DBTransaction';
 export { SqsHandler } from './sqs/SqsWorker';
 export { SwaggerPlugin } from './swagger/SwaggerPlugin';

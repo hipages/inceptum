@@ -7,7 +7,7 @@ export class Transaction {
   static idInc: number;
 
   id: number;
-  readonly: Boolean;
+  // readonly: Boolean;
   began: Boolean;
   finished: Boolean;
   error: Error;
@@ -15,9 +15,10 @@ export class Transaction {
   rollbackListeners: Array<(Transaction) => Promise<any>>;
   endListeners: Array<(Transaction) => Promise<any>>;
 
-  constructor(readonly: boolean) {
+  constructor() {
+  // constructor(readonly: boolean) {
     this.id = Transaction.idInc++;
-    this.readonly = readonly;
+    // this.readonly = readonly;
     this.began = false;
     this.finished = false;
     this.error = null;
@@ -76,12 +77,12 @@ export class Transaction {
     await this.callListeners(this.endListeners);
   }
 
-  canDo(readonly) {
-    return !this.readonly || readonly;
-  }
-  isReadonly() {
-    return this.readonly;
-  }
+  // canDo(readonly) {
+  //   return !this.readonly || readonly;
+  // }
+  // isReadonly() {
+  //   return this.readonly;
+  // }
 
   callListeners(listeners) {
     if (listeners && listeners.length > 0) {
@@ -99,9 +100,3 @@ export class Transaction {
 
 Transaction.idInc = 1;
 
-export class TransactionManager {
-
-  static newTransaction(readonly) {
-    return new Transaction(readonly);
-  }
-}

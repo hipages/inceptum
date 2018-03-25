@@ -1,11 +1,11 @@
-import { Client } from 'pg';
-import { Factory } from 'generic-pool';
-import { DBClient, DBClientConfig } from '../db/DBClient';
+import * as mysql from 'mysql';
+import { createPool, Pool, Factory, Options } from 'generic-pool';
 import { DBTransaction } from '../db/DBTransaction';
-import { ConnectionConfig, ConnectionPool } from '../db/ConnectionPool';
+import { ConnectionPool, PoolConfig, ConnectionConfig } from '../db/ConnectionPool';
 import { Transaction } from '../transaction/TransactionManager';
 import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
+import { DBClient, DBClientConfig } from '../db/DBClient';
 
 const LOGGER = LogManager.getLogger(__filename);
 
@@ -13,12 +13,7 @@ const LOGGER = LogManager.getLogger(__filename);
  * CONFIGURATION OBJECTS
  */
 
-export interface PostgresConnectionConfig extends ConnectionConfig {
-  /**
-   * number of milliseconds before a query will time out default is no timeout
-   */
-  statement_timeout?: number,
-
+export interface MySQLConnectionConfig extends ConnectionConfig {
   /**
    * The hostname of the database you are connecting to. (Default: localhost)
    */
@@ -75,10 +70,12 @@ export interface PostgresConnectionConfig extends ConnectionConfig {
   charset?: string,
 }
 
-export interface PostgresClientConfiguration extends DBClientConfig<PostgresConnectionConfig> {
+export interface MySQLClientConfiguration extends DBClientConfig<MySQLConnectionConfig> {
+  enable57Mode?: boolean,
 }
 
-export class PostgresTransaction extends DBTransaction<Client> {
+
+export class MySQLTransaction extends DBTransaction<mysql.IConnection> {
   protected runQueryInConnection(sql: string, bindsArr: Array<any>): Promise<any> {
     return new Promise<any>((resolve, reject) =>
       this.connection.query(sql, bindsArr, (err, rows) => {
@@ -92,17 +89,17 @@ export class PostgresTransaction extends DBTransaction<Client> {
   }
 }
 
-class PostgresConnectionFactory implements Factory<Client> {
+class MySQLConnectionFactory implements Factory<mysql.IConnection> {
   name: string;
-  connConfig: PostgresConnectionConfig;
-  constructor(name: string, connectionConfig: PostgresConnectionConfig) {
+  connConfig: mysql.IConnectionConfig;
+  constructor(name: string, connectionConfig: MySQLConnectionConfig) {
     this.connConfig = connectionConfig;
     this.name = name;
   }
 
-  async create(): Promise<Client> {
+  async create(): Promise<mysql.IConnection> {
     LOGGER.trace(`Creating new connection for pool ${this.name}`);
-    const connection = new Client(this.connConfig);
+    const connection = mysql.createConnection(this.connConfig);
     await new Promise<void>((resolve, reject) => connection.connect((err) => {
       if (err) {
         reject(err);
@@ -112,18 +109,19 @@ class PostgresConnectionFactory implements Factory<Client> {
     }));
     return connection;
   }
-  async destroy(connection: Client): Promise<undefined> {
+  destroy(connection: mysql.IConnection): Promise<undefined> {
     LOGGER.trace(`Destroying connection for pool ${this.name}`);
-    await new Promise<void>((resolve, reject) => connection.end((err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    }));
-    return undefined;
+    return new Promise<undefined>((resolve, reject) => {
+      connection.end((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
   }
-  validate(connection: Client): PromiseLike<boolean> {
+  validate(connection: mysql.IConnection): PromiseLike<boolean> {
     LOGGER.trace(`Validating connection for pool ${this.name}`);
     return new Promise<boolean>((resolve, reject) => {
       connection.query('SELECT 1', (err, results) => {
@@ -139,30 +137,39 @@ class PostgresConnectionFactory implements Factory<Client> {
 /**
  * A MySQL client you can use to execute queries against MySQL
  */
-export class PostgresClient extends DBClient<Client, PostgresTransaction, PostgresConnectionConfig, PostgresClientConfiguration> {
+export class MySQLClient extends DBClient<mysql.IConnection, MySQLTransaction, MySQLConnectionConfig, MySQLClientConfiguration> {
+  enable57Mode: boolean;
+
+  constructor(clientConfig: MySQLClientConfiguration) {
+    super(clientConfig);
+    this.enable57Mode = false;
+  }
 
   async initialise() {
+    this.enable57Mode = this.clientConfiguration.enable57Mode || false;
     await super.initialise();
   }
 
-  getConnectionFactory(name: string, connectionConfig: PostgresConnectionConfig): Factory<Client> {
-    return new PostgresConnectionFactory(name, connectionConfig);
+  getConnectionFactory(name: string, connectionConfig: MySQLConnectionConfig): Factory<mysql.IConnection> {
+    return new MySQLConnectionFactory(name, connectionConfig);
   }
 
-  getNewDBTransaction(connectionPool: ConnectionPool<Client>): PostgresTransaction {
-    return new PostgresTransaction(connectionPool);
+  getNewDBTransaction(connectionPool: ConnectionPool<mysql.IConnection>): MySQLTransaction {
+    return new MySQLTransaction(connectionPool);
   }
   getPingQuery(): string {
     return 'SELECT 1';
   }
 
-  getDefaultConnectionConfig(): PostgresConnectionConfig {
+  getDefaultConnectionConfig(): MySQLConnectionConfig {
     return {
       host: 'localhost',
-      port: 5432,
-      user: 'postgres',
+      port: 3306,
+      user: 'root',
       password: '',
       database: '',
+      charset: 'UTF8',
     };
   }
+
 }

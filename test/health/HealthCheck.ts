@@ -1,8 +1,8 @@
 import { must } from 'must';
 import { suite, test } from 'mocha-typescript';
 import { mock, when, anything, verify, instance } from 'ts-mockito';
-import { MysqlHealthCheck } from '../../src/mysql/MysqlHealthCheck';
-import { MysqlClient } from '../../src/mysql/MysqlClient';
+import { MySQLHealthCheck } from '../../src/mysql/MySQLHealthCheck';
+import { MySQLClient } from '../../src/mysql/MySQLClient';
 import { HealthCheckStatus, HealthCheckGroup, HealthCheck, HealthCheckResult } from '../../src/health/HealthCheck';
 
 suite('health/HealthCheck', () => {

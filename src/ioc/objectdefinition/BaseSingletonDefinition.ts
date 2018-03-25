@@ -198,7 +198,8 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
 
   startFunction(startFunctionName) {
     this.assertState(BaseSingletonState.NOT_STARTED);
-    if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, startFunctionName)) {
+    if (this.clazz.prototype[startFunctionName]) {
+    // if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, startFunctionName)) {
       this.startFunctionName = startFunctionName;
     } else {
       throw new IoCException(
@@ -209,7 +210,8 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
 
   stopFunction(shutdownFunctionName) {
     this.assertState(BaseSingletonState.NOT_STARTED);
-    if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, shutdownFunctionName)) {
+    if (this.clazz.prototype[shutdownFunctionName]) {
+      // if (Object.prototype.hasOwnProperty.call(this.clazz.prototype, shutdownFunctionName)) {
       this.shutdownFunctionName = shutdownFunctionName;
     } else {
       throw new IoCException(

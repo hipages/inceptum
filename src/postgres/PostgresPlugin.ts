@@ -19,8 +19,8 @@ export default class PostgresPlugin implements Plugin {
     const confs = context.getConfig('postgres');
     Object.keys(confs).forEach((key) => {
       const clientSingleton = new BaseSingletonDefinition<any>(PostgresClient, key);
-      clientSingleton.setPropertyByValue('name', key);
-      clientSingleton.setPropertyByValue('configuration', confs[key]);
+      const config = {...confs[key], name: key};
+      clientSingleton.constructorParamByValue(config);
       context.registerSingletons(clientSingleton);
     });
   }

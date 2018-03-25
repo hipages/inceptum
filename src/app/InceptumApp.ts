@@ -1,7 +1,7 @@
 import ElasticsearchPlugin from '../elasticsearch/ElasticsearchPlugin';
 import HealthCheckPlugin from '../health/HealthCheckPlugin';
 import AdminPortPlugin from '../web/AdminPortPlugin';
-import MysqlPlugin from '../mysql/MysqlPlugin';
+import MySQLPlugin from '../mysql/MySQLPlugin';
 import PostgresPlugin from '../postgres/PostgresPlugin';
 import RabbitmqClientPlugin from '../rabbitmq/RabbitmqClientPlugin';
 import NewrelicPlugin from '../newrelic/NewrelicPlugin';
@@ -47,7 +47,7 @@ export class InceptumApp extends BaseApp {
     // TODO This is for backward compat, I'd like to remove it and be explicit
     if (this.hasConfig('mysql')) {
       this.logger.debug('Mysql Detected - Adding Plugin');
-      this.register(new MysqlPlugin());
+      this.register(new MySQLPlugin());
     }
     if (this.hasConfig('postgres')) {
       this.logger.debug('Postgres Detected - Adding Plugin');

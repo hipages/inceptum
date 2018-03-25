@@ -1,10 +1,10 @@
 import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck } from '../health/HealthCheck';
-import { MysqlClient } from './MysqlClient';
+import { MySQLClient } from './MySQLClient';
 
 @RegisterAsHealthCheck
-export class MysqlHealthCheck extends HealthCheck {
+export class MySQLHealthCheck extends HealthCheck {
 
-  mysqlClient: MysqlClient;
+  mysqlClient: MySQLClient;
 
   constructor(name: string, private readonly: boolean) {
     super(name, 60000, 2, true);
