@@ -265,6 +265,4 @@ class InstrumentedConnectionPoolTest {
     this.instrumentedConnectionPool.release(conn1);
     this.instrumentedConnectionPool.release(conn2);
   }
-
-
 }
