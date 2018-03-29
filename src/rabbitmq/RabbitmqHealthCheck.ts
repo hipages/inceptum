@@ -21,7 +21,8 @@ export class RabbitmqHealthCheck extends HealthCheck {
       return Promise.resolve(new HealthCheckResult(HealthCheckStatus.NOT_READY, 'Rabbitmq Management Http API not set yet'));
     }
 
-    if (!this.rabbitmqMgtHttpApi.rabbitmqConfig.healthCheckEnabled) {
+    // tslint:disable-next-line
+    if (this.rabbitmqMgtHttpApi.rabbitmqConfig.healthCheckEnabled === false) {
       return Promise.resolve(new HealthCheckResult(HealthCheckStatus.OK, 'Health check DISABLED'));
     }
 
