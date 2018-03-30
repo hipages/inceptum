@@ -16,6 +16,7 @@ export interface RabbitmqClientConfig {
   mgtHttpTheme: string,
   maxConnectionAttempts?: number,
   exitOnIrrecoverableReconnect?: boolean,
+  healthCheckEnabled?: boolean,
 }
 
 export const DEFAULT_MAX_CONNECTION_ATTEMPTS = 3;
