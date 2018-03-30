@@ -18,20 +18,20 @@ export class RabbitmqHealthCheck extends HealthCheck {
 
   async doCheck(): Promise<HealthCheckResult> {
     if (!this.rabbitmqMgtHttpApi) {
-      return Promise.resolve(new HealthCheckResult(HealthCheckStatus.NOT_READY, 'Rabbitmq Management Http API not set yet'));
+      return new HealthCheckResult(HealthCheckStatus.NOT_READY, 'Rabbitmq Management Http API not set yet');
     }
 
     // tslint:disable-next-line
     if (this.rabbitmqMgtHttpApi.rabbitmqConfig.healthCheckEnabled === false) {
-      return Promise.resolve(new HealthCheckResult(HealthCheckStatus.OK, 'Health check DISABLED'));
+      return new HealthCheckResult(HealthCheckStatus.OK, 'Health check DISABLED');
     }
 
     try {
       const res: RabbitmqNodeHealthCheckResult = await this.rabbitmqMgtHttpApi.ping();
       if (res.status.toUpperCase() === HealthCheckStatus.OK) {
-        return Promise.resolve(new HealthCheckResult(HealthCheckStatus.OK, 'Ping OK'));
+        return new HealthCheckResult(HealthCheckStatus.OK, 'Ping OK');
       } else {
-        return Promise.resolve(new HealthCheckResult(HealthCheckStatus.CRITICAL, res.reason));
+        return new HealthCheckResult(HealthCheckStatus.CRITICAL, res.reason);
       }
     } catch (e) {
       this.logger.error(e);
