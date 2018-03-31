@@ -12,6 +12,7 @@ class RabbitmqHealthCheckTest {
 
   before() {
     this.apiPing = sinon.createStubInstance(RabbitmqMgtHttpApi);
+    this.apiPing.rabbitmqConfig = {};
   }
 
   @test
@@ -23,7 +24,8 @@ class RabbitmqHealthCheckTest {
     const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
     hc.rabbitmqMgtHttpApi = this.apiPing;
     const result = await hc.doCheck();
-    result.status.must.be.eql(HealthCheckStatus.OK);
+    result.must.be.eql(new HealthCheckResult(HealthCheckStatus.OK, 'Ping OK'));
+
   }
 
   @test
@@ -52,5 +54,18 @@ class RabbitmqHealthCheckTest {
     } catch (e) {
       e.must.be.an.error();
     }
+  }
+
+  @test
+  async 'ping disabled'() {
+    const ok: RabbitmqNodeHealthCheckResult = {
+      status: 'ok',
+    };
+    this.apiPing.ping.returns(ok);
+    this.apiPing.rabbitmqConfig.healthCheckEnabled = false;
+    const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
+    hc.rabbitmqMgtHttpApi = this.apiPing;
+    const result = await hc.doCheck();
+    result.must.be.eql(new HealthCheckResult(HealthCheckStatus.OK, 'Health check DISABLED'));
   }
 }
