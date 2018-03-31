@@ -58,10 +58,6 @@ class RabbitmqHealthCheckTest {
 
   @test
   async 'ping disabled'() {
-    const ok: RabbitmqNodeHealthCheckResult = {
-      status: 'ok',
-    };
-    this.apiPing.ping.returns(ok);
     this.apiPing.rabbitmqConfig.healthCheckEnabled = false;
     const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
     hc.rabbitmqMgtHttpApi = this.apiPing;
