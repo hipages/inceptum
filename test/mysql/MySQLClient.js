@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 require('../../src/log/LogManager');
-const { MysqlTransaction } = require('../../src/mysql/MysqlClient');
+const { MysqlTransaction } = require('../../src/mysql/MySQLClient');
 
 class MockConnection {
   constructor() {
