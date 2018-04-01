@@ -1,4 +1,4 @@
-const { MysqlClient } = require('../../src/mysql/MysqlClient');
+const { MysqlClient } = require('../../src/mysql/MySQLClient');
 
 const myClient = new MysqlClient();
 myClient.name = 'TestClient';
@@ -9,7 +9,7 @@ myClient.configuration = {
 
 myClient.initialise();
 
-describe('MysqlClient', () => {
+describe('MySQLClient', () => {
   describe('Basic queries', () => {
     it('Gets all 3 records', 
     () => myClient.runInTransaction(true, (mysqlTransaction) => mysqlTransaction.query('SELECT * FROM table1'))
