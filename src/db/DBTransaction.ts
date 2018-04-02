@@ -1,5 +1,5 @@
 
-import { Summary, Gauge, Counter, register, Histogram, labelValues } from 'prom-client';
+import { Histogram, Counter, labelValues } from 'prom-client';
 import { Transaction } from '../transaction/TransactionManager';
 import { LogManager } from '../log/LogManager';
 import { ConnectionPool } from './ConnectionPool';

@@ -1,4 +1,5 @@
 import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
+import { ExtendedGauge, ExtendedGaugeInternal } from 'prometheus-extended-gauge';
 import { createPool, Pool, Factory, Options } from 'generic-pool';
 
 /**
@@ -62,10 +63,15 @@ const validateFailedCounter = new Counter({
   help: 'Number of times a validation fails',
   labelNames: ['poolName', 'readonly'],
 });
-const activeGauge = new Gauge({
+const activeGauge = new ExtendedGauge({
   name: 'db_pool_active_connections_gauge',
   help: 'Number of active connections in the pool',
   labelNames: ['poolName', 'readonly'],
+  average: true,
+  max: true,
+  min: false,
+  bucketSizeMillis: 1024,
+  numBuckets: 64,
 });
 const totalGauge = new Gauge({
   name: 'db_pool_total_connections_gauge',
@@ -150,7 +156,7 @@ enum PoolStatus {
 export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends ConnectionPool<C> {
   readonly: boolean;
   name: string;
-  activeGauge: Gauge.Internal;
+  activeGauge: ExtendedGaugeInternal;
   useTimeHistogram: Histogram.Internal;
   acquireErrorsCounter: Counter.Internal;
   pool: Pool<C>;

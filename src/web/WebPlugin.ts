@@ -1,6 +1,8 @@
 // tslint:disable:prefer-function-over-method
 import * as http from 'http';
 import * as e from 'express';
+import * as onFinished from 'on-finished';
+import { ExtendedGauge } from 'prometheus-extended-gauge';
 import * as promBundle from 'express-prom-bundle';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
@@ -10,6 +12,16 @@ import { WebRoutingInspector } from './WebRoutingInspector';
 import HttpError from './HttpError';
 
 const logger = LogManager.getLogger(__filename);
+
+const activeRequestsGauge = new ExtendedGauge({
+  max: true,
+  min: false,
+  average: true,
+  bucketSizeMillis: 1000,
+  numBuckets: 60,
+  help: 'Number of active http requests being processed',
+  name: 'http_active_requests',
+});
 
 export class RouteRegisterUtil {
   private routesToRegister = [];
@@ -61,6 +73,13 @@ export default class WebPlugin implements Plugin {
       buckets: [0.003, 0.03, 0.1, 0.3, 0.5, 1.5, 10],
       autoregister: false,
     }));
+
+    // Add middleware for stats on active requests
+    express.use((req, res, next) => {
+      activeRequestsGauge.inc();
+      onFinished(res, () => activeRequestsGauge.dec());
+      next();
+    });
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
     definition.withLazyLoading(false);

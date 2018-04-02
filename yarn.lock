@@ -5537,6 +5537,10 @@ prom-client@^10.2.2, prom-client@~10.2.2:
   dependencies:
     tdigest "^0.1.1"
 
+prometheus-extended-gauge@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.npmjs.org/prometheus-extended-gauge/-/prometheus-extended-gauge-0.1.1.tgz#36bc158d47917f361f965bedc0a18865c8f44dd3"
+
 prometheus-gc-stats@^0.5.0:
   version "0.5.1"
   resolved "https://registry.npmjs.org/prometheus-gc-stats/-/prometheus-gc-stats-0.5.1.tgz#4713bc5e9f739ee09a86c964014dfbce4fd50003"
