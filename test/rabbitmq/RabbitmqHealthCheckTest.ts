@@ -24,8 +24,10 @@ class RabbitmqHealthCheckTest {
     const hc = new RabbitmqHealthCheck('RabbitmqHealthCheck');
     hc.rabbitmqMgtHttpApi = this.apiPing;
     const result = await hc.doCheck();
-    result.must.be.eql(new HealthCheckResult(HealthCheckStatus.OK, 'Ping OK'));
-
+    const expected = new HealthCheckResult(HealthCheckStatus.OK, 'Ping OK');
+    result.message.must.be.eql(expected.message);
+    result.status.must.be.eql(expected.status);
+    Math.abs(result.timestamp - expected.timestamp).must.be.below(2);
   }
 
   @test
