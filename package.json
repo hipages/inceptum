@@ -74,6 +74,7 @@
     "node-dogstatsd": "0.0.6",
     "pg": "^7.0.2",
     "prom-client": "^10.2.2",
+    "prometheus-extended-gauge": "^0.1.2",
     "prometheus-gc-stats": "^0.5.0",
     "redis": "2.6.5",
     "reflect-metadata": "^0.1.10",
