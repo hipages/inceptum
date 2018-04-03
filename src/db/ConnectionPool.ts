@@ -70,8 +70,8 @@ const activeGauge = new ExtendedGauge({
   average: true,
   max: true,
   min: false,
-  bucketSizeMillis: 1024,
-  numBuckets: 64,
+  bucketSizeMillis: 1000,
+  numBuckets: 60,
 });
 const totalGauge = new Gauge({
   name: 'db_pool_total_connections_gauge',
