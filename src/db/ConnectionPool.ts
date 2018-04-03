@@ -97,10 +97,6 @@ const useTimeHistogram = new Histogram({
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3],
 });
 
-async function promisify<T>(promiseLike: PromiseLike<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {promiseLike.then(resolve, reject);});
-}
-
 export class InstrumentedFactory<T> implements Factory<T> {
   validateFailedCounter: Counter.Internal;
   connectErrorsCounter: Counter.Internal;
@@ -118,7 +114,7 @@ export class InstrumentedFactory<T> implements Factory<T> {
   async create(): Promise<T> {
     const timer = this.connectTimeHistogram.startTimer();
     try {
-      const connection = await promisify(this.factory.create());
+      const connection = await this.factory.create();
       this.totalGauge.inc();
       return connection;
     } catch (e) {
@@ -130,14 +126,14 @@ export class InstrumentedFactory<T> implements Factory<T> {
   }
   async destroy(client: T): Promise<undefined> {
     try {
-      return await promisify(this.factory.destroy(client));
+      return await this.factory.destroy(client);
     } finally {
       this.totalGauge.dec();
     }
   }
   async validate(client: T): Promise<boolean> {
     if (this.factory.validate) {
-      const resp = await promisify(this.factory.validate(client));
+      const resp = await this.factory.validate(client);
       if (!resp) {
         this.validateFailedCounter.inc();
       }
@@ -189,7 +185,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     }
     const timer = this.acquireTimeHistogram.startTimer();
     try {
-      const connection = await promisify(this.pool.acquire());
+      const connection = await this.pool.acquire();
       connection['__useTimer'] = this.useTimeHistogram.startTimer();
       this.activeGauge.inc();
       return connection;
@@ -237,8 +233,8 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
       throw new Error(`Can't stop a connection pool that isn't in STARTED state. Pool: ${this.name}, Current Status: ${this.status}`);
     }
     this.status = PoolStatus.STOPPED;
-    await promisify(this.pool.drain());
-    await promisify(this.pool.clear());
+    await this.pool.drain();
+    await this.pool.clear();
   }
   getOptions(): PoolConfig<CC> {
     return {... this.options};

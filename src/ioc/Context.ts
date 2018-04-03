@@ -290,10 +290,10 @@ export class Context extends Lifecycle {
     });
   }
 
-  async getObjectsByGroup(groupName) {
+   getObjectsByGroup(groupName) {
     const objectNames = this.getGroupObjectNames(groupName);
     const objectDefinitions = objectNames.map((objectName) => this.getDefinitionByName(objectName));
-    return await objectDefinitions.reduce(async (acum, def) => {
+    return objectDefinitions.reduce(async (acum, def) => {
       (await acum).push(await def.getInstance());
       return Promise.resolve(acum);
     }, Promise.resolve([]));

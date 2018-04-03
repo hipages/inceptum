@@ -3,7 +3,6 @@ import { createPool, Pool, Factory, Options } from 'generic-pool';
 import { DBTransaction } from '../db/DBTransaction';
 import { ConnectionPool, PoolConfig, ConnectionConfig } from '../db/ConnectionPool';
 import { Transaction } from '../transaction/TransactionManager';
-import { PromiseUtil } from '../util/PromiseUtil';
 import { LogManager } from '../log/LogManager';
 import { DBClient, DBClientConfig } from '../db/DBClient';
 
@@ -100,21 +99,20 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     this.name = name;
   }
 
-  async create(): Promise<mysql.IConnection> {
+  create(): Promise<mysql.IConnection> {
     LOGGER.trace(`Creating new connection for pool ${this.name}`);
     const connection = mysql.createConnection(this.connConfig);
-    await new Promise<void>((resolve, reject) => connection.connect((err) => {
+    return new Promise((resolve, reject) => connection.connect((err) => {
       if (err) {
         reject(err);
       } else {
-        resolve();
+        resolve(connection);
       }
     }));
-    return connection;
   }
   destroy(connection: mysql.IConnection): Promise<undefined> {
     LOGGER.trace(`Destroying connection for pool ${this.name}`);
-    return new Promise<undefined>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       connection.end((err) => {
         if (err) {
           reject(err);
@@ -124,7 +122,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
       });
     });
   }
-  validate(connection: mysql.IConnection): PromiseLike<boolean> {
+  validate(connection: mysql.IConnection): Promise<boolean> {
     LOGGER.trace(`Validating connection for pool ${this.name}`);
     return new Promise<boolean>((resolve, reject) => {
       connection.query('SELECT 1', (err, results) => {

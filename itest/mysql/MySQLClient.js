@@ -1,6 +1,6 @@
-const { MysqlClient } = require('../../src/mysql/MySQLClient');
+const { MySQLClient } = require('../../src/mysql/MySQLClient');
 
-const myClient = new MysqlClient();
+const myClient = new MySQLClient();
 myClient.name = 'TestClient';
 myClient.configuration = {
   Verbose: true,

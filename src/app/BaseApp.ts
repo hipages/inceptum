@@ -110,7 +110,7 @@ export default class BaseApp {
     process.on('SIGTERM', () => {
       this.stop().then(() => process.exit());
     });    await this.context.lcStart();
-    return await this.runLifecycleMethodOnPlugins('didStart');
+    return this.runLifecycleMethodOnPlugins('didStart');
   }
   async stop() {
     await this.runLifecycleMethodOnPlugins('willStop');
