@@ -52,7 +52,7 @@
     "bunyan-redis": "0.1.4",
     "bunyan-rotating-file-stream": "1.6.2",
     "codacy-coverage": "^2.0.0",
-    "config": "1.25.1",
+    "config": "^1.30.0",
     "deep-assign": "2.0.0",
     "dtrace-provider": "^0.8.1",
     "elasticsearch": "^13.3.1",
