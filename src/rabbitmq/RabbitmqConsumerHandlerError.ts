@@ -1,3 +1,4 @@
+import { ExtendedError } from '../util/ErrorUtil';
 import { PublishOptions } from './RabbitmqClient';
 
 export interface MessageInfo {
@@ -6,7 +7,7 @@ export interface MessageInfo {
   options?: PublishOptions,
 }
 
-export class RabbitmqConsumerHandlerError extends Error {
+export class RabbitmqConsumerHandlerError extends ExtendedError {
   messageInfo: MessageInfo;
 }
 

@@ -57,7 +57,7 @@ class RabbitmqConsumerHandlerTestUnrecoverableException extends RabbitmqConsumer
     async handle(msg: Message) {
         // tslint:disable-next-line:no-console
         const { fields, properties, content} = msg;
-        throw new RabbitmqConsumerHandlerUnrecoverableError();
+        throw new RabbitmqConsumerHandlerUnrecoverableError('test');
     }
 }
 
@@ -68,7 +68,7 @@ class RabbitmqConsumerHandlerTestException extends RabbitmqConsumerHandler {
         // tslint:disable-next-line:no-console
         const { fields, properties, content} = msg;
         if (msg.properties.headers.retriesCount < 2) {
-            throw new RabbitmqConsumerHandlerError();
+            throw new RabbitmqConsumerHandlerError('test');
         }
     }
 }
