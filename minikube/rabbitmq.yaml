@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: rabbitmq-inceptum
+  name: rabbitmq-inceptum
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-inceptum
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-inceptum
+      name: rabbitmq-inceptum
+    spec:
+      containers:
+      - image: rabbitmq:3.7.2-management-alpine
+        imagePullPolicy: IfNotPresent
+        name: rabbitmq-inceptum
+        resources: {}
+        securityContext:
+          privileged: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: rabbitmq-inceptum
+  name: rabbitmq-inceptum
+spec:
+  ports:
+  - name: tcp-5672
+    port: 5672
+    protocol: TCP
+  - name: tcp-15672
+    port: 15672
+    protocol: TCP
+  selector:
+    app: rabbitmq-inceptum
+  type: NodePort
+status:
+  loadBalancer: {}

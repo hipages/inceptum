@@ -1,0 +1,46 @@
+app:
+  server:
+    port: SERVER_PORT
+  admin:
+    port: ADMIN_PORT
+
+mysql:
+  MysqlClient:
+    master:
+      connectionConfig:
+        host: MYSQL_HOST
+        port: MYSQL_PORT
+        user: MYSQL_USER
+        password: MYSQL_PASS
+    slave:
+      connectionConfig:
+        host: MYSQL_HOST
+        port: MYSQL_PORT
+        user: MYSQL_USER
+        password: MYSQL_PASS
+
+rabbitmq:
+  enabled: RABBITMQ_ENABLED
+  client:
+    hostname: RABBITMQ_HOST
+    port: RABBITMQ_PORT
+    username: RABBITMQ_USER
+    password: RABBITMQ_PASS
+    mgtHttpHost: RABBITMQ_MGMT_HOST
+    mgtHttpPort: RABBITMQ_MGMT_PORT
+
+
+postgres:
+  PostgresClient:
+    master:
+      connectionConfig:
+        host: POSTGRES_HOST
+        port: POSTGRES_PORT
+        user: POSTGRES_USER
+        password: POSTGRES_PASS
+    slave:
+      connectionConfig:
+        host: POSTGRES_HOST
+        port: POSTGRES_PORT
+        user: POSTGRES_USER
+        password: POSTGRES_PASS

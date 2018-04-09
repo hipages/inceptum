@@ -84,7 +84,7 @@ postgres:
         port: 5432
         user: postgres
         password: 
-        database: postgres
+        database: testDb
         application_name: test
     slave:
       max: 10
@@ -100,7 +100,7 @@ postgres:
         port: 5432
         user: postgres
         password: 
-        database: postgres
+        database: testDb
         application_name: test
 
 SqsWorker:
@@ -134,7 +134,7 @@ rabbitmq:
       appQueueName: nuntius.mandrill.queue
       delayQueueName: nuntius.mandrill.delay.queue
       dlqName: nuntius.mandrill.dlq
-      messageHandler: MessageHandler
+      messageHandler: DefaultHandler
       maxRetries: 4
       retryDelayInMinute: 2
       retryDelayFactor: 1
