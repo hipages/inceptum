@@ -49,7 +49,7 @@ mysql:
         port: 3306
         user: root
         password: 
-        database: testDb
+        database: testdb
         charset: utf8
     slave:
       max: 10
@@ -65,7 +65,7 @@ mysql:
         port: 3306
         user: root
         password: 
-        database: testDb
+        database: testdb
         charset: utf8
 
 postgres:
@@ -84,7 +84,7 @@ postgres:
         port: 5432
         user: postgres
         password: 
-        database: testDb
+        database: testdb
         application_name: test
     slave:
       max: 10
@@ -100,7 +100,7 @@ postgres:
         port: 5432
         user: postgres
         password: 
-        database: testDb
+        database: testdb
         application_name: test
 
 SqsWorker:

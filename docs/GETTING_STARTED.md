@@ -176,7 +176,7 @@ mysql: # Telling inceptum to add a new MysqlPlugin() to our app
       port: 3306
       user: root
       password:
-      database: testDb
+      database: testdb
       charset: utf8
       connectionLimit: 10
 ```
@@ -194,7 +194,7 @@ mysql:
       port: 3306
       user: root
       password:
-      database: testDb
+      database: testdb
       charset: utf8
       connectionLimit: 10
     slave:
@@ -202,7 +202,7 @@ mysql:
       port: 3306
       user: root
       password:
-      database: testDb
+      database: testdb
       charset: utf8
       connectionLimit: 10
 ```

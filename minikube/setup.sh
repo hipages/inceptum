@@ -68,14 +68,14 @@ doLoad() {
     POD_NAME=$(getPodOfApp ${SERVICE}-inceptum)
     case "$SERVICE" in
       "mysql")
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/bash -c "mysql -u root -pinceptum -e 'CREATE DATABASE IF NOT EXISTS testDb; CREATE TABLE testDb.table1 (id int(11) NOT NULL AUTO_INCREMENT, name varchar(20) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'" 2>/dev/null
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/bash -c "mysql -u root -pinceptum -e 'TRUNCATE TABLE testDb.table1; INSERT INTO testDb.table1 (name) VALUES (\"User 1\"),(\"User 2\"),(\"User 3\")'" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/bash -c "mysql -u root -pinceptum -e 'CREATE DATABASE IF NOT EXISTS testdb; CREATE TABLE testdb.table1 (id int(11) NOT NULL AUTO_INCREMENT, name varchar(20) NOT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=UTF8'" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/bash -c "mysql -u root -pinceptum -e 'TRUNCATE TABLE testdb.table1; INSERT INTO testdb.table1 (name) VALUES (\"User 1\"),(\"User 2\"),(\"User 3\")'" 2>/dev/null
         ;;
       "postgres")
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c 'Create database testDb;' -U postgres" 2>/dev/null
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c 'CREATE TABLE table1 (name varchar(20) not null);' -U postgres -d testDb" 2>/dev/null
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c \"TRUNCATE TABLE table1;\" -U postgres -d testDb" 2>/dev/null
-        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c \"INSERT INTO table1 (name) VALUES ('User 1'),('User 2'),('User 3');\" -U postgres -d testDb" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c 'Create database testdb;' -U postgres" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c 'CREATE TABLE table1 (name varchar(20) not null);' -U postgres -d testdb" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c \"TRUNCATE TABLE table1;\" -U postgres -d testdb" 2>/dev/null
+        kubectl exec -i $POD_NAME --namespace $NAMESPACE -- /bin/sh -c "psql -c \"INSERT INTO table1 (name) VALUES ('User 1'),('User 2'),('User 3');\" -U postgres -d testdb" 2>/dev/null
         ;;
       "rabbitmq")
         RABBITMQ_PORT=$(kubectl get svc rabbitmq-inceptum --namespace $NAMESPACE -o json | jq '.spec.ports | .[] | select(.port == 15672).nodePort')
