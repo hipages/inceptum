@@ -1,5 +1,7 @@
 import { RegisterInGroup, Lazy } from '../ioc/Decorators';
+import { LogManager } from '../log/LogManager';
 
+const LOGGER = LogManager.getLogger(__filename);
 export const HEALTH_CHECK_GROUP = 'inceptum:health';
 
 export function RegisterAsHealthCheck(target: any) {
@@ -60,6 +62,11 @@ export abstract class HealthCheck {
         this.lastResult = await this.doCheck();
       } catch (e) {
         this.lastResult = new HealthCheckResult(HealthCheckStatus.CRITICAL, `There was an error running check ${this.getCheckName()}: ${e.message}`);
+      }
+      if (this.lastResult.status === HealthCheckStatus.CRITICAL) {
+        LOGGER.error(`Health check ${this.getCheckName()} failed with status CRITICAL`,
+          { status: this.lastResult.status, message: this.lastResult.message, data: this.lastResult.data },
+        );
       }
       this.checkRunning = false;
     }
