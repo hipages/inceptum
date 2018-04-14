@@ -439,7 +439,11 @@ process.on('uncaughtException', (err) => {
   if (NewrelicUtil.isNewrelicAvailable()) {
     NewrelicUtil.getNewrelicIfAvailable().noticeError(err, {source: 'unhandledException'});
   }
-  baseLogger.fatal({ err }, `Uncaught exception: ${err} | ${err.stack}`);
+  baseLogger.fatal(err, `Uncaught exception: ${err} | ${err.stack}`);
+});
+
+process.on('warning', (err) => {
+  baseLogger.warn(err , `Uncaught warning: ${err} | ${err.stack}`);
 });
 
 function _getCallerFile() {

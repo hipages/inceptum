@@ -37,10 +37,27 @@ export class RouteRegisterUtil {
   }
 }
 
+/**
+ * Client errors do not need to be sent to NewRelic so create clientErrorMiddleware
+ * to send response if the error is 4xx. clientErrorMiddleware needs to be registered
+ * before errorMiddleware.
+ * @param err
+ * @param req
+ * @param res
+ * @param next
+ */
+export const clientErrorMiddleware = (err, req, res, next) => {
+  if (err instanceof HttpError && err.statusCode && err.statusCode >= 400 && err.statusCode < 500 ) {
+    res.status(err.getStatusCode()).send({message: err.message});
+  } else {
+    return next(err); // Give back to express to handle
+  }
+};
+
 export const errorMiddleware = (err, req, res, next) => {
   if (NewrelicUtil.isNewrelicAvailable()) {
     const nr = NewrelicUtil.getNewrelicIfAvailable();
-    nr.noticeError(nr);
+    nr.noticeError(err);
   }
   logger.error(err);
   if (res.headersSent) {
@@ -93,6 +110,7 @@ export default class WebPlugin implements Plugin {
     const express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
 
+    express.use(clientErrorMiddleware);
     // Add error handling middleware as the final middleware.
     express.use(errorMiddleware);
 

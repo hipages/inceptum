@@ -109,7 +109,8 @@ export default class BaseApp {
     });
     process.on('SIGTERM', () => {
       this.stop().then(() => process.exit());
-    });    await this.context.lcStart();
+    });
+    await this.context.lcStart();
     return await this.runLifecycleMethodOnPlugins('didStart');
   }
   async stop() {
