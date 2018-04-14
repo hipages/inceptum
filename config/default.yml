@@ -124,7 +124,7 @@ rabbitmq:
     hostname: localhost
     port: 5672
     username: hip
-    password: 
+    password: hipages
   producer:
     peter:
       exchangName: firehose
