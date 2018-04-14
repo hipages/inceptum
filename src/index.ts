@@ -3,7 +3,7 @@ export { Context } from './ioc/Context';
 export { SingletonDefinition } from './ioc/objectdefinition/SingletonDefinition';
 export { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 export { BaseSingletonDefinition } from './ioc/objectdefinition/BaseSingletonDefinition';
-export { InceptumApp } from './app/InceptumApp';
+export { InceptumApp, TestInceptumApp } from './app/InceptumApp';
 export * from './log/LogManager';
 export { ExtendedError } from './util/ErrorUtil';
 export { BadRequestError } from './web/errors/BadRequestError';

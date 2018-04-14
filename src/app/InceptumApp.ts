@@ -71,3 +71,17 @@ export class InceptumApp extends BaseApp {
     }
   }
 }
+
+export class TestInceptumApp extends InceptumApp {
+  constructor(ops = {}) {
+    super({
+      enableAdminPort: false,
+      enableHealthChecks: false,
+      enableMetrics: false,
+      ...ops});
+  }
+  async start() {
+    process.removeAllListeners();
+    await super.start();
+  }
+}
