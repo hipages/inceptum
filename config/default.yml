@@ -125,6 +125,9 @@ rabbitmq:
     port: 5672
     username: hip
     password: hipages
+    mgtHttpHost: localhost
+    mgtHttpPort: 15672
+    mgtHttpTheme: http
   producer:
     peter:
       exchangName: firehose
