@@ -16,6 +16,7 @@ const rabbitClientConfig: RabbitmqClientConfig = {
   mgtHttpPort: 15672,
   mgtHttpHost: 'localhost',
   mgtHttpTheme: 'http',
+  protocol: 'amqp',
 };
 
 const rabbitConsumerConfig: RabbitmqConsumerConfig = {

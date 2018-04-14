@@ -59,6 +59,7 @@ class MySQLClientTest {
   @test
   async 'Read/Must bind parameters'() {
     const rows = await this.myClient.read('SELECT * FROM table1 WHERE name = $1', 'User 2');
+    console.log(rows);
     rows.length.must.be.equal(1);
   }
 
