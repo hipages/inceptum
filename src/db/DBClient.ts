@@ -90,7 +90,7 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
       this.slavePool.start();
     }
     if (!this.masterPool && !this.slavePool) {
-      throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
+      throw new Error(`DBClient ${this.name} has no connections configured for either master or slave`);
     }
   }
 

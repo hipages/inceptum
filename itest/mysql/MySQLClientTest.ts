@@ -18,7 +18,7 @@ class MySQLClientTest {
     this.baseApp.register(new AutowirePlugin(), new LazyLoadingPlugin(), new StartStopPlugin(), new DecoratorPlugin());
     this.baseApp.register(new MySQLPlugin());
     await this.baseApp.start();
-    this.myClient = await this.baseApp.getContext().getObjectByName('MysqlClient');
+    this.myClient = await this.baseApp.getContext().getObjectByName('MySQLClient');
   }
 
   @test

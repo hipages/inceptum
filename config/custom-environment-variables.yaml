@@ -5,7 +5,7 @@ app:
     port: ADMIN_PORT
 
 mysql:
-  MysqlClient:
+  MySQLClient:
     master:
       connectionConfig:
         host: MYSQL_HOST

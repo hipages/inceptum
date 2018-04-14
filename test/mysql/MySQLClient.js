@@ -25,7 +25,7 @@ class MockConnection {
   release() {}
 }
 
-describe('mysql/MysqlClient', () => {
+describe('mysql/MySQLClient', () => {
   // describe('runQueryOnPool', () => {
   //   it('returns a promise', () => {
   //     const connMock = new MockConnection();

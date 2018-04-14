@@ -55,7 +55,7 @@ class RabbitmqClientPluginTest {
 
   @test
   async 'test consumer registered'() {
-    const baseApp = new BaseApp({config: new JsonProvider(configYml)});
+    const baseApp = new BaseApp();
     baseApp.register(new RabbitmqClientPlugin());
     const context = baseApp.getContext();
     context.registerDefinition(new BaseSingletonDefinition<DefaultHandler>(DefaultHandler));

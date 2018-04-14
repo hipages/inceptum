@@ -34,7 +34,7 @@ metrics:
     active: 0
 
 mysql:
-  MysqlClient: # this is the name of the object that will be exposed in the context
+  MySQLClient: # this is the name of the object that will be exposed in the context
     master:
       max: 10
       min: 1
