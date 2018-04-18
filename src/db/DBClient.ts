@@ -70,17 +70,17 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
    * @param binds binds
    */
   async read<P>(sql: string, ...binds: any[]): Promise<P[]> {
-    return this.runInTransaction(true, (client) => client.query(sql, ...binds));
+    return this.executeSql(true, sql, ...binds);
   }
 
   /**
-   * Shorthand for a single write sql.
-   * easy to mock
+   * Shorthand to run a single sql.
+   * Easy to mock
    * @param sql
    * @param binds
    */
-  async write(sql: string, ...binds: any[]): Promise<any> {
-    return this.runInTransaction(false, (client) => client.query(sql, ...binds));
+  async executeSql(readonly, sql: string, ...binds: any[]): Promise<any> {
+    return this.runInTransaction(readonly, (client) => client.query(sql, ...binds));
   }
 
   abstract getConnectionFactory(name: string, connectionConfig: CC): Factory<C>;
