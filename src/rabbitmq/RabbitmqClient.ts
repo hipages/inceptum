@@ -38,6 +38,7 @@ export interface RepliesConsume {
 }
 
 export abstract class RabbitmqClient {
+  connectionClosedTimer: NodeJS.Timer;
   protected channel: Channel;
   protected connection: Connection;
   protected logger: Logger;
@@ -106,13 +107,32 @@ export abstract class RabbitmqClient {
 
   protected handleConnectionError(err?) {
     if (err) {
-      this.logger.error(err, 'Connection error. Ignoring');
+      this.logger.error(err, 'Connection error.');
+      this.handleConnectionClosedDelayed();
     } else {
       this.logger.error('Connection error. Ignoring');
     }
   }
 
+  private clearConnectionClosedTimer() {
+    if (this.connectionClosedTimer) {
+      clearTimeout(this.connectionClosedTimer);
+      this.connectionClosedTimer = undefined;
+    }
+  }
+
+  protected async handleConnectionClosedDelayed() {
+    this.clearConnectionClosedTimer();
+    try {
+      this.connection.close();
+    } catch (e) {
+      this.logger.error(e, 'Got an error on the connection. Attempting to close just in case. Had an error');
+    }
+    this.connectionClosedTimer = setTimeout(() => this.handleChannelClosed(), 500);
+  }
+
   protected async handleConnectionClosed() {
+    this.clearConnectionClosedTimer();
     if (!this.closed) {
       // We haven't been explicitly closed, so we should reopen the channel
       this.logger.warn('Connection was closed unexpectedly... reconnecting');
