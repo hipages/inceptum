@@ -76,10 +76,11 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
   /**
    * Shorthand to run a single sql.
    * Easy to mock
+   * @param readonly
    * @param sql
    * @param binds
    */
-  async executeSql(readonly, sql: string, ...binds: any[]): Promise<any> {
+  async executeSql(readonly: boolean, sql: string, ...binds: any[]): Promise<any> {
     return this.runInTransaction(readonly, (client) => client.query(sql, ...binds));
   }
 
