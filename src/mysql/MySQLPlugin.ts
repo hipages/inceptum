@@ -24,17 +24,21 @@ export default class MySQLPlugin implements Plugin {
       clientSingleton.constructorParamByValue(config);
       context.registerSingletons(clientSingleton);
 
-      const masterHealthCheck = new BaseSingletonDefinition<MySQLHealthCheck>(MySQLHealthCheck, `HC_${key}_master`);
-      masterHealthCheck.constructorParamByValue(`mysql.${key}.master`);
-      masterHealthCheck.constructorParamByValue(false);
-      masterHealthCheck.setPropertyByRef('mysqlClient', key);
-      context.registerDefinition(masterHealthCheck);
+      if (confs[key].master) {
+        const masterHealthCheck = new BaseSingletonDefinition<MySQLHealthCheck>(MySQLHealthCheck, `HC_${key}_master`);
+        masterHealthCheck.constructorParamByValue(`mysql.${key}.master`);
+        masterHealthCheck.constructorParamByValue(false);
+        masterHealthCheck.setPropertyByRef('mysqlClient', key);
+        context.registerDefinition(masterHealthCheck);
+      }
 
-      const slaveHealthCheck = new BaseSingletonDefinition<MySQLHealthCheck>(MySQLHealthCheck, `HC_${key}_slave`);
-      slaveHealthCheck.constructorParamByValue(`mysql.${key}.slave`);
-      slaveHealthCheck.constructorParamByValue(true);
-      slaveHealthCheck.setPropertyByRef('mysqlClient', key);
-      context.registerDefinition(slaveHealthCheck);
+      if (confs[key].slave) {
+        const slaveHealthCheck = new BaseSingletonDefinition<MySQLHealthCheck>(MySQLHealthCheck, `HC_${key}_slave`);
+        slaveHealthCheck.constructorParamByValue(`mysql.${key}.slave`);
+        slaveHealthCheck.constructorParamByValue(true);
+        slaveHealthCheck.setPropertyByRef('mysqlClient', key);
+        context.registerDefinition(slaveHealthCheck);
+      }
     });
   }
 }
