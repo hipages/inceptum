@@ -19,6 +19,10 @@ export default class MySQLPlugin implements Plugin {
     const context = app.getContext();
     const confs = context.getConfig('mysql');
     Object.keys(confs).forEach((key) => {
+      if (Object.hasOwnProperty.call(confs[key], 'enabled') && (confs[key].enabled === false || confs[key].enabled === 'false')) {
+        // Skip this definition as it has been specifically disabled
+        return;
+      }
       const clientSingleton = new BaseSingletonDefinition<any>(MySQLClient, key);
       const config = {...confs[key], name: key};
       clientSingleton.constructorParamByValue(config);
