@@ -25,6 +25,7 @@ export { Plugin, PluginContext } from './app/BaseApp';
 export { ObjectDefinitionInspector } from './ioc/ObjectDefinitionInspector';
 export { AbstractObjectDefinitionInspector } from './ioc/AbstractObjectDefinitionInspector';
 export * from './ioc/Decorators';
+export { WebDecorator } from './web/WebDecorators';
 export { NewrelicUtil } from './newrelic/NewrelicUtil';
 export { RabbitmqConsumerHandler, Message } from './rabbitmq/RabbitmqConsumerHandler';
 export * from './rabbitmq/RabbitmqConfig';
