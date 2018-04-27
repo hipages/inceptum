@@ -86,7 +86,7 @@ export class PostgresTransaction extends DBTransaction<Client> {
           LOGGER.error(err, `SQL error for ${sql}`);
           return reject(err);
         }
-        return resolve(rows);
+        return resolve(rows.rows);
       }),
     );
   }
