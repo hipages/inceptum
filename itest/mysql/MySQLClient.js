@@ -2,7 +2,7 @@ const { MySQLClient } = require('../../src/mysql/MySQLClient');
 
 const myClient = new MySQLClient({
   name: 'TestClient',
-  master: { database: 'testdb'}
+  master: { connectionConfig: { database: 'testdb'} }
 });
 myClient.initialise();
 

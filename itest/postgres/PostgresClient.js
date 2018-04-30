@@ -2,7 +2,7 @@ const { PostgresClient } = require('../../src/postgres/PostgresClient');
 
 const myClient = new PostgresClient({
   name: 'TestClient',
-  master: { database: 'testdb' }
+  master: { connectionConfig: { database: 'testdb'} }
 });
 myClient.initialise();
 
