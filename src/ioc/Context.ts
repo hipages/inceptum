@@ -163,32 +163,30 @@ export class Context extends Lifecycle {
   }
 
   registerSingletonsInDir(patterns, options) {
-    Context.walkDir(patterns, options)
-      .filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0)
-      .forEach((file) => {
-        if (file.includes('.d.ts')) {
-          return; // Ignore type definition files
+    Context.walkDir(patterns, options).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
+      if (file.includes('.d.ts')) {
+        return; // Ignore type definition files
+      }
+      let expectedClass = path.basename(file);
+      expectedClass = expectedClass.substr(0, expectedClass.length - 3);
+      const loaded = require(file);
+      if (loaded) {
+        if (typeof loaded === 'object' && loaded.__esModule && loaded.default && loaded.default.constructor) {
+          this.registerSingletons(loaded.default);
+        } else if (
+          typeof loaded === 'object' &&
+          !(loaded instanceof Function) &&
+          loaded[expectedClass] &&
+          loaded[expectedClass].constructor
+        ) {
+          this.registerSingletons(loaded[expectedClass]);
+        } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
+          this.registerSingletons(loaded);
+        } else {
+          throw new IoCException(`Couldn't register singleton for ${file}`);
         }
-        let expectedClass = path.basename(file);
-        expectedClass = expectedClass.substr(0, expectedClass.length - 3);
-        const loaded = require(file);
-        if (loaded) {
-          if (typeof loaded === 'object' && loaded.__esModule && loaded.default && loaded.default.constructor) {
-            this.registerSingletons(loaded.default);
-          } else if (
-            typeof loaded === 'object' &&
-            !(loaded instanceof Function) &&
-            loaded[expectedClass] &&
-            loaded[expectedClass].constructor
-          ) {
-            this.registerSingletons(loaded[expectedClass]);
-          } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
-            this.registerSingletons(loaded);
-          } else {
-            throw new IoCException(`Couldn't register singleton for ${file}`);
-          }
-        }
-      });
+      }
+    });
   }
 
   static requireFilesInDir(dir) {
@@ -227,9 +225,13 @@ export class Context extends Lifecycle {
     isGlob: boolean,
     globOptions: Object,
   }): Array<string> {
+
+    // Try to treat the patterns as globs first
     if (globby.hasMagic(patterns) || Array.isArray(patterns) || isGlob) {
       return globby.sync(patterns, globOptions);
     }
+
+    // Fallback to the legacy implementation for non-glob patterns to avoid code breaks
     return Context.walkDirLegacy(patterns);
   }
 
