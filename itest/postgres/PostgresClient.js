@@ -1,12 +1,9 @@
 const { PostgresClient } = require('../../src/postgres/PostgresClient');
 
-const myClient = new PostgresClient();
-myClient.name = 'TestClient';
-myClient.configuration = {
-  Verbose: true,
+const myClient = new PostgresClient({
+  name: 'TestClient',
   master: { database: 'testdb' }
-};
-
+});
 myClient.initialise();
 
 describe('PostgresClient', () => {
