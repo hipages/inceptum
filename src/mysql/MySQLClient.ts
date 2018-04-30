@@ -158,6 +158,7 @@ export class MySQLClient extends DBClient<mysql.IConnection, MySQLTransaction, M
   getNewDBTransaction(readonly: boolean, connectionPool: ConnectionPool<mysql.IConnection>): MySQLTransaction {
     return new MySQLTransaction(this.clientConfiguration.name, readonly, connectionPool);
   }
+
   getPingQuery(): string {
     return 'SELECT 1';
   }

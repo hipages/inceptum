@@ -91,6 +91,14 @@ export default class BaseApp {
     this.plugins = this.plugins.concat(plugins);
   }
 
+  public getRegisteredPluginNames(): string[] {
+    return this.plugins.map((plugin) => plugin.name);
+  }
+
+  public hasRegisteredPlugin(name: string): boolean {
+    return !!this.plugins.find((plugin) => plugin.name === name);
+  }
+
   private runLifecycleMethodOnPlugins(method: PluginLifecycleMethodName) {
     return this.plugins.reduce(async (previous, plugin) => {
       await previous;
@@ -109,7 +117,8 @@ export default class BaseApp {
     });
     process.on('SIGTERM', () => {
       this.stop().then(() => process.exit());
-    });    await this.context.lcStart();
+    });
+    await this.context.lcStart();
     return this.runLifecycleMethodOnPlugins('didStart');
   }
   async stop() {

@@ -2,6 +2,7 @@ import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDe
 import { AbstractObjectDefinitionInspector } from '../ioc/AbstractObjectDefinitionInspector';
 import { SingletonDefinition } from '../ioc/objectdefinition/SingletonDefinition';
 import { RouteRegisterUtil } from './WebPlugin';
+import { hasWebDecoratorMetadata, getWebDecoratorMetadata, InceptumWebRouteMetadata } from './WebDecorators';
 
 export class WebRoutingInspector extends AbstractObjectDefinitionInspector {
   definition: BaseSingletonDefinition<RouteRegisterUtil>;
@@ -15,8 +16,11 @@ export class WebRoutingInspector extends AbstractObjectDefinitionInspector {
 
   // tslint:disable-next-line:prefer-function-over-method
   interestedIn(objectDefinition) {
-    return (objectDefinition instanceof SingletonDefinition)
-      && (objectDefinition.getProducedClass().routes !== undefined);
+    if (!(objectDefinition instanceof BaseSingletonDefinition)) {
+      return false;
+    }
+    return (objectDefinition.getProducedClass().routes !== undefined) ||
+      hasWebDecoratorMetadata(objectDefinition.getProducedClass().prototype);
   }
 
   /**
@@ -24,7 +28,17 @@ export class WebRoutingInspector extends AbstractObjectDefinitionInspector {
    */
   // tslint:disable-next-line:prefer-function-over-method
   doInspect(objectDefinition: SingletonDefinition<any>) {
-    const routes: Array<{verb?: string, path: string, methodName: string}> = objectDefinition.getProducedClass().routes;
+    if (objectDefinition.getProducedClass().routes) {
+      // Old way
+      this.processRoutes(objectDefinition.getProducedClass().routes || [], objectDefinition);
+    }
+    if (hasWebDecoratorMetadata(objectDefinition.getProducedClass().prototype)) {
+      // New way
+      this.processRoutes(getWebDecoratorMetadata(objectDefinition.getProducedClass().prototype).routes || [], objectDefinition);
+    }
+  }
+
+  private processRoutes(routes: InceptumWebRouteMetadata[], objectDefinition) {
     routes.forEach((route, index) => {
       const instanceName = `instance_${index}`;
       this.routesToRegister.push(
