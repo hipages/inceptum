@@ -119,7 +119,7 @@ export default class BaseApp {
       this.stop().then(() => process.exit());
     });
     await this.context.lcStart();
-    return await this.runLifecycleMethodOnPlugins('didStart');
+    return this.runLifecycleMethodOnPlugins('didStart');
   }
   async stop() {
     await this.runLifecycleMethodOnPlugins('willStop');

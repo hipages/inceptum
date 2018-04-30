@@ -94,7 +94,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
     if (consumerConfig.prefetch && consumerConfig.prefetch > 0) {
       this.channel.prefetch(consumerConfig.prefetch);
     }
-    return await this.channel.consume(
+    return this.channel.consume(
       queueName,
       (message: Message) => {
           this.handleMessage(message);
