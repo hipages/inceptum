@@ -164,40 +164,35 @@ export class Context extends Lifecycle {
 
   registerSingletonsInDir(patterns, options) {
     Context.walkDir(patterns, options)
-      .then((files) => {
-        files.filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0)
-          .forEach((file) => {
-            if (file.includes('.d.ts')) {
-              return; // Ignore type definition files
-            }
-            let expectedClass = path.basename(file);
-            expectedClass = expectedClass.substr(0, expectedClass.length - 3);
-            const loaded = require(file);
-            if (loaded) {
-              if (typeof loaded === 'object' && loaded.__esModule && loaded.default && loaded.default.constructor) {
-                this.registerSingletons(loaded.default);
-              } else if (
-                typeof loaded === 'object' &&
-                !(loaded instanceof Function) &&
-                loaded[expectedClass] &&
-                loaded[expectedClass].constructor
-              ) {
-                this.registerSingletons(loaded[expectedClass]);
-              } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
-                this.registerSingletons(loaded);
-              } else {
-                throw new IoCException(`Couldn't register singleton for ${file}`);
-              }
-            }
-          });
-      })
-      .catch(() => {
-        throw new IoCException(`Failed to glob: "${patterns}"`);
+      .filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0)
+      .forEach((file) => {
+        if (file.includes('.d.ts')) {
+          return; // Ignore type definition files
+        }
+        let expectedClass = path.basename(file);
+        expectedClass = expectedClass.substr(0, expectedClass.length - 3);
+        const loaded = require(file);
+        if (loaded) {
+          if (typeof loaded === 'object' && loaded.__esModule && loaded.default && loaded.default.constructor) {
+            this.registerSingletons(loaded.default);
+          } else if (
+            typeof loaded === 'object' &&
+            !(loaded instanceof Function) &&
+            loaded[expectedClass] &&
+            loaded[expectedClass].constructor
+          ) {
+            this.registerSingletons(loaded[expectedClass]);
+          } else if (loaded instanceof Function && loaded.name && loaded.name === expectedClass) {
+            this.registerSingletons(loaded);
+          } else {
+            throw new IoCException(`Couldn't register singleton for ${file}`);
+          }
+        }
       });
   }
 
   static requireFilesInDir(dir) {
-    Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
+    Context.walkDirLegacy(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       // eslint-disable-next-line global-require
       require(file);
     });
@@ -211,31 +206,31 @@ export class Context extends Lifecycle {
    * @param filelist The carried-over list of files
    * @return {Array} The list of files in this directory and subdirs
    */
-  static walkDirSync(dir, filelist = []) {
+  static walkDirLegacy(dir, filelist = []) {
     fs.readdirSync(dir).forEach((file) => {
       filelist = fs.statSync(path.join(dir, file)).isDirectory()
-        ? Context.walkDirSync(path.join(dir, file), filelist)
+        ? Context.walkDirLegacy(path.join(dir, file), filelist)
         : filelist.concat(path.join(dir, file));
     });
     return filelist;
   }
 
   /**
-   * Async version of walkDirSync additionally infused with glob matching
+   * Async version of walkDirLegacy additionally infused with glob matching
    *
    * @param {string} patterns - glob pattern(s) or relative path
    * @param {boolean} [isGlob=false] - pass true to treat the path as a glob
    * @param {Object} [globOptions={}] - options to pass to globby
-   * @returns {Promise<Array>} files
+   * @returns {Array<string>} files
    */
   static walkDir(patterns: string | Array<string>, {isGlob, globOptions}: {
     isGlob: boolean,
     globOptions: Object,
-  }): Promise<Array<string>> {
+  }): Array<string> {
     if (globby.hasMagic(patterns) || Array.isArray(patterns) || isGlob) {
-      return globby(patterns, globOptions);
+      return globby.sync(patterns, globOptions);
     }
-    return Promise.resolve(Context.walkDirSync(patterns));
+    return Context.walkDirLegacy(patterns);
   }
 
   // ************************************
