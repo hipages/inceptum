@@ -1,12 +1,9 @@
 const { PostgresClient } = require('../../src/postgres/PostgresClient');
 
-const myClient = new PostgresClient();
-myClient.name = 'TestClient';
-myClient.configuration = {
-  Verbose: true,
-  master: { database: 'testdb' }
-};
-
+const myClient = new PostgresClient({
+  name: 'TestClient',
+  master: { connectionConfig: { database: 'testdb'} }
+});
 myClient.initialise();
 
 describe('PostgresClient', () => {
@@ -56,7 +53,7 @@ describe('PostgresClient', () => {
       rows.length.must.be.equal(3);
     });
     it('must correctly bind values to the queies', async () => {
-      const rows = await myClient.read('SELECT * FROM table1 WHERE name = ?', 'User 2');
+      const rows = await myClient.read('SELECT * FROM table1 WHERE name = $1', 'User 2');
       rows.length.must.be.equal(1);
     });
   });
