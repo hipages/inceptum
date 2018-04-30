@@ -4,7 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import globby from 'globby';
+import * as globby from 'globby';
 import Config, { ConfigAdapter } from '../config/ConfigProvider';
 import { Logger, LogManager } from '../log/LogManager';
 import { PromiseUtil } from '../util/PromiseUtil';
