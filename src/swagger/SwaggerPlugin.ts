@@ -1,5 +1,6 @@
 import * as bp from 'body-parser';
 import { Plugin } from '../app/BaseApp';
+import WebPlugin from '../web/WebPlugin';
 import SwaggerMetadataMiddleware from './SwaggerMetadataMiddleware';
 import SwaggerRouterMiddleware from './SwaggerRouterMiddleware';
 import createCorsMiddlware from './CORSMiddleware';
@@ -14,7 +15,7 @@ export class SwaggerPlugin implements Plugin {
 
   name = 'swagger-plugin';
   async willStart(app, context) {
-    const express = context.get('WebPlugin/APP');
+    const express = context.get(WebPlugin.CONTEXT_APP_KEY);
 
     const CORSMiddleware = createCorsMiddlware({
       allowedOrigins: app.getConfig('app.cors.allowOrigin', '*'),
