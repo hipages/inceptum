@@ -126,9 +126,9 @@ export abstract class ConfigurableSingletonDefinition<T> extends SingletonDefini
     return this;
   }
 
-  constructorParamByGroup(paramName, groupName) {
+  constructorParamByGroup(groupName) {
     this.assertState(BaseSingletonState.NOT_STARTED);
-    this.constructorArgDefinitions.push(ParamDefinition.withGroupName(name));
+    this.constructorArgDefinitions.push(ParamDefinition.withGroupName(groupName));
     return this;
   }
 

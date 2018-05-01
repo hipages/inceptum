@@ -325,7 +325,7 @@ suite('ioc/Context', () => {
       myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2').constructorParamByValue('val2'));
       myContext.addObjectNameToGroup('myGroup', 'A1');
       myContext.addObjectNameToGroup('myGroup', 'A2');
-      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByGroup('a', 'myGroup'));
+      myContext.registerSingletons(new BaseSingletonDefinition(B).constructorParamByGroup('myGroup'));
 
       await myContext.lcStart();
       const b: B = await myContext.getObjectByName('B');
