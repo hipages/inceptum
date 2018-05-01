@@ -28,8 +28,8 @@ export class RabbitmqMgtHttpApi {
     }
   }
 
-  protected async sendRequest(method, url, params?): Promise<AxiosResponse> {
-    return await Axios.request({
+  protected sendRequest(method, url, params?): Promise<AxiosResponse> {
+    return Axios.request({
       method,
       baseURL: `${this.rabbitmqConfig.mgtHttpTheme}://${this.rabbitmqConfig.mgtHttpHost}:${this.rabbitmqConfig.mgtHttpPort}/api/`,
       url,

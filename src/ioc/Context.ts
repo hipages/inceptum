@@ -286,17 +286,17 @@ export class Context extends Lifecycle {
   // Get Bean Functions
   // ************************************
 
-  getObjectByName(beanName) {
+  getObjectByName(beanName: string): Promise<any> {
     const beanDefinition = this.getDefinitionByName(beanName);
     return beanDefinition.getInstance();
   }
 
-  getObjectByType(className) {
+  getObjectByType(className: string): Promise<any> {
     const beanDefinition = this.getDefinitionByType(className);
     return beanDefinition.getInstance();
   }
 
-  getObjectsByType(className) {
+  getObjectsByType(className: string): Promise<any[]> {
     const beanDefinitions = this.getDefinitionsByType(className);
     const instances = PromiseUtil.map(beanDefinitions, (bd) => bd.getInstance());
     return instances.then((arr) => {
@@ -314,10 +314,10 @@ export class Context extends Lifecycle {
     });
   }
 
-  async getObjectsByGroup(groupName) {
+   getObjectsByGroup(groupName: string): Promise<any[]> {
     const objectNames = this.getGroupObjectNames(groupName);
     const objectDefinitions = objectNames.map((objectName) => this.getDefinitionByName(objectName));
-    return await objectDefinitions.reduce(async (acum, def) => {
+    return objectDefinitions.reduce(async (acum, def) => {
       (await acum).push(await def.getInstance());
       return Promise.resolve(acum);
     }, Promise.resolve([]));
@@ -327,7 +327,7 @@ export class Context extends Lifecycle {
   // Get Bean Definition Functions
   // ************************************
 
-  getDefinitionByName(objectName): ObjectDefinition<any> {
+  getDefinitionByName(objectName: string): ObjectDefinition<any> {
     const val = this.objectDefinitions.get(objectName);
     if (val) {
       return val;
@@ -338,7 +338,7 @@ export class Context extends Lifecycle {
     throw new IoCException(`No object definition with name ${objectName} registered in the context`);
   }
 
-  getDefinitionByType(className): ObjectDefinition<any> {
+  getDefinitionByType(className: string): ObjectDefinition<any> {
     const resp = this.getDefinitionsByType(className);
     if (resp.length > 1) {
       throw new IoCException(`Found more than one object definition in the context that produces a ${className}`);
@@ -346,7 +346,7 @@ export class Context extends Lifecycle {
     return resp[0];
   }
 
-  getDefinitionsByType(className, failOnMissing = true): Array<ObjectDefinition<any>> {
+  getDefinitionsByType(className: string, failOnMissing = true): Array<ObjectDefinition<any>> {
     const resp = new Map();
     if (this.parentContext) {
       this.parentContext
@@ -364,7 +364,7 @@ export class Context extends Lifecycle {
     return Array.from(resp.values());
   }
 
-  getDefinitionsByGroup(groupName): Array<ObjectDefinition<any>> {
+  getDefinitionsByGroup(groupName: string): Array<ObjectDefinition<any>> {
     const objectNames = this.getGroupObjectNames(groupName);
     return objectNames.map((objectName) => this.getDefinitionByName(objectName));
   }

@@ -1,12 +1,9 @@
-const { MysqlClient } = require('../../src/mysql/MySQLClient');
+const { MySQLClient } = require('../../src/mysql/MySQLClient');
 
-const myClient = new MysqlClient();
-myClient.name = 'TestClient';
-myClient.configuration = {
-  Verbose: true,
-  master: { database: 'testdb'}
-};
-
+const myClient = new MySQLClient({
+  name: 'TestClient',
+  master: { connectionConfig: { database: 'testdb'} }
+});
 myClient.initialise();
 
 describe('MySQLClient', () => {

@@ -6,6 +6,6 @@
     "prefer-function-over-method": false,
     "typeof-compare": false,
     "whitespace": false,
-    "await-promise": [true, "Bluebird"]
+    "await-promise": [true, "Bluebird", "PromiseLike"]
   }
 }
