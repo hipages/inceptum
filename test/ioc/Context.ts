@@ -317,6 +317,26 @@ suite('ioc/Context', () => {
       a[0].getName().must.equal('A');
     });
   });
+  suite('objects with constructors set', () => {
+    test('can use groups in constructor', async () => {
+      const myContext = new Context('test1');
+
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A1').constructorParamByValue('val1'));
+      myContext.registerSingletons(new BaseSingletonDefinition(A, 'A2').constructorParamByValue('val2'));
+      myContext.addObjectNameToGroup('myGroup', 'A1');
+      myContext.addObjectNameToGroup('myGroup', 'A2');
+      myContext.registerSingletons(new BaseSingletonDefinition(B).setPropertyByGroup('a', 'myGroup'));
+
+      await myContext.lcStart();
+      const b: B = await myContext.getObjectByName('B');
+      b.a.must.be.an.array();
+      b.a.length.must.equal(2);
+      const values: string[] = b.a.map((a) => a.val);
+      values.sort();
+      values.must.eql(['val1', 'val2']);
+      await myContext.lcStop();
+    });
+  });
   suite('objects with parameters set', () => {
     test('can use value params', () => {
       const myContext = new Context('test1');
