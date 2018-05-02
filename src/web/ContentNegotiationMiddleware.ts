@@ -1,5 +1,8 @@
 import * as xmlbuilder from 'xmlbuilder';
 
+/**
+ * To use this middleware with swagger, set xml root tag name in relevant definition in swagger.yml
+ */
 export class ContentNegotiationMiddleware {
   private xmlRoot: string;
 
