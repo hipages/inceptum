@@ -217,16 +217,13 @@ export class Context extends Lifecycle {
    *  find matching files based on the given path or glob
    *
    * @param {string} patterns - glob pattern(s) or relative path
-   * @param {boolean} [isGlob=false] - pass true to treat the path as a glob
+   * @param {boolean} [isGlob] - pass true to treat the path as a glob
    * @param {Object} [globOptions] - options to pass to globby
    * @returns {Array<string>} files
    */
   static findMatchingFiles(patterns: string | Array<string>, {isGlob, globOptions}: {
     isGlob: boolean,
     globOptions: Object,
-  } = {
-    isGlob: false,
-    globOptions: {},
   }): Array<string> {
 
     // Try to treat the patterns as globs first
