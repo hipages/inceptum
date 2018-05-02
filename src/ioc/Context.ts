@@ -163,7 +163,7 @@ export class Context extends Lifecycle {
   }
 
   registerSingletonsInDir(patterns, options) {
-    Context.walkDir(patterns, options).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
+    Context.findMatchingFiles(patterns, options).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
       if (file.includes('.d.ts')) {
         return; // Ignore type definition files
       }
@@ -190,7 +190,7 @@ export class Context extends Lifecycle {
   }
 
   static requireFilesInDir(dir) {
-    Context.walkDirLegacy(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
+    Context.walkDir(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       // eslint-disable-next-line global-require
       require(file);
     });
@@ -204,24 +204,24 @@ export class Context extends Lifecycle {
    * @param filelist The carried-over list of files
    * @return {Array} The list of files in this directory and subdirs
    */
-  static walkDirLegacy(dir, filelist = []) {
+  static walkDir(dir, filelist = []) {
     fs.readdirSync(dir).forEach((file) => {
       filelist = fs.statSync(path.join(dir, file)).isDirectory()
-        ? Context.walkDirLegacy(path.join(dir, file), filelist)
+        ? Context.walkDir(path.join(dir, file), filelist)
         : filelist.concat(path.join(dir, file));
     });
     return filelist;
   }
 
   /**
-   * Async version of walkDirLegacy additionally infused with glob matching
+   *  find matching files based on the given path or glob
    *
    * @param {string} patterns - glob pattern(s) or relative path
    * @param {boolean} [isGlob=false] - pass true to treat the path as a glob
    * @param {Object} [globOptions={}] - options to pass to globby
    * @returns {Array<string>} files
    */
-  static walkDir(patterns: string | Array<string>, {isGlob, globOptions}: {
+  static findMatchingFiles(patterns: string | Array<string>, {isGlob, globOptions}: {
     isGlob: boolean,
     globOptions: Object,
   }): Array<string> {
@@ -232,7 +232,7 @@ export class Context extends Lifecycle {
     }
 
     // Fallback to the legacy implementation for non-glob patterns to avoid code breaks
-    return Context.walkDirLegacy(patterns);
+    return Context.walkDir(patterns);
   }
 
   // ************************************
