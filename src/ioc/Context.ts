@@ -190,7 +190,7 @@ export class Context extends Lifecycle {
   }
 
   static requireFilesInDir(dir) {
-    Context.walkDir(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
+    Context.walkDirSync(dir).filter((file) => path.extname(file) === '.js').forEach((file) => {
       // eslint-disable-next-line global-require
       require(file);
     });
@@ -204,10 +204,10 @@ export class Context extends Lifecycle {
    * @param filelist The carried-over list of files
    * @return {Array} The list of files in this directory and subdirs
    */
-  static walkDir(dir, filelist = []) {
+  static walkDirSync(dir, filelist = []) {
     fs.readdirSync(dir).forEach((file) => {
       filelist = fs.statSync(path.join(dir, file)).isDirectory()
-        ? Context.walkDir(path.join(dir, file), filelist)
+        ? Context.walkDirSync(path.join(dir, file), filelist)
         : filelist.concat(path.join(dir, file));
     });
     return filelist;
@@ -235,7 +235,7 @@ export class Context extends Lifecycle {
     }
 
     // Fallback to the legacy implementation for non-glob patterns to avoid code breaks
-    return Context.walkDir(patterns);
+    return Context.walkDirSync(patterns);
   }
 
   // ************************************
