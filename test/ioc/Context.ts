@@ -522,6 +522,12 @@ suite('ioc/Context', () => {
     });
   });
   suite('findMatchingFiles', () => {
+
+    const options = {
+      isGlob: false,
+      globOptions: {},
+    };
+
     beforeEach(() => {
       mockFS({
         src: {
@@ -586,7 +592,7 @@ suite('ioc/Context', () => {
     });
 
     test('recursively matches files, given a simple path', () => {
-      const files = Context.findMatchingFiles('src/services');
+      const files = Context.findMatchingFiles('src/services', options);
       [
         'src/services/jobService.js',
         'src/services/subServices/repeatJobService.js',
@@ -595,7 +601,7 @@ suite('ioc/Context', () => {
       });
     });
     test('ignores a directory decorated with negation', () => {
-      const files = Context.findMatchingFiles(['src/controllers', '!src/controllers/__tests__']);
+      const files = Context.findMatchingFiles(['src/controllers', '!src/controllers/__tests__'], options);
       [
         'src/controllers/jobController.js',
         'src/controllers/messageController.js',
@@ -605,7 +611,7 @@ suite('ioc/Context', () => {
       });
     });
     test('only matches files for glob pattern', () => {
-      const files = Context.findMatchingFiles('src/modules/**/*Controller.js');
+      const files = Context.findMatchingFiles('src/modules/**/*Controller.js', options);
       [
         'src/modules/job/jobController.js',
         'src/modules/message/messageController.js',
@@ -615,7 +621,7 @@ suite('ioc/Context', () => {
       });
     });
     test('recursively match glob pattern', () => {
-      const files = Context.findMatchingFiles(['src/**/*.js', '!src/**/*.test.js']);
+      const files = Context.findMatchingFiles(['src/**/*.js', '!src/**/*.test.js'], options);
       [
         'src/services/jobService.js',
         'src/services/subServices/repeatJobService.js',

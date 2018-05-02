@@ -1,4 +1,4 @@
-import {when, spy, capture, anything} from 'ts-mockito';
+import {when, spy, capture, anything, reset} from 'ts-mockito';
 import BaseApp from '../../src/app/BaseApp';
 import {Context} from '../../src';
 
@@ -20,6 +20,8 @@ describe('BaseApp', () => {
           globOptions: {},
         },
       ]);
+
+      reset(spiedContext);
     });
     it('calls findMatchingFiles with given arguments', () => {
       const app = new BaseApp();
@@ -44,6 +46,8 @@ describe('BaseApp', () => {
           },
         },
       ]);
+
+      reset(spiedContext);
     });
   });
 });
