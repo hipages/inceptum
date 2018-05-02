@@ -4,7 +4,6 @@ import * as e from 'express';
 import * as onFinished from 'on-finished';
 import { ExtendedGauge } from 'prometheus-extended-gauge';
 import * as promBundle from 'express-prom-bundle';
-import * as xmlbuilder from 'xmlbuilder';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
