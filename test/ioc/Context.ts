@@ -1,6 +1,8 @@
 // Test...
 import { must } from 'must';
 import { suite, test, slow, timeout, skip } from 'mocha-typescript';
+import { mock } from 'ts-mockito';
+import * as mockFS from 'mock-fs';
 
 import { Context } from '../../src/ioc/Context';
 import { Lifecycle, LifecycleState } from '../../src/ioc/Lifecycle';
@@ -518,5 +520,124 @@ suite('ioc/Context', () => {
         .then(() => myContext.lcStop())
         .then(() => otherContext.lcStop());
     });
+  });
+  suite('findMatchingFiles', () => {
+    beforeEach(() => {
+      mockFS({
+        src: {
+          modules: {
+            job: {
+              __tests__: {
+                'jobController.test.js': '',
+                'jobView.test.js': '',
+                'jobModel.test.js': '',
+              },
+              'jobController.js': '',
+              'jobView.js': '',
+              'jobModel.js': '',
+              'configs.js': '',
+            },
+            message: {
+              __tests__: {
+                'messageController.test.js': '',
+                'messageView.test.js': '',
+                'messageModel.test.js': '',
+              },
+              'messageController.js': '',
+              'messageView.js': '',
+              'messageModel.js': '',
+              'configs.js': '',
+            },
+            payment: {
+              __tests__: {
+                'paymentController.test.js': '',
+                'paymentView.test.js': '',
+                'paymentModel.test.js': '',
+              },
+              'paymentController.js': '',
+              'paymentView.js': '',
+              'paymentModel.js': '',
+              'configs.js': '',
+            },
+          },
+          controllers: {
+            __tests__: {
+              'jobController.test.js': '',
+              'messageController.test.js': '',
+              'paymentController.test.js': '',
+            },
+            'jobController.js': '',
+            'messageController.js': '',
+            'paymentController.js': '',
+          },
+          services: {
+            subServices: {
+              'repeatJobService.js': '',
+            },
+            'jobService.js': '',
+          },
+        },
+        'eslintrc.json': '',
+      });
+    });
+
+    afterEach(() => {
+      mockFS.restore();
+    });
+
+    test('recursively matches files, given a simple path', () => {
+      const files = Context.findMatchingFiles('src/services');
+      [
+        'src/services/jobService.js',
+        'src/services/subServices/repeatJobService.js',
+      ].forEach((expectedFile) => {
+        files.must.include(expectedFile);
+      });
+    });
+    test('ignores a directory decorated with negation', () => {
+      const files = Context.findMatchingFiles(['src/controllers', '!src/controllers/__tests__']);
+      [
+        'src/controllers/jobController.js',
+        'src/controllers/messageController.js',
+        'src/controllers/paymentController.js',
+      ].forEach((expectedFile) => {
+        files.must.include(expectedFile);
+      });
+    });
+    test('only matches files for glob pattern', () => {
+      const files = Context.findMatchingFiles('src/modules/**/*Controller.js');
+      [
+        'src/modules/job/jobController.js',
+        'src/modules/message/messageController.js',
+        'src/modules/payment/paymentController.js',
+      ].forEach((expectedFile) => {
+        files.must.include(expectedFile);
+      });
+    });
+    test('recursively match glob pattern', () => {
+      const files = Context.findMatchingFiles(['src/**/*.js', '!src/**/*.test.js']);
+      [
+        'src/services/jobService.js',
+        'src/services/subServices/repeatJobService.js',
+        'src/controllers/jobController.js',
+        'src/controllers/messageController.js',
+        'src/controllers/paymentController.js',
+        'src/modules/job/jobController.js',
+        'src/modules/job/jobView.js',
+        'src/modules/job/jobModel.js',
+        'src/modules/job/configs.js',
+        'src/modules/message/messageController.js',
+        'src/modules/message/messageView.js',
+        'src/modules/message/messageModel.js',
+        'src/modules/message/configs.js',
+        'src/modules/payment/paymentController.js',
+        'src/modules/payment/paymentView.js',
+        'src/modules/payment/paymentModel.js',
+        'src/modules/payment/configs.js',
+      ].forEach((expectedFile) => {
+        files.must.include(expectedFile);
+      });
+    });
+
   });
 });
