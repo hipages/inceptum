@@ -1,7 +1,7 @@
 import * as bp from 'body-parser';
 import { Plugin } from '../app/BaseApp';
 import WebPlugin from '../web/WebPlugin';
-import SwaggerMetadataMiddleware from './SwaggerMetadataMiddleware';
+import SwaggerMetadataMiddleware, { SwaggerMetadataMiddlewareConfig } from './SwaggerMetadataMiddleware';
 import SwaggerRouterMiddleware from './SwaggerRouterMiddleware';
 import createCorsMiddlware from './CORSMiddleware';
 
@@ -23,7 +23,9 @@ export class SwaggerPlugin implements Plugin {
       allowedMaxAge: app.getConfig('app.cors.maxAge', 300)
   ,  })
 
-;   const meta = new SwaggerMetadataMiddleware({ swaggerFilePath: this.swaggerPath });
+;   const apiKey = app.getConfig('app.apiKey', null);
+    const mdConfig: SwaggerMetadataMiddlewareConfig = { apiKey, swaggerFilePath: this.swaggerPath };
+    const meta = new SwaggerMetadataMiddleware(mdConfig);
     const router = new SwaggerRouterMiddleware(app.getContext());
     express.use(bp.json({ limit: '10mb' }));
     express.use(bp.urlencoded({ extended: true }));
