@@ -10,6 +10,7 @@ import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { WebRoutingInspector } from './WebRoutingInspector';
 import HttpError from './HttpError';
+import { ContentNegotiationMiddleware } from './ContentNegotiationMiddleware';
 
 const logger = LogManager.getLogger(__filename);
 
@@ -25,7 +26,7 @@ const activeRequestsGauge = new ExtendedGauge({
 
 export class RouteRegisterUtil {
   private routesToRegister = [];
-  private express: e;
+  private express;
 
   doRegister() {
     this.routesToRegister.forEach((route: {verb: string, path: string, instanceProperty: string, methodName: string, objectName: string}) => {
@@ -77,10 +78,10 @@ export default class WebPlugin implements Plugin {
   public static CONTEXT_SERVER_KEY = 'WebPlugin/SERVER';
 
   name = 'WebPlugin';
-  private expressProvider = () => new e();
+  // private expressProvider = () => new e();
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
-    const express = this.expressProvider();
+    const express = e();
     express.set('trust proxy', true); // stop redirecting to http internally https://expressjs.com/en/guide/behind-proxies.html
     pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
@@ -97,6 +98,12 @@ export default class WebPlugin implements Plugin {
       onFinished(res, () => activeRequestsGauge.dec());
       next();
     });
+
+    const negoContentMiddleware = new ContentNegotiationMiddleware(app.getConfig('app.xmlRoot', '') as string);
+    const xmlMiddleware = negoContentMiddleware.getMiddleware();
+    if (xmlMiddleware) {
+      express.use(xmlMiddleware);
+    }
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
     definition.withLazyLoading(false);

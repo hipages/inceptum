@@ -5,7 +5,6 @@ import SwaggerMetadataMiddleware, { SwaggerMetadataMiddlewareConfig } from './Sw
 import SwaggerRouterMiddleware from './SwaggerRouterMiddleware';
 import createCorsMiddlware from './CORSMiddleware';
 
-
 export class SwaggerPlugin implements Plugin {
   private swaggerPath: string;
 
@@ -20,10 +19,10 @@ export class SwaggerPlugin implements Plugin {
     const CORSMiddleware = createCorsMiddlware({
       allowedOrigins: app.getConfig('app.cors.allowOrigin', '*'),
       allowedHeaders: app.getConfig('app.cors.allowHeaders', ['Content-type']),
-      allowedMaxAge: app.getConfig('app.cors.maxAge', 300)
-  ,  })
+      allowedMaxAge: app.getConfig('app.cors.maxAge', 300),
+    });
 
-;   const apiKey = app.getConfig('app.apiKey', null);
+    const apiKey = app.getConfig('app.apiKey', null);
     const mdConfig: SwaggerMetadataMiddlewareConfig = { apiKey, swaggerFilePath: this.swaggerPath };
     const meta = new SwaggerMetadataMiddleware(mdConfig);
     const router = new SwaggerRouterMiddleware(app.getContext());

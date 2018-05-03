@@ -15,10 +15,9 @@ export default class AdminPortPlugin implements Plugin {
   public static CONTEXT_SERVER_KEY = 'AdminPortPlugin/SERVER';
 
   name = 'AdminPortPlugin';
-  private expressProvider = () => new e();
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
-    const express = this.expressProvider();
+    const express = e();
     pluginContext.set(AdminPortPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
   }

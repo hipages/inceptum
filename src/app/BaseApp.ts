@@ -75,8 +75,29 @@ export default class BaseApp {
     return this.register(...plugins);
   }
 
-  public addDirectory(path) {
-    return this.getContext().registerSingletonsInDir(path);
+
+  /**
+   * Register services or controllers with Inceptum
+   * Note that we are using "npm globby" internally for glob matching.
+   *
+   * Globs are disabled by default. Pass isGlob=true to enable glob matching
+   *
+   * Globs will be automatically activated if the "patterns" parameter is an array of strings,
+   * or if it contains magic characters (eg: * ? { })
+   *
+   * @param {string|Array<string>} patterns - path as a relative path or as glob pattern(s). See options for more details
+   * @param {Object} [options] - options object for enabling and configuring glob matching
+   * @param {boolean} [options.isGlob=false] - pass true to treat the path as a glob
+   * @param {Object} [options.globOptions] - options to pass to globby
+   */
+  public addDirectory(patterns: string | Array<string>, options: {
+    isGlob: boolean,
+    globOptions: Object,
+  } = {
+    isGlob: false,
+    globOptions: {},
+  }) {
+    return this.getContext().registerSingletonsInDir(patterns, options);
   }
 
   public register(...plugins: PluginImplemenation[]) {
