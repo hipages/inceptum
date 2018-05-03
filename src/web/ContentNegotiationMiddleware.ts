@@ -10,12 +10,12 @@ export class ContentNegotiationMiddleware {
     this.xmlRoot = xmlRoot;
   }
 
-  register(expressApp) {
+  getMiddleware() {
     const xmlRoot = this.xmlRoot;
     if (!xmlRoot) {
       return;
     }
-    expressApp.use((req, res, next) => {
+    return (req, res, next) => {
       const xmlType = 'application/xml';
       if (req.is(xmlType) || xmlType === req.get('accept')) {
         const originalSend = res.send;
@@ -28,6 +28,6 @@ export class ContentNegotiationMiddleware {
         res.header('content-type', xmlType);
       }
       next();
-    });
+    };
   }
 }

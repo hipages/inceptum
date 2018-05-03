@@ -92,6 +92,7 @@
     "@types/node": "7.0.23",
     "@types/source-map-support": "^0.2.28",
     "@types/xmlbuilder": "^0.0.32",
+    "@types/express": "^4.11.1",
     "co-mocha": "^1.1.2",
     "codecov": "^2.2.0",
     "doubleagent": "^1.1.0",

@@ -31,7 +31,6 @@ export class RouteRegisterUtil {
   doRegister() {
     this.routesToRegister.forEach((route: {verb: string, path: string, instanceProperty: string, methodName: string, objectName: string}) => {
       logger.info(`Registering route from ${route.objectName}: ${route.verb.toUpperCase()} ${route.path} -> ${route.methodName}`);
-      this.express = e();
       this.express[route.verb](route.path, (req, res) => {
         return this[route.instanceProperty][route.methodName](req, res);
       });
@@ -101,7 +100,10 @@ export default class WebPlugin implements Plugin {
     });
 
     const negoContentMiddleware = new ContentNegotiationMiddleware(app.getConfig('app.xmlRoot', '') as string);
-    negoContentMiddleware.register(express);
+    const xmlMiddleware = negoContentMiddleware.getMiddleware();
+    if (xmlMiddleware) {
+      express.use(xmlMiddleware);
+    }
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
     definition.withLazyLoading(false);
