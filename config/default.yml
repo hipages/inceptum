@@ -4,6 +4,7 @@ app:
     name: BaseContext
   server:
     port: 10010
+  xmlRoot: ''
 
 logging:
   streams:
