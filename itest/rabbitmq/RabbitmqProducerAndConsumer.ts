@@ -145,6 +145,8 @@ class RabbitmqProducerAndConsumer {
 
         // make sure there is an exception
         handlerExceptionSpy.called.must.be.true();
+        // wait 1s to trigger dlq handler.
+        await new Promise((resolve, reject) => setTimeout(resolve, 1000));
         // dlq consumer handler should be called.
         dlqHandlerSpy.called.must.be.true();
     }
