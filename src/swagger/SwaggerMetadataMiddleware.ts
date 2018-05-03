@@ -32,6 +32,7 @@ export default class SwaggerMetadataMiddleware {
     this.logger = config.logger;
     this.apiKey = config.apiKey;
   }
+
   loadSwagger(config) {
     if (!config.swaggerFilePath) {
       throw new Error('Need to specify the swaggerFilePath in the config');
@@ -67,8 +68,8 @@ export default class SwaggerMetadataMiddleware {
    * @param scopesOrApiKey
    * @param callback
    */
-  verifyApiKey(req, authOrSecDef, scopesOrApiKey, callback) {
-    return this.apiKey && scopesOrApiKey === this.apiKey;
+  verifyApiKey(req, authOrSecDef, scopesOrApiKey, callback): boolean {
+    return scopesOrApiKey === this.apiKey;
   }
 
   register(expressApp): Promise<void> {
