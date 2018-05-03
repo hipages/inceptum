@@ -4,7 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as config from 'config';
+import * as globby from 'globby';
 import Config, { ConfigAdapter } from '../config/ConfigProvider';
 import { Logger, LogManager } from '../log/LogManager';
 import { PromiseUtil } from '../util/PromiseUtil';
@@ -14,6 +14,7 @@ import { ObjectDefinition } from './objectdefinition/ObjectDefinition';
 import { BaseSingletonDefinition } from './objectdefinition/BaseSingletonDefinition';
 import { ObjectDefinitionInspector } from './ObjectDefinitionInspector';
 import { PreinstantiatedSingletonDefinition } from './objectdefinition/PreinstantiatedSingletonDefinition';
+
 /**
  * A context used by IoC to register and request objects from.
  * This is the main class for the inversion of control framework. It serves as a registry where you can
@@ -161,8 +162,8 @@ export class Context extends Lifecycle {
     });
   }
 
-  registerSingletonsInDir(dir) {
-    Context.walkDirSync(dir).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
+  registerSingletonsInDir(patterns, options) {
+    Context.findMatchingFiles(patterns, options).filter((file) => ['.js', '.ts'].indexOf(path.extname(file)) >= 0).forEach((file) => {
       if (file.includes('.d.ts')) {
         return; // Ignore type definition files
       }
@@ -211,6 +212,29 @@ export class Context extends Lifecycle {
     });
     return filelist;
   }
+
+  /**
+   *  find matching files based on the given path or glob
+   *
+   * @param {string} patterns - glob pattern(s) or relative path
+   * @param {boolean} [isGlob] - pass true to treat the path as a glob
+   * @param {Object} [globOptions] - options to pass to globby
+   * @returns {Array<string>} files
+   */
+  static findMatchingFiles(patterns: string | Array<string>, {isGlob, globOptions}: {
+    isGlob: boolean,
+    globOptions: Object,
+  }): Array<string> {
+
+    // Try to treat the patterns as globs first
+    if (globby.hasMagic(patterns) || Array.isArray(patterns) || isGlob) {
+      return globby.sync(patterns, globOptions);
+    }
+
+    // Fallback to the legacy implementation for non-glob patterns to avoid code breaks
+    return Context.walkDirSync(patterns);
+  }
+
   // ************************************
   // Config functions
   // ************************************
