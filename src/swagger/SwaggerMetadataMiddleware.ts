@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { initializeMiddleware } from 'swagger-tools';
 import { JwtTokenClient } from '../jwt/JwtTokenClient';
 import { UnauthorizedError } from '../web/errors/UnauthorizedError';
+import { ApiKeyVerification } from './ApiKeyVerification';
 
 export interface SwaggerMetadataMiddlewareConfig {
   swaggerFilePath: string,
@@ -61,24 +62,16 @@ export default class SwaggerMetadataMiddleware {
     return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
   }
 
-  /**
-   * swagger security definition name needs to be apiKey
-   * @param req
-   * @param authOrSecDef
-   * @param scopesOrApiKey
-   * @param callback
-   */
-  verifyApiKey(req, authOrSecDef, scopesOrApiKey, callback): boolean {
-    return scopesOrApiKey === this.apiKey;
-  }
-
   register(expressApp): Promise<void> {
+    const apiKey = this.apiKey;
     return new Promise<void>((resolve) => {
       initializeMiddleware(this.swagger, (swaggerTools) => {
         // logger.debug('Adding swagger middleware');
         const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
         const swaggerValidatorFunc = swaggerTools.swaggerValidator();
-        const swaggerSecurityFunc = swaggerTools.swaggerSecurity({jwt: this.jwtHandler});
+
+        const sm = { jwt: this.jwtHandler, apiKeyHeader: ApiKeyVerification.verifyApiKey(apiKey) };
+        const swaggerSecurityFunc = swaggerTools.swaggerSecurity(sm);
 
         expressApp.use((req, res, next) => {
           swaggerMetadataFunc(req, res, (err) => {
@@ -88,10 +81,6 @@ export default class SwaggerMetadataMiddleware {
         });
         expressApp.use(swaggerSecurityFunc);
         expressApp.use(swaggerValidatorFunc);
-        // swagger security definition name needs to be apiKey
-        if (this.apiKey) {
-          expressApp.use(swaggerTools.swaggerSecurity({ apiKey: this.verifyApiKey }));
-        }
 
         // logger.debug('Adding swagger middleware - Done');
         resolve();

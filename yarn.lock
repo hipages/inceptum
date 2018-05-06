@@ -279,6 +279,12 @@
   version "0.0.30"
   resolved "https://registry.npmjs.org/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
 
+"@types/swagger-tools@^0.10.6":
+  version "0.10.6"
+  resolved "https://registry.npmjs.org/@types/swagger-tools/-/swagger-tools-0.10.6.tgz#2168a28bb0e1d7d90ab73f126ea3fd2233038411"
+  dependencies:
+    "@types/connect" "*"
+
 "@types/v8flags@types/npm-v8flags#de224ae1cd5fd7dbb4e7158a6cc7a29e5315930d":
   version "2.0.0"
   resolved "https://codeload.github.com/types/npm-v8flags/tar.gz/de224ae1cd5fd7dbb4e7158a6cc7a29e5315930d"
