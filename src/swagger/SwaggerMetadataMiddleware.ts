@@ -3,11 +3,20 @@ import * as fs from 'fs';
 import { initializeMiddleware } from 'swagger-tools';
 import { JwtTokenClient } from '../jwt/JwtTokenClient';
 import { UnauthorizedError } from '../web/errors/UnauthorizedError';
+import { ApiKeyVerification } from './ApiKeyVerification';
+
+export interface SwaggerMetadataMiddlewareConfig {
+  swaggerFilePath: string,
+  apiKey: string,
+  swagger?: any,
+  logger?: Logger,
+}
 
 export default class SwaggerMetadataMiddleware {
   swagger: object;
   swaggerFile: string;
   logger: any; // TODO
+  private apiKey: string;
 
   /**
    * Creates an instance of the Inceptum Swagger middleware.
@@ -19,10 +28,12 @@ export default class SwaggerMetadataMiddleware {
    * @param [string] config.swaggerFilePath Required if config.swagger is not passed directly.
    * The location of the swagger yaml file
    */
-  constructor(config) {
+  constructor(config: SwaggerMetadataMiddlewareConfig) {
     this.swaggerFile = config.swagger || this.loadSwagger(config);
     this.logger = config.logger;
+    this.apiKey = config.apiKey;
   }
+
   loadSwagger(config) {
     if (!config.swaggerFilePath) {
       throw new Error('Need to specify the swaggerFilePath in the config');
@@ -49,15 +60,19 @@ export default class SwaggerMetadataMiddleware {
       return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
     }
     return callback(new UnauthorizedError('Failed to authenticate using bearer token'));
-}
+  }
 
   register(expressApp): Promise<void> {
+    const apiKey = this.apiKey;
     return new Promise<void>((resolve) => {
       initializeMiddleware(this.swagger, (swaggerTools) => {
         // logger.debug('Adding swagger middleware');
         const swaggerMetadataFunc = swaggerTools.swaggerMetadata();
         const swaggerValidatorFunc = swaggerTools.swaggerValidator();
-        const swaggerSecurityFunc = swaggerTools.swaggerSecurity({jwt: this.jwtHandler});
+
+        const sm = { jwt: this.jwtHandler, apiKeyHeader: ApiKeyVerification.verifyApiKey(apiKey) };
+        const swaggerSecurityFunc = swaggerTools.swaggerSecurity(sm);
+
         expressApp.use((req, res, next) => {
           swaggerMetadataFunc(req, res, (err) => {
             if (err) { return next(err); }
@@ -66,6 +81,7 @@ export default class SwaggerMetadataMiddleware {
         });
         expressApp.use(swaggerSecurityFunc);
         expressApp.use(swaggerValidatorFunc);
+
         // logger.debug('Adding swagger middleware - Done');
         resolve();
       });
