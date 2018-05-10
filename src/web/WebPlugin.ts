@@ -72,6 +72,10 @@ export const errorMiddleware = (err, req, res, next) => {
   }
 };
 
+export interface WebPluginOptions {
+  staticRoots?: string[],
+}
+
 export default class WebPlugin implements Plugin {
 
   public static CONTEXT_APP_KEY = 'WebPlugin/APP';
@@ -79,6 +83,8 @@ export default class WebPlugin implements Plugin {
 
   name = 'WebPlugin';
   // private expressProvider = () => new e();
+
+  constructor(private options: WebPluginOptions = {}) {}
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
     const express = e();
@@ -103,6 +109,12 @@ export default class WebPlugin implements Plugin {
     const xmlMiddleware = negoContentMiddleware.getMiddleware();
     if (xmlMiddleware) {
       express.use(xmlMiddleware);
+    }
+
+    if (this.options && this.options.staticRoots) {
+      this.options.staticRoots.forEach((root) => {
+        express.use(e.static(root));
+      });
     }
 
     const definition = new BaseSingletonDefinition<RouteRegisterUtil>(RouteRegisterUtil);
