@@ -10,7 +10,6 @@ import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { WebRoutingInspector } from './WebRoutingInspector';
 import HttpError from './HttpError';
-import * as xmlparser from 'express-xml-bodyparser';
 import { ContentNegotiationMiddleware } from './ContentNegotiationMiddleware';
 
 const logger = LogManager.getLogger(__filename);
@@ -75,8 +74,6 @@ export const errorMiddleware = (err, req, res, next) => {
 
 export interface WebPluginOptions {
   staticRoots?: string[],
-  xmlValueProcessors?: Array<(value: any, name: string) => any>,
-  xmlAttrValueProcessors?: Array<(value: any, name: string) => any>,
 }
 
 export default class WebPlugin implements Plugin {
@@ -107,11 +104,6 @@ export default class WebPlugin implements Plugin {
       onFinished(res, () => activeRequestsGauge.dec());
       next();
     });
-
-    express.use(xmlparser({
-      valueProcessors: this.options.xmlValueProcessors,
-      attrValueProcessors: this.options.xmlAttrValueProcessors,
-    }));
 
     const negoContentMiddleware = new ContentNegotiationMiddleware(app.getConfig('app.xmlRoot', '') as string);
     const xmlMiddleware = negoContentMiddleware.getMiddleware();
