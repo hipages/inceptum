@@ -4,13 +4,14 @@ import * as e from 'express';
 import * as onFinished from 'on-finished';
 import { ExtendedGauge } from 'prometheus-extended-gauge';
 import * as promBundle from 'express-prom-bundle';
+import * as xmlparser from 'express-xml-bodyparser';
+import { processors, OptionsV2 as xml2jsOptionsV2 } from 'xml2js';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
 import { WebRoutingInspector } from './WebRoutingInspector';
 import HttpError from './HttpError';
-import * as xmlparser from 'express-xml-bodyparser';
 import { ContentNegotiationMiddleware } from './ContentNegotiationMiddleware';
 
 const logger = LogManager.getLogger(__filename);
@@ -75,8 +76,7 @@ export const errorMiddleware = (err, req, res, next) => {
 
 export interface WebPluginOptions {
   staticRoots?: string[],
-  xmlValueProcessors?: Array<(value: any, name: string) => any>,
-  xmlAttrValueProcessors?: Array<(value: any, name: string) => any>,
+  xmlBodyParserOptions?: xml2jsOptionsV2,
 }
 
 export default class WebPlugin implements Plugin {
@@ -90,7 +90,7 @@ export default class WebPlugin implements Plugin {
   constructor(private options: WebPluginOptions = {}) {}
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
-    const express = e();
+    const express: e.Express = e();
     express.set('trust proxy', true); // stop redirecting to http internally https://expressjs.com/en/guide/behind-proxies.html
     pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
@@ -108,16 +108,8 @@ export default class WebPlugin implements Plugin {
       next();
     });
 
-    express.use(xmlparser({
-      valueProcessors: this.options.xmlValueProcessors,
-      attrValueProcessors: this.options.xmlAttrValueProcessors,
-    }));
-
-    const negoContentMiddleware = new ContentNegotiationMiddleware(app.getConfig('app.xmlRoot', '') as string);
-    const xmlMiddleware = negoContentMiddleware.getMiddleware();
-    if (xmlMiddleware) {
-      express.use(xmlMiddleware);
-    }
+    this.regsiterXmlBodyParser(express);
+    this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
@@ -154,5 +146,23 @@ export default class WebPlugin implements Plugin {
     if (express) {
       express.close();
     }
+  }
+
+  protected regsiterXmlBodyParser(express: e.Express) {
+    if (this.options && this.options.xmlBodyParserOptions) {
+      express.use(xmlparser(this.options.xmlBodyParserOptions));
+    }
+  }
+
+  protected registerXmlContentNegotiationMiddleware(express: e.Express, xmlRoot: string) {
+    const negoContentMiddleware = new ContentNegotiationMiddleware(xmlRoot);
+    const xmlMiddleware = negoContentMiddleware.getMiddleware();
+    if (xmlMiddleware) {
+      express.use(xmlMiddleware);
+    }
+  }
+
+  getOptions(): WebPluginOptions {
+    return this.options;
   }
 }
