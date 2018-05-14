@@ -37,14 +37,21 @@ export interface RepliesConsume {
   consumerTag: string,
 }
 
+export enum ReconnectionStatus {
+  NotInitialised,
+  InProgress,
+  Failed,
+}
+
 export abstract class RabbitmqClient {
-  connectionClosedTimer: NodeJS.Timer;
   protected channel: Channel;
   protected connection: Connection;
   protected logger: Logger;
   protected clientConfig: RabbitmqClientConfig;
   protected name: string;
   protected closed = false;
+  protected reconnectionStatus: ReconnectionStatus;
+  protected reconnectionTimer: NodeJS.Timer;
   protected channelReadyPromise: Promise<void>;
   protected channelReadyPromiseResolve: () => void;
   protected shutdownFunction: () => void;
@@ -53,6 +60,7 @@ export abstract class RabbitmqClient {
     clientConfig.protocol = clientConfig.protocol || 'amqp';
     this.clientConfig = clientConfig;
     this.name = name;
+    this.reconnectionStatus = ReconnectionStatus.NotInitialised;
     this.channelNotReady();
   }
 
@@ -89,14 +97,6 @@ export abstract class RabbitmqClient {
    * Connect to RabbitMQ broker
    */
   protected async connect(): Promise<void> {
-    if (this.connection) {
-      this.connection.removeAllListeners();
-      try {
-        await this.connection.close();
-      } catch (e) {
-        // Do nothing... we tried to play nice
-      }
-    }
     const newConnection = await connect(this.clientConfig);
     newConnection.on('close', () => { this.handleConnectionClosed(); });
     newConnection.on('error', (err) => { this.handleConnectionError(err); });
@@ -105,65 +105,21 @@ export abstract class RabbitmqClient {
     await this.createChannel();
   }
 
+  protected handleConnectionClosed() {
+    this.logger.error('Connection closed unexpectedly');
+    this.initialiseReconnection();
+  }
+
   protected handleConnectionError(err?) {
     if (err) {
-      this.logger.error(err, 'Connection error.');
-      this.handleConnectionClosedDelayed();
+      this.logger.error(err, 'Connection error');
+      this.initialiseReconnection();
     } else {
       this.logger.error('Connection error. Ignoring');
     }
   }
 
-  private clearConnectionClosedTimer() {
-    if (this.connectionClosedTimer) {
-      clearTimeout(this.connectionClosedTimer);
-      this.connectionClosedTimer = undefined;
-    }
-  }
-
-  protected async handleConnectionClosedDelayed() {
-    this.clearConnectionClosedTimer();
-    try {
-      this.connection.close();
-    } catch (e) {
-      this.logger.error(e, 'Got an error on the connection. Attempting to close just in case. Had an error');
-    }
-    this.connectionClosedTimer = setTimeout(() => this.handleChannelClosed(), 500);
-  }
-
-  protected async handleConnectionClosed() {
-    this.clearConnectionClosedTimer();
-    if (!this.closed) {
-      // We haven't been explicitly closed, so we should reopen the channel
-      this.logger.warn('Connection was closed unexpectedly... reconnecting');
-      let attempts = 0;
-      while (attempts < this.getMaxConnectionAttempts()) {
-        try {
-          attempts++;
-          await this.connect();
-          return;
-        } catch (e) {
-          this.logger.warn(e, 'Failed reconnection attempt');
-        }
-      }
-      this.logger.error(`Couldn't reconnect after ${this.getMaxConnectionAttempts()} attempts`);
-      // tslint:disable-next-line
-      if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
-        this.logger.error('Cowardly refusing to continue. Calling shutdown function');
-        this.shutdownFunction();
-      }
-    }
-  }
-
   protected async createChannel(): Promise<void> {
-    if (this.channel) {
-      this.channel.removeAllListeners();
-      try {
-        await this.channel.close();
-      } catch (e) {
-        // Do nothing... we tried to play nice
-      }
-    }
     const newChannel = await this.connection.createChannel();
     newChannel.on('close', (err?) => { this.handleChannelClosed(err); });
     newChannel.on('error', (err) => { this.handleChannelError(err); });
@@ -172,22 +128,72 @@ export abstract class RabbitmqClient {
     this.channelReady();
   }
 
-  protected async recreateChannel() {
+  protected handleChannelClosed() {
+    this.logger.error('Channel closed unexpectedly');
+    this.initialiseReconnection();
+  }
+
+  protected handleChannelError(err?) {
+    if (err) {
+      this.logger.error(err, 'Channel error');
+      this.initialiseReconnection();
+    } else {
+      this.logger.error('Channel error. Ignoring');
+    }
+  }
+
+  protected async initialiseReconnection() {
+    if (this.reconnectionStatus === ReconnectionStatus.NotInitialised) {
+      this.logger.warn('Initialising reconnection...');
+      this.reconnectionStatus = ReconnectionStatus.InProgress;
+
+      if (this.channel) {
+        this.logger.warn('Closing channel');
+        this.channel.removeAllListeners();
+        try {
+          await this.channel.close();
+        } catch (e) {
+          // Do nothing... we tried to play nice
+        }
+      }
+
+      if (this.connection) {
+        this.logger.warn('Closing connection');
+        this.connection.removeAllListeners();
+        try {
+          await this.connection.close();
+        } catch (e) {
+          // Do nothing... we tried to play nice
+        }
+      }
+
+      this.closed = true;
+      this.scheduleReconnectionAttempts();
+    }
+  }
+
+  public scheduleReconnectionAttempts() {
+    this.reconnectionTimer = setTimeout(() => this.attemptReconnection(), 0);
+  }
+
+  public async attemptReconnection() {
+    this.clearReconnectionTimer();
+
     let attempts = 0;
     while (attempts < this.getMaxConnectionAttempts()) {
       try {
         attempts++;
-        await this.createChannel();
+        await this.connect();
+        this.reconnectionStatus = ReconnectionStatus.NotInitialised;
         return;
       } catch (e) {
-        this.logger.warn(e, 'Failed channel re-creation attempt');
-        if (isFatalError(e)) {
-          this.logger.warn('Cannot recreate channel on closed connection');
-          return;
-        }
+        this.logger.warn(e, 'Failed reconnection attempt');
       }
     }
-    this.logger.error(`Couldn't re-create channel after ${this.getMaxConnectionAttempts()} attempts`);
+
+    this.reconnectionStatus = ReconnectionStatus.Failed;
+    this.logger.error(`Couldn't reconnect after ${this.getMaxConnectionAttempts()} attempts`);
+
     // tslint:disable-next-line
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
       this.logger.error('Cowardly refusing to continue. Calling shutdown function');
@@ -195,16 +201,10 @@ export abstract class RabbitmqClient {
     }
   }
 
-  protected handleChannelError(err) {
-    this.logger.error(err, 'Channel error, recreating channel');
-    this.recreateChannel();
-  }
-
-  protected handleChannelClosed(err?) {
-    if (!this.closed) {
-      // We haven't been explicitly closed, so we should reopen the channel
-      this.logger.warn('Channel was closed unexpectedly... recreating');
-      this.recreateChannel();
+  public clearReconnectionTimer() {
+    if (this.reconnectionTimer) {
+      clearTimeout(this.reconnectionTimer);
+      this.reconnectionTimer = undefined;
     }
   }
 
