@@ -161,8 +161,4 @@ export default class WebPlugin implements Plugin {
       express.use(xmlMiddleware);
     }
   }
-
-  getOptions(): WebPluginOptions {
-    return this.options;
-  }
 }

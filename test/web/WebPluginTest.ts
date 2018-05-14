@@ -11,6 +11,10 @@ class WebPluginTestHelper extends WebPlugin {
   regsiterXmlBodyParser(express: e.Express) {
     super.regsiterXmlBodyParser(express);
   }
+
+  registerXmlContentNegotiationMiddleware(express: e.Express, xmlRoot: string) {
+    super.registerXmlContentNegotiationMiddleware(express, xmlRoot);
+  }
 }
 
 @suite
@@ -38,5 +42,23 @@ class WebPluginTest {
     const webPlugin = new WebPluginTestHelper();
     webPlugin.regsiterXmlBodyParser(express);
     spiedExpress.calledOnce.must.be.false();
+  }
+
+  @test
+  'no xml content negotiation middleware'() {
+    const express: e.Express = e();
+    const spiedExpress = sinon.spy(express, 'use');
+    const webPlugin = new WebPluginTestHelper();
+    webPlugin.registerXmlContentNegotiationMiddleware(express, '');
+    spiedExpress.calledOnce.must.be.false();
+  }
+
+  @test
+  'register xml content negotiation middleware'() {
+    const express: e.Express = e();
+    const spiedExpress = sinon.spy(express, 'use');
+    const webPlugin = new WebPluginTestHelper();
+    webPlugin.registerXmlContentNegotiationMiddleware(express, 'voucher');
+    spiedExpress.calledOnce.must.be.true();
   }
 }
