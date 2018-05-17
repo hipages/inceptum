@@ -108,7 +108,7 @@ export default class WebPlugin implements Plugin {
       next();
     });
 
-    this.regsiterXmlBodyParser(express);
+    this.registerXmlBodyParser(express);
     this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
     if (this.options && this.options.staticRoots) {
@@ -148,7 +148,7 @@ export default class WebPlugin implements Plugin {
     }
   }
 
-  protected regsiterXmlBodyParser(express: e.Express) {
+  protected registerXmlBodyParser(express: e.Express) {
     if (this.options && this.options.xmlBodyParserOptions) {
       express.use(xmlparser(this.options.xmlBodyParserOptions));
     }

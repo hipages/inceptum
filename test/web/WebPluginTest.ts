@@ -8,8 +8,8 @@ import * as xmlparser from 'express-xml-bodyparser';
 import WebPlugin, { WebPluginOptions } from '../../src/web/WebPlugin';
 
 class WebPluginTestHelper extends WebPlugin {
-  regsiterXmlBodyParser(express: e.Express) {
-    super.regsiterXmlBodyParser(express);
+  registerXmlBodyParser(express: e.Express) {
+    super.registerXmlBodyParser(express);
   }
 
   registerXmlContentNegotiationMiddleware(express: e.Express, xmlRoot: string) {
@@ -31,7 +31,7 @@ class WebPluginTest {
     const express: e.Express = e();
     const spiedExpress = sinon.spy(express, 'use');
     const webPlugin = new WebPluginTestHelper(webPluginOptions);
-    webPlugin.regsiterXmlBodyParser(express);
+    webPlugin.registerXmlBodyParser(express);
     spiedExpress.calledOnce.must.be.true();
   }
 
@@ -40,7 +40,7 @@ class WebPluginTest {
     const express: e.Express = e();
     const spiedExpress = sinon.spy(express, 'use');
     const webPlugin = new WebPluginTestHelper();
-    webPlugin.regsiterXmlBodyParser(express);
+    webPlugin.registerXmlBodyParser(express);
     spiedExpress.calledOnce.must.be.false();
   }
 
