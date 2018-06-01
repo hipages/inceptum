@@ -4,6 +4,8 @@ import * as e from 'express';
 import * as onFinished from 'on-finished';
 import { ExtendedGauge } from 'prometheus-extended-gauge';
 import * as promBundle from 'express-prom-bundle';
+import * as xmlparser from 'express-xml-bodyparser';
+import { processors, OptionsV2 as xml2jsOptionsV2 } from 'xml2js';
 import { BaseSingletonDefinition } from '../ioc/objectdefinition/BaseSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
@@ -74,6 +76,7 @@ export const errorMiddleware = (err, req, res, next) => {
 
 export interface WebPluginOptions {
   staticRoots?: string[],
+  xmlBodyParserOptions?: xml2jsOptionsV2,
 }
 
 export default class WebPlugin implements Plugin {
@@ -87,7 +90,7 @@ export default class WebPlugin implements Plugin {
   constructor(private options: WebPluginOptions = {}) {}
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
-    const express = e();
+    const express: e.Express = e();
     express.set('trust proxy', true); // stop redirecting to http internally https://expressjs.com/en/guide/behind-proxies.html
     pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
@@ -105,11 +108,8 @@ export default class WebPlugin implements Plugin {
       next();
     });
 
-    const negoContentMiddleware = new ContentNegotiationMiddleware(app.getConfig('app.xmlRoot', '') as string);
-    const xmlMiddleware = negoContentMiddleware.getMiddleware();
-    if (xmlMiddleware) {
-      express.use(xmlMiddleware);
-    }
+    this.registerXmlBodyParser(express);
+    this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
@@ -145,6 +145,20 @@ export default class WebPlugin implements Plugin {
     app.logger.info('Shutting down server');
     if (express) {
       express.close();
+    }
+  }
+
+  protected registerXmlBodyParser(express: e.Express) {
+    if (this.options && this.options.xmlBodyParserOptions) {
+      express.use(xmlparser(this.options.xmlBodyParserOptions));
+    }
+  }
+
+  protected registerXmlContentNegotiationMiddleware(express: e.Express, xmlRoot: string) {
+    const negoContentMiddleware = new ContentNegotiationMiddleware(xmlRoot);
+    const xmlMiddleware = negoContentMiddleware.getMiddleware();
+    if (xmlMiddleware) {
+      express.use(xmlMiddleware);
     }
   }
 }

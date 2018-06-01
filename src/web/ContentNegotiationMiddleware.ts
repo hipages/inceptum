@@ -17,7 +17,7 @@ export class ContentNegotiationMiddleware {
     }
     return (req, res, next) => {
       const xmlType = 'application/xml';
-      if (req.is(xmlType) || xmlType === req.get('accept')) {
+      if (xmlType === req.get('accept')) {
         const originalSend = res.send;
         res.send = function(...data) {
           const obj = {};

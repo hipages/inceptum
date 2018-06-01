@@ -172,13 +172,15 @@ create a `MysqlPlugin()` (// TODO LINK) to our application. It will be registere
 mysql: # Telling inceptum to add a new MysqlPlugin() to our app
   MainMysqlClient: # IoC name
     master:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      max: 10
+      min: 1
+      connectionConfig:
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
 ```
 
 You'll notice that we've added a `master` conifg. We can also add a `slave` config that Inceptum will use if we want a read only
@@ -190,21 +192,25 @@ transaction, like so:
 mysql:
   MainMysqlClient: # this is the name of the object that will be exposed in the context
     master:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      max: 10
+      min: 1
+      connectionConfig:
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
     slave:
-      host: localhost
-      port: 3306
-      user: root
-      password:
-      database: testDb
-      charset: utf8
-      connectionLimit: 10
+      max: 10
+      min: 1
+      connectionConfig:
+        host: localhost
+        port: 3306
+        user: root
+        password:
+        database: testDb
+        charset: utf8
 ```
 Feel free to edit the mysql config use a valid username/password so it can connect on your local.
 In this example both connections are pointing to the same place, but in production we can change this to point to a read only replica or user.
