@@ -34,3 +34,4 @@ export { RabbitmqConsumer } from './rabbitmq/RabbitmqConsumer';
 export { RabbitmqProducer } from './rabbitmq/RabbitmqProducer';
 export { RabbitmqConsumerHandlerUnrecoverableError, RabbitmqConsumerHandlerError, MessageInfo } from './rabbitmq/RabbitmqConsumerHandlerError';
 export { JwtTokenClient } from './jwt/JwtTokenClient';
+export { default as GraphqlPlugin } from './graphql/GraphqlPlugin';

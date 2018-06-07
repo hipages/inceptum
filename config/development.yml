@@ -1,0 +1,57 @@
+app:
+  name: opus
+  context:
+    name: BaseContext
+  server:
+    port: 10010
+  admin:
+    port: 3001
+mysql:
+  mainMySQLClient: # this is the name of the object that will be exposed in the context
+    master:
+      connectionConfig:
+        host: 127.0.0.1
+        port: 3306
+        user: root
+        password: hipages
+        database: hip
+        charset: utf8
+    slave:
+      connectionConfig:
+        host: 127.0.0.1
+        port: 3306
+        user: root
+        password: hipages
+        database: hip
+        charset: utf8
+  messageDb: # this is the name of the object that will be exposed in the context
+    master:
+      connectionConfig:
+        host: 127.0.0.1
+        port: 3306
+        user: root
+        password: hipages
+        database: message_hip
+        charset: utf8
+        dateStrings: true
+    slave:
+      connectionConfig:
+        host: 127.0.0.1
+        port: 3306
+        user: root
+        password: hipages
+        database: message_hip
+        charset: utf8
+        dateStrings: true
+logging:
+  streams:
+    console:
+      type: console
+    myredis:
+      type: redis
+      host: logstash-redis.devops.svc.cluster.local
+  loggers:
+    - name: ROOT
+      streams:
+        console: debug
+        # myredis: debug        
