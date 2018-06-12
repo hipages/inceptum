@@ -10,7 +10,7 @@ export class MySQLHealthCheck extends HealthCheck {
     super(name, 60000, 2, true);
   }
 
-  etType(): HealthCheckType {
+  getType(): HealthCheckType {
     return HealthCheckType.DEPENDENCY;
   }
 

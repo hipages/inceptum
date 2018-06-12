@@ -45,7 +45,7 @@ export abstract class HealthCheck {
   lastResult: HealthCheckResult = HealthCheckResult.getInitialResult();
   timer: NodeJS.Timer;
   checkRunning = false;
-  type: HealthCheckType;
+
   constructor(public checkName: string, public sleepMillis = 60000, public staleNumFails = 2, private runImmediately = false) {}
   abstract getType(): HealthCheckType;
   getCheckName(): string {
@@ -154,8 +154,11 @@ export class HealthCheckGroup extends HealthCheck {
   getLastResult(): HealthCheckResult {
     const resp = new HealthCheckResult(HealthCheckStatus.OK, 'OK', new Date().getTime(), {});
     this.healthChecks.forEach((healthCheck, key) => {
+      // all health check results are included in response.
       const lastResult = healthCheck.getLastResult();
       resp.data[key] = lastResult;
+
+      // although health status is ignore in /health, notify newrelic.
       if (this.ignoreHealthCheckStatus(healthCheck, lastResult.status)) {
         NewrelicUtil.noticeError(new Error(lastResult.message), lastResult);
       } else {
@@ -164,7 +167,6 @@ export class HealthCheckGroup extends HealthCheck {
           resp.message = `Check ${healthCheck.getCheckName()} returned ${resp.status}`;
         }
       }
-
     });
     return resp;
   }
