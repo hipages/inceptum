@@ -1,7 +1,7 @@
 import { Context } from '../ioc/Context';
 import { LifecycleState } from '../ioc/Lifecycle';
 import { AutowireContext } from '../ioc/Decorators';
-import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck } from './HealthCheck';
+import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck, HealthCheckType } from './HealthCheck';
 
 @RegisterAsHealthCheck
 export class ContextReadyHealthCheck extends HealthCheck {
@@ -11,6 +11,10 @@ export class ContextReadyHealthCheck extends HealthCheck {
 
   constructor() {
     super('context', 5000);
+  }
+
+  getType(): HealthCheckType {
+    return HealthCheckType.CONTEXT;
   }
 
   public async doCheck(): Promise<HealthCheckResult> {

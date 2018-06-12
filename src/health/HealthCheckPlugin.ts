@@ -50,10 +50,12 @@ export default class HealthCheckPlugin implements Plugin {
       express.get('/health', async (req, res) => {
         const healthCheckManager: HealthCheckManager = await context.getObjectByName('HealthCheckManager');
         const healthCheckResult = healthCheckManager.getLastResult();
-        if (healthCheckResult.status !== HealthCheckStatus.OK && healthCheckResult.status !== HealthCheckStatus.NOT_READY) {
-          NewrelicUtil.noticeError(new Error(healthCheckResult.message), healthCheckResult);
+
+        if (healthCheckResult.status === HealthCheckStatus.OK || healthCheckResult.status === HealthCheckStatus.NOT_READY) {
+          res.send(healthCheckResult);
+        } else {
+          res.status(503).send(healthCheckResult);
         }
-        res.send(healthCheckResult);
       });
     }
   }

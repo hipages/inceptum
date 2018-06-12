@@ -3,7 +3,27 @@ import { suite, test } from 'mocha-typescript';
 import { mock, when, anything, verify, instance } from 'ts-mockito';
 import { MySQLHealthCheck } from '../../src/mysql/MySQLHealthCheck';
 import { MySQLClient } from '../../src/mysql/MySQLClient';
-import { HealthCheckStatus, HealthCheckGroup, HealthCheck, HealthCheckResult } from '../../src/health/HealthCheck';
+import { HealthCheckStatus, HealthCheckGroup, HealthCheck, HealthCheckResult, HealthCheckType } from '../../src/health/HealthCheck';
+
+class DependencyHealthCheck extends HealthCheck {
+  getType() {
+    return HealthCheckType.DEPENDENCY;
+  }
+
+  async doCheck(): Promise<HealthCheckResult> {
+    return Promise.resolve(new HealthCheckResult(HealthCheckStatus.CRITICAL, 'dumb message'));
+  }
+}
+
+class ContextHealthCheck extends HealthCheck {
+  getType() {
+    return HealthCheckType.CONTEXT;
+  }
+
+  async doCheck(): Promise<HealthCheckResult> {
+    return Promise.resolve(new HealthCheckResult(HealthCheckStatus.OK, 'ok'));
+  }
+}
 
 suite('health/HealthCheck', () => {
   suite('HealthCheckGroup', () => {
@@ -158,6 +178,27 @@ suite('health/HealthCheck', () => {
         const result = group.getLastResult();
         result.status.must.equal(HealthCheckStatus.WARNING);
         result.message.must.equal('Check Group: main returned WARNING');
+        group.stop();
+      });
+      test('a dependency in critical does not affect the result', () => {
+        const group = new HealthCheckGroup('test2');
+        const mockHealthCheck: DependencyHealthCheck = mock<DependencyHealthCheck>(DependencyHealthCheck);
+        when(mockHealthCheck.getCheckName()).thenReturn('main.check1');
+        when(mockHealthCheck.getType()).thenReturn(HealthCheckType.DEPENDENCY);
+        when(mockHealthCheck.getLastResult()).thenReturn(new HealthCheckResult(HealthCheckStatus.CRITICAL, 'CRITICAL'));
+
+        const mockHealthCheck2: ContextHealthCheck = mock<ContextHealthCheck>(ContextHealthCheck);
+        when(mockHealthCheck2.getCheckName()).thenReturn('main.check2');
+        when(mockHealthCheck2.getType()).thenReturn(HealthCheckType.CONTEXT);
+        when(mockHealthCheck2.getLastResult()).thenReturn(new HealthCheckResult(HealthCheckStatus.OK, 'OK'));
+
+        group.addCheck(instance(mockHealthCheck));
+        group.addCheck(instance(mockHealthCheck2));
+        group.start();
+        const result = group.getLastResult();
+        result.status.must.equal(HealthCheckStatus.OK);
+        result.message.must.equal('OK');
+        group.getType().must.equal(HealthCheckType.GROUP);
         group.stop();
       });
     });
