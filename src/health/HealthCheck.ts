@@ -1,5 +1,6 @@
 import { RegisterInGroup, Lazy } from '../ioc/Decorators';
 import { LogManager } from '../log/LogManager';
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 
 const LOGGER = LogManager.getLogger(__filename);
 export const HEALTH_CHECK_GROUP = 'inceptum:health';
@@ -11,9 +12,15 @@ export function RegisterAsHealthCheck(target: any) {
 
 export enum HealthCheckStatus {
   OK = 'OK',
-  NOT_READY = 'NOT_READY',
-  WARNING = 'WARNING',
-  CRITICAL = 'CRITICAL',
+  NOT_READY = 'NOT_READY', // Used when plugin is starting.
+  WARNING = 'WARNING', // Used when plugin is stopping.
+  CRITICAL = 'CRITICAL', // Used when issues are found after ready.
+}
+
+export enum HealthCheckType {
+  CONTEXT,
+  DEPENDENCY,
+  GROUP,
 }
 
 function getStatusIndex(status: HealthCheckStatus) {
@@ -38,7 +45,9 @@ export abstract class HealthCheck {
   lastResult: HealthCheckResult = HealthCheckResult.getInitialResult();
   timer: NodeJS.Timer;
   checkRunning = false;
+
   constructor(public checkName: string, public sleepMillis = 60000, public staleNumFails = 2, private runImmediately = false) {}
+  abstract getType(): HealthCheckType;
   getCheckName(): string {
     return this.checkName;
   }
@@ -145,13 +154,32 @@ export class HealthCheckGroup extends HealthCheck {
   getLastResult(): HealthCheckResult {
     const resp = new HealthCheckResult(HealthCheckStatus.OK, 'OK', new Date().getTime(), {});
     this.healthChecks.forEach((healthCheck, key) => {
+      // all health check results are included in response.
       const lastResult = healthCheck.getLastResult();
-      if (getStatusIndex(lastResult.status) > getStatusIndex(resp.status)) {
-        resp.status = lastResult.status;
-        resp.message = `Check ${healthCheck.getCheckName()} returned ${resp.status}`;
-      }
       resp.data[key] = lastResult;
+
+      // although health status is ignore in /health, notify newrelic.
+      if (this.ignoreHealthCheckStatus(healthCheck, lastResult.status)) {
+        NewrelicUtil.noticeError(new Error(lastResult.message), lastResult);
+      } else {
+        if (getStatusIndex(lastResult.status) > getStatusIndex(resp.status)) {
+          resp.status = lastResult.status;
+          resp.message = `Check ${healthCheck.getCheckName()} returned ${resp.status}`;
+        }
+      }
     });
     return resp;
+  }
+
+  /**
+   * Ignore dependencies CRITICAL status. It is not considered
+   * to be part of App's health.
+   */
+  protected ignoreHealthCheckStatus(hc: HealthCheck, status: HealthCheckStatus) {
+    return status === HealthCheckStatus.CRITICAL && hc.getType() === HealthCheckType.DEPENDENCY;
+  }
+
+  getType(): HealthCheckType {
+    return HealthCheckType.GROUP;
   }
 }

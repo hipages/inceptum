@@ -1,4 +1,4 @@
-import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck } from '../health/HealthCheck';
+import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck, HealthCheckType } from '../health/HealthCheck';
 import { Logger, LogManager } from '../log/LogManager';
 import { Autowire } from '../ioc/Decorators';
 import { RabbitmqClient } from './RabbitmqClient';
@@ -39,5 +39,7 @@ export class RabbitmqHealthCheck extends HealthCheck {
     }
   }
 
-
+  getType(): HealthCheckType {
+    return HealthCheckType.DEPENDENCY;
+  }
 }

@@ -1,4 +1,4 @@
-import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck } from '../health/HealthCheck';
+import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck, HealthCheckType } from '../health/HealthCheck';
 import { MySQLClient } from './MySQLClient';
 
 @RegisterAsHealthCheck
@@ -8,6 +8,10 @@ export class MySQLHealthCheck extends HealthCheck {
 
   constructor(name: string, private readonly: boolean) {
     super(name, 60000, 2, true);
+  }
+
+  getType(): HealthCheckType {
+    return HealthCheckType.DEPENDENCY;
   }
 
   public async doCheck(): Promise<HealthCheckResult> {
