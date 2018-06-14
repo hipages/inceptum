@@ -1,6 +1,5 @@
 // tslint:disable:prefer-function-over-method
 import * as http from 'http';
-import * as bp from 'body-parser';
 import * as e from 'express';
 import * as onFinished from 'on-finished';
 import { ExtendedGauge } from 'prometheus-extended-gauge';
@@ -129,8 +128,7 @@ export default class WebPlugin implements Plugin {
   didStart(app, pluginContext) {
     const express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
-    express.use(bp.json({ limit: '10mb' }));
-    express.use(bp.urlencoded({ extended: true }));
+
     express.use(clientErrorMiddleware);
     // Add error handling middleware as the final middleware.
     express.use(errorMiddleware);
