@@ -111,6 +111,10 @@ export default class WebPlugin implements Plugin {
     this.registerXmlBodyParser(express);
     this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
+    // move from didStart to willStart
+    express.use(bp.json({ limit: '10mb' }));
+    express.use(bp.urlencoded({ extended: true }));
+
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
         express.use(e.static(root));
