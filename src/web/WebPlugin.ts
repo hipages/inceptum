@@ -112,6 +112,10 @@ export default class WebPlugin implements Plugin {
     this.registerXmlBodyParser(express);
     this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
+    // move from didStart to willStart
+    express.use(bp.json({ limit: '10mb' }));
+    express.use(bp.urlencoded({ extended: true }));
+
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
         express.use(e.static(root));
@@ -129,8 +133,7 @@ export default class WebPlugin implements Plugin {
   didStart(app, pluginContext) {
     const express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
-    express.use(bp.json({ limit: '10mb' }));
-    express.use(bp.urlencoded({ extended: true }));
+
     express.use(clientErrorMiddleware);
     // Add error handling middleware as the final middleware.
     express.use(errorMiddleware);
