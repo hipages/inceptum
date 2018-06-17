@@ -59,6 +59,7 @@ export const clientErrorMiddleware = (err, req, res, next) => {
 };
 
 export const errorMiddleware = (err, req, res, next) => {
+  logger.error(err);
   if (res.headersSent) {
     return next(err); // Give back to express to handle
   }
@@ -66,8 +67,6 @@ export const errorMiddleware = (err, req, res, next) => {
   if (err instanceof HttpError && err.statusCode) {
     if (err.statusCode >= 500) {
       NewrelicUtil.noticeError(err);
-    } else {
-      logger.warn(err);
     }
     res.status(err.getStatusCode()).send({message: err.message});
   } else {
