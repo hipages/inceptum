@@ -58,18 +58,17 @@ export const clientErrorMiddleware = (err, req, res, next) => {
 };
 
 export const errorMiddleware = (err, req, res, next) => {
-  if (NewrelicUtil.isNewrelicAvailable()) {
-    const nr = NewrelicUtil.getNewrelicIfAvailable();
-    nr.noticeError(err);
-  }
-  logger.error(err);
   if (res.headersSent) {
-      return next(err); // Give back to express to handle
+    return next(err); // Give back to express to handle
   }
 
   if (err instanceof HttpError && err.statusCode) {
+    if (err.statusCode >= 500) {
+      NewrelicUtil.noticeError(err);
+    }
     res.status(err.getStatusCode()).send({message: err.message});
   } else {
+    NewrelicUtil.noticeError(err);
     res.status(500).end();
   }
 };
