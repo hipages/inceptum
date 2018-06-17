@@ -134,8 +134,6 @@ export default class WebPlugin implements Plugin {
   didStart(app, pluginContext) {
     const express = pluginContext.get(WebPlugin.CONTEXT_APP_KEY);
     const port = app.getConfig('app.server.port', 10010);
-    express.use(bp.json({ limit: '10mb' }));
-    express.use(bp.urlencoded({ extended: true }));
     express.use(clientErrorMiddleware);
     // Add error handling middleware as the final middleware.
     express.use(errorMiddleware);
