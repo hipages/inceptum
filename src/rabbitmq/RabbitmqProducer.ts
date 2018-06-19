@@ -41,6 +41,12 @@ export class RabbitmqProducer extends RabbitmqClient {
      * @param routingKey
      */
     async publish(msg: string, routingKey: string, optionsPublish: PublishOptions = {}): Promise<boolean> {
+        if (this.closed) {
+            throw new Error('Connection to RabbitMQ is closed, can\'t publish message');
+        }
+        if (!this.readyGate.isChannelReady()) {
+            await this.readyGate.awaitChannelReady();
+        }
         optionsPublish.headers = {
             retriesCount: 0,
         };
@@ -72,11 +78,11 @@ export class RabbitmqProducer extends RabbitmqClient {
         return true;
     }
 
-    async init(): Promise<void> {
-        await super.init();
+    init(): Promise<void> {
+        return super.init();
     }
 
-    async close(): Promise<void> {
-        await super.close();
+    close(): Promise<void> {
+        return super.close();
     }
 }
