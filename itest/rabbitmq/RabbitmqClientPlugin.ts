@@ -13,6 +13,8 @@ const rabbitClientConfig: RabbitmqClientConfig = {
   port: 5672,
   username: 'hip',
   password: 'hipages',
+  maxConnectionAttempts: 3,
+  protocol: 'amqp',
   mgtHttpPort: 15672,
   mgtHttpHost: 'localhost',
   mgtHttpTheme: 'http',

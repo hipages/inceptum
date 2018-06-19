@@ -1,7 +1,13 @@
 import { connect, Connection, Channel } from 'amqplib';
 import { isFatalError } from 'amqplib/lib/connection';
 import { Logger } from '../log/LogManager';
+import { ReadyGate } from '../util/ReadyGate';
 import { RabbitmqProducerConfig, RabbitmqClientConfig, DEFAULT_MAX_CONNECTION_ATTEMPTS } from './RabbitmqConfig';
+
+/*
+Please read "RabbitMQ Connection Lifecycle.md" for an overview of how
+connection and reconnection is managed for RabbitMQ
+*/
 
 export interface PublishOptions {
   expiration?: string | number,
@@ -38,156 +44,112 @@ export interface RepliesConsume {
 }
 
 export abstract class RabbitmqClient {
-  connectionClosedTimer: NodeJS.Timer;
   protected channel: Channel;
   protected connection: Connection;
   protected logger: Logger;
   protected clientConfig: RabbitmqClientConfig;
   protected name: string;
+
+  /**
+   * Whether the connection should be closed. This is not a statud indicator that show whether the connection is closed.
+   * It is a flag that indicates whether the client has been purposely closed by code, as opposed to being closed because of an error.
+   */
   protected closed = false;
-  protected channelReadyPromise: Promise<void>;
-  protected channelReadyPromiseResolve: () => void;
+  protected reconnecting = false;
+  protected reconnectionTimer: NodeJS.Timer;
+  protected readyGate = new ReadyGate();
   protected shutdownFunction: () => void;
+  protected connectFunction = connect;
 
   constructor(clientConfig: RabbitmqClientConfig, name: string) {
-    clientConfig.protocol = clientConfig.protocol || 'amqp';
-    this.clientConfig = clientConfig;
+    this.clientConfig = { protocol: 'amqp', maxConnectionAttempts: DEFAULT_MAX_CONNECTION_ATTEMPTS, ...clientConfig };
     this.name = name;
-    this.channelNotReady();
+    this.readyGate.channelNotReady();
   }
 
   async init() {
     await this.connect();
   }
 
-  protected async awaitChannelReady() {
-    if (this.channelReadyPromise) {
-      await this.channelReadyPromise;
-    }
-  }
-
-  channelNotReady() {
-    if (!this.channelReadyPromise) {
-      this.channelReadyPromise = new Promise<void>((resolve) => {
-        this.channelReadyPromiseResolve = resolve;
-      });
-    }
-  }
-
-  channelReady() {
-    if (this.channelReadyPromise && this.channelReadyPromiseResolve) {
-      this.channelReadyPromiseResolve();
-      this.channelReadyPromise = undefined;
-    }
-  }
-
-  private getMaxConnectionAttempts() {
-    return this.clientConfig.maxConnectionAttempts || DEFAULT_MAX_CONNECTION_ATTEMPTS;
-  }
-
   /**
    * Connect to RabbitMQ broker
    */
   protected async connect(): Promise<void> {
-    if (this.connection) {
-      this.connection.removeAllListeners();
-      try {
-        await this.connection.close();
-      } catch (e) {
-        // Do nothing... we tried to play nice
-      }
-    }
-    const newConnection = await connect(this.clientConfig);
-    newConnection.on('close', () => { this.handleConnectionClosed(); });
-    newConnection.on('error', (err) => { this.handleConnectionError(err); });
+    await this.createConnection();
+    await this.createChannel();
+    this.reconnecting = false;
+    this.readyGate.channelReady();
+  }
+
+  private async createConnection() {
+    const newConnection = await this.connectFunction(this.clientConfig);
+    newConnection.on('close', () => { this.handleErrorOrClose('Connection Closed'); });
+    newConnection.on('error', (err) => { this.handleErrorOrClose('Connection Error', err); });
     this.connection = newConnection;
     this.logger.info('Connection established');
-    await this.createChannel();
-  }
-
-  protected handleConnectionError(err?) {
-    if (err) {
-      this.logger.error(err, 'Connection error.');
-      this.handleConnectionClosedDelayed();
-    } else {
-      this.logger.error('Connection error. Ignoring');
-    }
-  }
-
-  private clearConnectionClosedTimer() {
-    if (this.connectionClosedTimer) {
-      clearTimeout(this.connectionClosedTimer);
-      this.connectionClosedTimer = undefined;
-    }
-  }
-
-  protected async handleConnectionClosedDelayed() {
-    this.clearConnectionClosedTimer();
-    try {
-      this.connection.close();
-    } catch (e) {
-      this.logger.error(e, 'Got an error on the connection. Attempting to close just in case. Had an error');
-    }
-    this.connectionClosedTimer = setTimeout(() => this.handleChannelClosed(), 500);
-  }
-
-  protected async handleConnectionClosed() {
-    this.clearConnectionClosedTimer();
-    if (!this.closed) {
-      // We haven't been explicitly closed, so we should reopen the channel
-      this.logger.warn('Connection was closed unexpectedly... reconnecting');
-      let attempts = 0;
-      while (attempts < this.getMaxConnectionAttempts()) {
-        try {
-          attempts++;
-          await this.connect();
-          return;
-        } catch (e) {
-          this.logger.warn(e, 'Failed reconnection attempt');
-        }
-      }
-      this.logger.error(`Couldn't reconnect after ${this.getMaxConnectionAttempts()} attempts`);
-      // tslint:disable-next-line
-      if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
-        this.logger.error('Cowardly refusing to continue. Calling shutdown function');
-        this.shutdownFunction();
-      }
-    }
   }
 
   protected async createChannel(): Promise<void> {
-    if (this.channel) {
-      this.channel.removeAllListeners();
-      try {
-        await this.channel.close();
-      } catch (e) {
-        // Do nothing... we tried to play nice
-      }
-    }
     const newChannel = await this.connection.createChannel();
-    newChannel.on('close', (err?) => { this.handleChannelClosed(err); });
-    newChannel.on('error', (err) => { this.handleChannelError(err); });
+    newChannel.on('close', (err?) => { this.handleErrorOrClose('Channel closed unexpectedly', err); });
+    newChannel.on('error', (err) => { this.handleErrorOrClose('Channel error', err); });
     this.channel = newChannel;
     this.logger.info('Channel opened');
-    this.channelReady();
   }
 
-  protected async recreateChannel() {
-    let attempts = 0;
-    while (attempts < this.getMaxConnectionAttempts()) {
-      try {
-        attempts++;
-        await this.createChannel();
-        return;
-      } catch (e) {
-        this.logger.warn(e, 'Failed channel re-creation attempt');
-        if (isFatalError(e)) {
-          this.logger.warn('Cannot recreate channel on closed connection');
-          return;
+  protected handleErrorOrClose(cause: string, err?) {
+    if (err) {
+      this.logger.error(err, `${cause}. Reconnecting`);
+    } else {
+      this.logger.error(`${cause}. Reconnecting`);
+    }
+    this.closeAllAndScheduleReconnection();
+  }
+
+  protected async closeAllAndScheduleReconnection() {
+    if (!this.reconnecting) {
+      this.readyGate.channelNotReady();
+      this.reconnecting = true;
+      this.logger.warn('Initialising reconnection...');
+
+      if (this.channel) {
+        this.logger.debug('Closing channel');
+        try {
+          await this.closeChannel();
+        } catch (e) {
+          // Do nothing... we tried to play nice
         }
       }
+
+      if (this.connection) {
+        this.logger.debug('Closing connection');
+        try {
+          await this.closeConnection();
+        } catch (e) {
+          // Do nothing... we tried to play nice
+        }
+      }
+      this.reconnectionTimer = setTimeout(() => this.attemptReconnection(), 500);
     }
-    this.logger.error(`Couldn't re-create channel after ${this.getMaxConnectionAttempts()} attempts`);
+  }
+
+  public async attemptReconnection() {
+    this.clearReconnectionTimer();
+
+    let attempts = 0;
+    while (attempts < this.clientConfig.maxConnectionAttempts) {
+      attempts++;
+      try {
+        await this.connect();
+        return;
+      } catch (e) {
+        this.logger.warn(e, `Failed reconnection attempt #${attempts}`);
+      }
+    }
+
+    this.logger.error(`Couldn't reconnect after ${this.clientConfig.maxConnectionAttempts} attempts`);
+
+    this.reconnecting = false;
     // tslint:disable-next-line
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
       this.logger.error('Cowardly refusing to continue. Calling shutdown function');
@@ -195,16 +157,10 @@ export abstract class RabbitmqClient {
     }
   }
 
-  protected handleChannelError(err) {
-    this.logger.error(err, 'Channel error, recreating channel');
-    this.recreateChannel();
-  }
-
-  protected handleChannelClosed(err?) {
-    if (!this.closed) {
-      // We haven't been explicitly closed, so we should reopen the channel
-      this.logger.warn('Channel was closed unexpectedly... recreating');
-      this.recreateChannel();
+  public clearReconnectionTimer() {
+    if (this.reconnectionTimer) {
+      clearTimeout(this.reconnectionTimer);
+      this.reconnectionTimer = undefined;
     }
   }
 
@@ -214,13 +170,19 @@ export abstract class RabbitmqClient {
     await this.closeConnection();
   }
 
-  async closeChannel(): Promise<void> {
-    this.channel.close();
-    this.channel.removeAllListeners();
+  private async closeChannel(): Promise<void> {
+    if (this.channel) {
+      this.channel.removeAllListeners();
+      this.channel.close();
+      this.channel = undefined;
+    }
   }
 
-  async closeConnection(): Promise<void> {
-    this.connection.close();
-    this.connection.removeAllListeners();
+  private async closeConnection(): Promise<void> {
+    if (this.connection) {
+      this.connection.removeAllListeners();
+      this.connection.close();
+      this.connection = undefined;
+    }
   }
 }
