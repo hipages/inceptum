@@ -133,12 +133,20 @@ export abstract class RabbitmqClient {
     }
   }
 
+  backoffWait(tryNum: number): Promise<void> {
+    const waitBase = Math.min(Math.pow(3, Math.max(0, tryNum - 1)), 30) * 1000;
+    // 1 second, 3 seconds, 9 seconds, 27 seconds, 30 seconds, 30 seconds, ....
+    const waitMillis = waitBase + (Math.round(Math.random() * 800));
+    return new Promise<void>((resolve) => setTimeout(resolve, waitMillis));
+  }
+
   public async attemptReconnection() {
     this.clearReconnectionTimer();
 
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
+      await this.backoffWait(attempts);
       try {
         await this.connect();
         return;
