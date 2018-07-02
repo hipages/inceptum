@@ -96,6 +96,11 @@ const useTimeHistogram = new Histogram({
   labelNames: ['poolName', 'readonly'],
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3],
 });
+const maxConnectionLimitGauge = new Gauge({
+  name: 'db_pool_total_connections_limit_gauge',
+  help: 'Number of total connections limit in the pool',
+  labelNames: ['poolName', 'readonly'],
+});
 
 export class InstrumentedFactory<T> implements Factory<T> {
   validateFailedCounter: Counter.Internal;
@@ -159,6 +164,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
   acquireTimeHistogram: Histogram.Internal;
   options: PoolConfig<CC>;
   private status = PoolStatus.NOT_STARTED;
+  maxConnectionLimitGauge: Gauge.Internal;
 
   constructor(factory: Factory<C>, options: PoolConfig<CC>, name: string, readonly: boolean) {
     super();
@@ -172,6 +178,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     this.acquireErrorsCounter = acquireErrorsCounter.labels(...labels);
     this.useTimeHistogram = useTimeHistogram.labels(...labels);
     this.activeGauge = activeGauge.labels(...labels);
+    this.maxConnectionLimitGauge = maxConnectionLimitGauge.labels(...labels);
   }
   getName(): string {
     return this.name;
@@ -188,6 +195,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
       const connection = await this.pool.acquire();
       connection['__useTimer'] = this.useTimeHistogram.startTimer();
       this.activeGauge.inc();
+      this.maxConnectionLimitGauge.set(this.options.max);
       return connection;
     } catch (e) {
       this.acquireErrorsCounter.inc();
