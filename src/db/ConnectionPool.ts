@@ -97,8 +97,8 @@ const useTimeHistogram = new Histogram({
   buckets: [0.003, 0.005, 0.01, 0.05, 0.1, 0.3],
 });
 const maxConnectionLimitGauge = new Gauge({
-  name: 'db_pool_total_connections_limit_gauge',
-  help: 'Number of total connections limit in the pool',
+  name: 'db_pool_max_pool_size_gauge',
+  help: 'Max number of total connections in the pool',
   labelNames: ['poolName', 'readonly'],
 });
 
