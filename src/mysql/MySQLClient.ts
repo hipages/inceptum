@@ -7,6 +7,7 @@ import { LogManager } from '../log/LogManager';
 import { DBClient, DBClientConfig } from '../db/DBClient';
 
 const LOGGER = LogManager.getLogger(__filename);
+const MARKED_FOR_DELETION = 'MARKED_FOR_DELETION';
 
 /**
  * CONFIGURATION OBJECTS
@@ -102,6 +103,17 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
   create(): Promise<mysql.IConnection> {
     LOGGER.trace(`Creating new connection for pool ${this.name}`);
     const connection = mysql.createConnection(this.connConfig);
+
+    /*
+    * There isnt any good reason why a connection should ever error, so we mark any connection
+    * that throws as error as bad, the pool will then check before giving this connection back out
+    * and throw it away.
+    */
+    connection.on('error', (error) => {
+      LOGGER.error('Connection errored:', error);
+      connection[MARKED_FOR_DELETION] = true;
+    });
+
     return new Promise((resolve, reject) => connection.connect((err) => {
       if (err) {
         reject(err);
@@ -110,6 +122,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
       }
     }));
   }
+
   destroy(connection: mysql.IConnection): Promise<undefined> {
     LOGGER.trace(`Destroying connection for pool ${this.name}`);
     return new Promise((resolve, reject) => {
@@ -122,16 +135,10 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
       });
     });
   }
-  validate(connection: mysql.IConnection): Promise<boolean> {
+
+  async validate(connection: mysql.IConnection): Promise<boolean> {
     LOGGER.trace(`Validating connection for pool ${this.name}`);
-    return new Promise<boolean>((resolve, reject) => {
-      connection.query('SELECT 1', (err, results) => {
-        if (err) {
-          resolve(false);
-        }
-        resolve(true);
-      });
-    });
+    return !connection[MARKED_FOR_DELETION];
   }
 }
 
