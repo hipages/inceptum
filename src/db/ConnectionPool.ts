@@ -9,7 +9,7 @@ export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
   max: 10,
   min: 2,
   maxWaitingClients: 10,
-  testOnBorrow: false,
+  testOnBorrow: true,
   acquireTimeoutMillis: 1000,
   evictionRunIntervalMillis: 30000,
   numTestsPerRun: 2,
@@ -19,7 +19,7 @@ export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
 /**
  * Base interface for the configuration information needed to create a new connection
  */
-export interface ConnectionConfig {}
+export interface ConnectionConfig { }
 
 /**
  * Class for the config of a Pool.
@@ -170,7 +170,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     super();
     this.name = name;
     this.readonly = readonly;
-    this.options = {...DEFAULT_CONNECTION_POOL_OPTIONS, ...options};
+    this.options = { ...DEFAULT_CONNECTION_POOL_OPTIONS, ...options };
     const labels = [name, readonly ? 'true' : 'false'];
     const instrumentedFactory = new InstrumentedFactory<C>(factory, name, readonly);
     this.pool = createPool(instrumentedFactory, this.getGenericPoolOptions());
@@ -245,6 +245,6 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     await this.pool.clear();
   }
   getOptions(): PoolConfig<CC> {
-    return {... this.options};
+    return { ... this.options };
   }
 }
