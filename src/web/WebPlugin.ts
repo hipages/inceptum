@@ -1,6 +1,5 @@
 // tslint:disable:prefer-function-over-method
 import * as http from 'http';
-import * as bp from 'body-parser';
 import * as e from 'express';
 import * as onFinished from 'on-finished';
 import { ExtendedGauge } from 'prometheus-extended-gauge';
@@ -113,8 +112,8 @@ export default class WebPlugin implements Plugin {
     this.registerXmlContentNegotiationMiddleware(express, app.getConfig('app.xmlRoot', '') as string);
 
     // move from didStart to willStart
-    express.use(bp.json({ limit: '10mb' }));
-    express.use(bp.urlencoded({ extended: true }));
+    express.use(e.json({ limit: app.getConfig('app.server.maxRequestSize','10mb') }));
+    express.use(e.urlencoded({ extended: true }));
 
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
