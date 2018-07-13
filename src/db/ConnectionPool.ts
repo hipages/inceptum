@@ -171,6 +171,11 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     this.name = name;
     this.readonly = readonly;
     this.options = { ...DEFAULT_CONNECTION_POOL_OPTIONS, ...options };
+
+    // force to int because env values from k8s are string.
+    const maxString = this.options.max.toString();
+    this.options.max = parseInt(maxString, 10);
+
     const labels = [name, readonly ? 'true' : 'false'];
     const instrumentedFactory = new InstrumentedFactory<C>(factory, name, readonly);
     this.pool = createPool(instrumentedFactory, this.getGenericPoolOptions());
