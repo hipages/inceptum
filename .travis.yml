@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 language: node_js
 node_js: 8.3.0
 cache: npm
@@ -29,8 +29,8 @@ install:
   - ./elasticsearch-${ES_VERSION}/bin/elasticsearch &
 
 before_script:
-  - sudo rabbitmq-plugins enable rabbitmq_management
-  - sudo service rabbitmq-server restart 
+  - rabbitmq-plugins enable rabbitmq_management
+  - service rabbitmq-server restart 
   - wget http://127.0.0.1:15672/cli/rabbitmqadmin
   - chmod +x rabbitmqadmin
   - ./rabbitmqadmin import ./itest/rabbitmq/definitions.json
