@@ -80,7 +80,11 @@ export class MySQLTransaction extends DBTransaction<mysql.IConnection> {
     return new Promise<any>((resolve, reject) =>
       this.connection.query(sql, bindsArr, (err, rows) => {
         if (err) {
-          LOGGER.error(err, `SQL error for ${sql}`);
+          LOGGER.error(err, {
+            sql,
+            connectionId = this.connection.threadId,
+          });
+          this.connection[MARKED_FOR_DELETION] = true;
           return reject(err);
         }
         return resolve(rows);
@@ -110,7 +114,9 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     * and throw it away.
     */
     connection.on('error', (error) => {
-      LOGGER.error('Connection errored:', error);
+      LOGGER.error(error, 'Connection Error', {
+        connectionId: connection.threadId,
+      });
       connection[MARKED_FOR_DELETION] = true;
     });
 
