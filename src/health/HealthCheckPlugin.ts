@@ -48,6 +48,7 @@ export default class HealthCheckPlugin implements Plugin {
     const express: e.Express = pluginContext.get(AdminPortPlugin.CONTEXT_APP_KEY);
     if (express) {
       express.get('/health', async (req, res) => {
+        NewrelicUtil.setIgnoreTransaction(true);
         const healthCheckManager: HealthCheckManager = await context.getObjectByName('HealthCheckManager');
         const healthCheckResult = healthCheckManager.getLastResult();
 

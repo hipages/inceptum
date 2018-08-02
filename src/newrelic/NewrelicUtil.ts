@@ -7,7 +7,7 @@ try {
     // tslint:disable-next-line:no-var-requires
     NEWRELIC = require('newrelic');
   }
-// tslint:disable-next-line:no-empty
+  // tslint:disable-next-line:no-empty
 } catch (e) {
 }
 
@@ -17,6 +17,7 @@ export abstract class NewRelic {
   abstract setTransactionName(name: string);
   abstract async startBackgroundTransaction(name: string, group?: string, handle?: () => any);
   abstract getTransaction();
+  abstract setIgnoreTransaction(ignored: Boolean);
   abstract addCustomAttributes(attributes: {});
   abstract addCustomAttribute(name: string, value: string | number);
   abstract recordMetric(name: string);
@@ -65,4 +66,10 @@ export class NewrelicUtil {
     }
   }
 
+  static setIgnoreTransaction(ignored: Boolean) {
+    const nr: NewRelic = NewrelicUtil.getNewrelicIfAvailable();
+    if (nr) {
+      nr.setIgnoreTransaction(ignored);
+    }
+  }
 }

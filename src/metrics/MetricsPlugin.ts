@@ -2,7 +2,7 @@
 import * as e from 'express';
 import * as prometheus from 'prom-client';
 import * as gcStats from 'prometheus-gc-stats';
-
+import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
 import AdminPortPlugin from '../web/AdminPortPlugin';
@@ -28,7 +28,7 @@ export default class MetricsPlugin implements Plugin {
 
   didStart(app: BaseApp, pluginContext: PluginContext) {
     this.prometheusTimer = prometheus.collectDefaultMetrics();
-    prometheus.register.setDefaultLabels({app: app.getConfig('app.name', 'not_set')});
+    prometheus.register.setDefaultLabels({ app: app.getConfig('app.name', 'not_set') });
     const startGcStats = gcStats();
     startGcStats();
     this.registerOSMetrics(app);
@@ -38,8 +38,9 @@ export default class MetricsPlugin implements Plugin {
     if (adminExpress) {
       Logger.info('Registering metrics endpoint in Admin port');
       adminExpress.get('/metrics', async (req, res) => {
-          res.type('text/plain');
-          res.send(prometheus.register.metrics());
+        NewrelicUtil.setIgnoreTransaction(true);
+        res.type('text/plain');
+        res.send(prometheus.register.metrics());
       });
     }
   }
@@ -68,7 +69,7 @@ export default class MetricsPlugin implements Plugin {
         Logger.info('Can\'t collect load average stats (this OS doesn\'t have procfs mounted!. Skipping');
       }
       const interval = app.getConfig('metrics.osmetrics.refreshMillis', 20000);
-      this.statsTimer = setInterval(() => {this.pushStats();}, typeof interval === 'string' ? parseInt(interval, 10) : interval);
+      this.statsTimer = setInterval(() => { this.pushStats(); }, typeof interval === 'string' ? parseInt(interval, 10) : interval);
     }
   }
 
@@ -85,13 +86,13 @@ export default class MetricsPlugin implements Plugin {
 
   pushIndividualCPUStat(name: string, newStats: OSMetrics): void {
     if (newStats[name] !== undefined && this.lastMetrics[name] !== undefined) {
-      this.cpuStats.inc({type: name}, newStats[name] - this.lastMetrics[name]);
+      this.cpuStats.inc({ type: name }, newStats[name] - this.lastMetrics[name]);
     }
   }
 
   pushIndividualLoadStat(name: string, newStats: OSMetrics): void {
     if (newStats[name] !== undefined && this.lastMetrics[name] !== undefined) {
-      this.loadStats.set({period: name}, newStats[name]);
+      this.loadStats.set({ period: name }, newStats[name]);
     }
   }
 
