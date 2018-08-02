@@ -92,13 +92,13 @@ export abstract class DBClient<C, T extends DBTransaction<C>, CC extends Connect
       // tslint:disable-next-line:prefer-object-spread
       const fullMasterConfig: CC = Object.assign({}, defaultConnectionConfig, this.clientConfiguration.master.connectionConfig);
       this.masterPool = new InstrumentedConnectionPool<C, CC>(this.getConnectionFactory(`${this.clientConfiguration.name}_master`, fullMasterConfig), this.clientConfiguration.master, this.clientConfiguration.name, false);
-      this.masterPool.start();
+      await this.masterPool.start();
     }
     if (this.clientConfiguration.slave) {
       // tslint:disable-next-line:prefer-object-spread
       const fullSlaveConfig: CC = Object.assign({}, defaultConnectionConfig, this.clientConfiguration.slave.connectionConfig);
       this.slavePool = new InstrumentedConnectionPool<C, CC>(this.getConnectionFactory(`${this.clientConfiguration.name}_slave`, fullSlaveConfig), this.clientConfiguration.slave, this.clientConfiguration.name, true);
-      this.slavePool.start();
+      await this.slavePool.start();
     }
     if (!this.masterPool && !this.slavePool) {
       throw new Error(`MysqlClient ${this.name} has no connections configured for either master or slave`);
