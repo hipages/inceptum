@@ -82,7 +82,7 @@ export class MySQLTransaction extends DBTransaction<mysql.IConnection> {
         if (err) {
           LOGGER.error(err, {
             sql,
-            connectionId = this.connection.threadId,
+            connectionId: this.connection.threadId,
           });
           this.connection[MARKED_FOR_DELETION] = true;
           return reject(err);
