@@ -236,9 +236,9 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
       throw new Error(`Can't start a connection pool that isn't in NOT_STARTED state. Pool: ${this.name}, Current Status: ${this.status}`);
     }
     this.status = PoolStatus.STARTED;
-    await this.pool['start']();
+    this.pool['start']();
     // The pool needs to get into a good state. Waiting a bit has proven a good solution.
-    await new Promise<void>((resolve) => setTimeout(resolve, 30));
+    return new Promise<void>((resolve) => setTimeout(resolve, 30));
   }
 
   async stop() {
