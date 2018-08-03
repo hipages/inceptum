@@ -71,6 +71,12 @@ export abstract class RabbitmqClient {
     await this.connect();
   }
 
+  static getDefaultHeader(): any {
+    return {
+        retriesCount: 0,
+    };
+  }
+
   /**
    * Connect to RabbitMQ broker
    */

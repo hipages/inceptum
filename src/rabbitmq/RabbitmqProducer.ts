@@ -47,9 +47,7 @@ export class RabbitmqProducer extends RabbitmqClient {
         if (!this.readyGate.isChannelReady()) {
             await this.readyGate.awaitChannelReady();
         }
-        optionsPublish.headers = {
-            retriesCount: 0,
-        };
+        optionsPublish.headers = RabbitmqClient.getDefaultHeader();
         const timer = this.publishDurationHistogram.startTimer();
         try {
             while (!this.channel.publish(this.producerConfig.exchangeName, routingKey, new Buffer(msg), optionsPublish)) {

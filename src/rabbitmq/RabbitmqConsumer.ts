@@ -111,6 +111,9 @@ export class RabbitmqConsumer extends RabbitmqClient {
       this.logger.error(e, 'failed to handle message');
       this.consumeFailures.inc();
       NewrelicUtil.noticeError(e, message);
+      if (!message.properties.headers) {
+        message.properties.headers = RabbitmqClient.getDefaultHeader();
+      }
       const retriesCount = ++message.properties.headers.retriesCount;
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {
         // add to dlq
