@@ -113,7 +113,7 @@ export default class WebPlugin implements Plugin {
 
     // move from didStart to willStart
     express.use(e.json({ limit: app.getConfig('app.server.maxRequestSize','10mb') }));
-    express.use(e.urlencoded({ extended: true }));
+    express.use(e.urlencoded({ extended: true, limit: app.getConfig('app.server.maxRequestSize','10mb') }));
 
     if (this.options && this.options.staticRoots) {
       this.options.staticRoots.forEach((root) => {
