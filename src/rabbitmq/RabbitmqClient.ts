@@ -83,6 +83,7 @@ export abstract class RabbitmqClient {
 
   private async createConnection() {
     const newConnection = await this.connectFunction(this.clientConfig);
+    newConnection.on('blocked', () => { this.handleErrorOrClose('Connection Blocked'); });
     newConnection.on('close', () => { this.handleErrorOrClose('Connection Closed'); });
     newConnection.on('error', (err) => { this.handleErrorOrClose('Connection Error', err); });
     this.connection = newConnection;
@@ -129,7 +130,10 @@ export abstract class RabbitmqClient {
           // Do nothing... we tried to play nice
         }
       }
-      this.reconnectionTimer = setTimeout(() => this.attemptReconnection(), 500);
+      // rabbitmq default timeout is set to be 1000 so keep it that way.
+      // It needs time for cleanup process.
+      // TODO: Fixme - Shoud these values be configurable
+      this.reconnectionTimer = setTimeout(() => this.attemptReconnection(), 1000);
     }
   }
 
