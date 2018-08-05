@@ -94,6 +94,18 @@ export abstract class RabbitmqClient {
     const newChannel = await this.connection.createChannel();
     newChannel.on('close', (err?) => { this.handleErrorOrClose('Channel closed unexpectedly', err); });
     newChannel.on('error', (err) => { this.handleErrorOrClose('Channel error', err); });
+    // If there is any existing channel close that first before attempting to create a new connection
+    // I have seperated this logic from connection as Closing a channel is not related to connection. A connection can be healthy but
+    // still channel can close. Once connection can have any many channels as you want. Also remember the time for connection and channel vary and are async.
+    // by the time you try to close the connection in existing strategy new connection is already established. means you will need get change to close the channel
+    if (this.channel) {
+      this.logger.debug('Closing channel');
+      try {
+        await this.closeChannel();
+      } catch (e) {
+        // Do nothing... we tried to play nice
+      }
+    }
     this.channel = newChannel;
     this.logger.info('Channel opened');
   }
