@@ -103,8 +103,8 @@ export abstract class RabbitmqClient {
       this.logger.error(err, `${cause}. Reconnecting`);
     } else {
       this.logger.error(`${cause}. Reconnecting`);
+      this.closeAllAndScheduleReconnection();
     }
-    this.closeAllAndScheduleReconnection();
   }
 
   protected async closeAllAndScheduleReconnection() {
