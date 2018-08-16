@@ -2,6 +2,7 @@ import { connect, Connection, Channel } from 'amqplib';
 import { isFatalError } from 'amqplib/lib/connection';
 import { Logger } from '../log/LogManager';
 import { ReadyGate } from '../util/ReadyGate';
+import { PromiseUtil } from '../util/PromiseUtil';
 import { RabbitmqProducerConfig, RabbitmqClientConfig, DEFAULT_MAX_CONNECTION_ATTEMPTS } from './RabbitmqConfig';
 
 /*
@@ -56,7 +57,6 @@ export abstract class RabbitmqClient {
    */
   protected closed = false;
   protected reconnecting = false;
-  protected reconnectionTimer: NodeJS.Timer;
   protected readyGate = new ReadyGate();
   protected shutdownFunction: () => void;
   protected connectFunction = connect;
@@ -129,20 +129,18 @@ export abstract class RabbitmqClient {
           // Do nothing... we tried to play nice
         }
       }
-      this.reconnectionTimer = setTimeout(() => this.attemptReconnection(), 500);
+      await this.attemptReconnection();
     }
   }
 
   backoffWait(tryNum: number): Promise<void> {
-    const waitBase = Math.min(Math.pow(3, Math.max(0, tryNum - 1)), 30) * 1000;
-    // 1 second, 3 seconds, 9 seconds, 27 seconds, 30 seconds, 30 seconds, ....
+    // 1 second, 5 seconds, 25 seconds, 30 seconds, 30 seconds, ....
+    const waitBase = Math.min(Math.pow(5, Math.max(0, tryNum - 1)), 30) * 1000;
     const waitMillis = waitBase + (Math.round(Math.random() * 800));
-    return new Promise<void>((resolve) => setTimeout(resolve, waitMillis));
+    return PromiseUtil.sleepPromise<void>(waitMillis, null);
   }
 
   public async attemptReconnection() {
-    this.clearReconnectionTimer();
-
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
@@ -162,13 +160,6 @@ export abstract class RabbitmqClient {
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
       this.logger.error('Cowardly refusing to continue. Calling shutdown function');
       this.shutdownFunction();
-    }
-  }
-
-  public clearReconnectionTimer() {
-    if (this.reconnectionTimer) {
-      clearTimeout(this.reconnectionTimer);
-      this.reconnectionTimer = undefined;
     }
   }
 
