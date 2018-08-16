@@ -137,6 +137,7 @@ export abstract class RabbitmqClient {
     // 1 second, 5 seconds, 25 seconds, 30 seconds, 30 seconds, ....
     const waitBase = Math.min(Math.pow(5, Math.max(0, tryNum - 1)), 30) * 1000;
     const waitMillis = waitBase + (Math.round(Math.random() * 800));
+    this.logger.warn(`Waiting for ${waitMillis} ms`);
     return PromiseUtil.sleepPromise<void>(waitMillis, null);
   }
 
@@ -144,6 +145,7 @@ export abstract class RabbitmqClient {
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
+      this.logger.warn(`Waiting for attempt #${attempts}`);
       await this.backoffWait(attempts);
       try {
         await this.connect();
