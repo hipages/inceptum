@@ -40,7 +40,7 @@ export class WebRoutingInspector extends AbstractObjectDefinitionInspector {
 
   private processRoutes(routes: InceptumWebRouteMetadata[], objectDefinition) {
     routes.forEach((route, index) => {
-      const instanceName = `instance_${index}`;
+      const instanceName = `instance_${objectDefinition.getName()}_${index}`;
       this.routesToRegister.push(
         {
           verb: route.verb || 'get',
