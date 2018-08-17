@@ -4,6 +4,7 @@ export { SingletonDefinition } from './ioc/objectdefinition/SingletonDefinition'
 export { PreinstantiatedSingletonDefinition } from './ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 export { BaseSingletonDefinition } from './ioc/objectdefinition/BaseSingletonDefinition';
 export { InceptumApp, TestInceptumApp } from './app/InceptumApp';
+export { default as BaseApp } from './app/BaseApp';
 export * from './log/LogManager';
 export { ExtendedError } from './util/ErrorUtil';
 export { BadRequestError } from './web/errors/BadRequestError';
