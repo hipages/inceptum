@@ -1,33 +1,27 @@
 import { Context } from '../ioc/Context';
 import { LifecycleState } from '../ioc/Lifecycle';
 import { AutowireContext } from '../ioc/Decorators';
-import { HealthCheck, HealthCheckResult, HealthCheckStatus, RegisterAsHealthCheck, HealthCheckType } from './HealthCheck';
+import { HealthCheck, HealthCheckResult, RegisterAsHealthCheck, createResult, HealthCheckState } from './HealthCheck';
 
 @RegisterAsHealthCheck
-export class ContextReadyHealthCheck extends HealthCheck {
+export class ContextReadyHealthCheck implements HealthCheck {
 
   @AutowireContext
   context: Context;
 
-  constructor() {
-    super('context', 5000);
-  }
+  name: 'ContextReady';
 
-  getType(): HealthCheckType {
-    return HealthCheckType.CONTEXT;
-  }
-
-  public async doCheck(): Promise<HealthCheckResult> {
+  async status() {
     if (!this.context) {
-      return new HealthCheckResult(HealthCheckStatus.NOT_READY, `Context not wired`);
+      return createResult(HealthCheckState.PENDING , 'No context found');
     }
     const contextStatus = this.context.getStatus();
     if (contextStatus === LifecycleState.NOT_STARTED || contextStatus === LifecycleState.STARTING) {
-      return new HealthCheckResult(HealthCheckStatus.NOT_READY, `Context not ready. Still in status: ${contextStatus.getName()}`);
+      return createResult(HealthCheckState.NOT_READY, `Context currently: ${contextStatus.getName()}`);
     } else if (contextStatus === LifecycleState.STARTED) {
-      return new HealthCheckResult(HealthCheckStatus.OK, `Context STARTED`);
+      return createResult(HealthCheckState.OK);
     } else {
-      return new HealthCheckResult(HealthCheckStatus.WARNING, `Context STOPPING`);
+      return createResult(HealthCheckState.NOT_READY, `Context currently: ${contextStatus.getName()}`);
     }
   }
 }
