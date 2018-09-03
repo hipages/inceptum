@@ -24,6 +24,7 @@ import { PreinstantiatedSingletonDefinition } from './objectdefinition/Preinstan
 export interface ContextOptions {
   logger?: Logger,
   config?: Config,
+  shutdownTimer?: number,
 }
 
 export class Context extends Lifecycle {
@@ -33,10 +34,12 @@ export class Context extends Lifecycle {
   private parentContext: Context;
   private config: Config;
   private objectGroups: Map<string, string[]>;
+  private shutdownTimer: number;
 
   constructor(name: string, parentContext?: Context, options: ContextOptions = {}) {
     super(name, options.logger || LogManager.getLogger(__filename));
     this.config = options.config || new Config();
+    this.shutdownTimer = options.shutdownTimer || 10000;
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();
@@ -83,7 +86,9 @@ export class Context extends Lifecycle {
       });
   }
 
-  protected doStop(): Promise<any> {
+  protected async doStop(): Promise<any> {
+    this.getLogger().debug(`Waiting ${this.shutdownTimer} to stop context`);
+    await PromiseUtil.sleepPromise(this.shutdownTimer);
     return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) =>
       startedObject.lcStop(),
     ).then(() => {

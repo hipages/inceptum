@@ -143,7 +143,7 @@ export default class WebPlugin implements Plugin {
     pluginContext.set(WebPlugin.CONTEXT_SERVER_KEY, server);
   }
 
-  willStop(app, pluginContext) {
+  didStop(app, pluginContext) {
     const express = pluginContext.get(WebPlugin.CONTEXT_SERVER_KEY);
     app.logger.info('Shutting down server');
     if (express) {
