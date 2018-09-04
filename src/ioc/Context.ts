@@ -39,7 +39,7 @@ export class Context extends Lifecycle {
   constructor(name: string, parentContext?: Context, options: ContextOptions = {}) {
     super(name, options.logger || LogManager.getLogger(__filename));
     this.config = options.config || new Config();
-    this.shutdownTimer = options.shutdownTimer || 10000;
+    this.shutdownTimer = options.shutdownTimer || 100;
     this.parentContext = parentContext;
     this.objectDefinitions = new Map();
     this.startedObjects = new Map();
@@ -87,7 +87,7 @@ export class Context extends Lifecycle {
   }
 
   protected async doStop(): Promise<any> {
-    this.getLogger().debug(`Waiting ${this.shutdownTimer} to stop context`);
+    this.getLogger().debug(`Waiting ${this.shutdownTimer}ms to stop context`);
     await PromiseUtil.sleepPromise(this.shutdownTimer);
     return PromiseUtil.map(Array.from(this.startedObjects.values()), (startedObject) =>
       startedObject.lcStop(),
