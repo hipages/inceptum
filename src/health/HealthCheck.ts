@@ -15,6 +15,7 @@ export enum HealthCheckStatus {
   NOT_READY = 'NOT_READY', // Used when plugin is starting.
   WARNING = 'WARNING', // Used when plugin is stopping.
   CRITICAL = 'CRITICAL', // Used when issues are found after ready.
+  STOPPING = 'STOPPING', // Used when the app is stopping - everything is ok, but no new requests should be sent
 }
 
 export enum HealthCheckType {
@@ -24,7 +25,7 @@ export enum HealthCheckType {
 }
 
 function getStatusIndex(status: HealthCheckStatus) {
-  return [HealthCheckStatus.OK, HealthCheckStatus.NOT_READY, HealthCheckStatus.WARNING, HealthCheckStatus.CRITICAL].indexOf(status);
+  return [HealthCheckStatus.OK, HealthCheckStatus.NOT_READY, HealthCheckStatus.WARNING, HealthCheckStatus.CRITICAL, HealthCheckStatus.STOPPING].indexOf(status);
 }
 
 export class HealthCheckResult {

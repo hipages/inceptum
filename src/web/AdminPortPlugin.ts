@@ -33,7 +33,7 @@ export default class AdminPortPlugin implements Plugin {
     pluginContext.set(AdminPortPlugin.CONTEXT_SERVER_KEY, server);
   }
 
-  willStop(app, pluginContext) {
+  didStop(app, pluginContext) {
     const express = pluginContext.get(AdminPortPlugin.CONTEXT_SERVER_KEY);
     app.logger.info('Shutting down admin server');
     express.close();

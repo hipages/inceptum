@@ -27,7 +27,7 @@ export class ContextReadyHealthCheck extends HealthCheck {
     } else if (contextStatus === LifecycleState.STARTED) {
       return new HealthCheckResult(HealthCheckStatus.OK, `Context STARTED`);
     } else {
-      return new HealthCheckResult(HealthCheckStatus.WARNING, `Context STOPPING`);
+      return new HealthCheckResult(HealthCheckStatus.STOPPING, `Context STOPPING`);
     }
   }
 }

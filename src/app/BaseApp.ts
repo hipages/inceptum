@@ -45,6 +45,7 @@ export type PluginImplemenation = PluginNameable & PluginImplementsAtLeastOneMet
 export interface AppOptions {
   logger?: Logger,
   config?: ConfigAdapter,
+  shutdownTimer?: number,
 }
 
 export type PluginContext = Map<String | Symbol, any>;
@@ -61,7 +62,7 @@ export default class BaseApp {
    * Creates a new Inceptum App
    */
   constructor(options: AppOptions = {}) {
-    const { config = new Config() } = options;
+    const { config = new Config(), shutdownTimer = 100 } = options;
     const { logger = LogManager.getLogger(__filename) } = options;
     this.logger = logger;
     this.logger.info(`Using app name ${LogManager.getAppName()}`);

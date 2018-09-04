@@ -24,6 +24,7 @@ export const DEFAULT_INCEPTUM_APP_OPTIONS: InceptumAppOptions = {
   enableAdminPort: true,
   enableHealthChecks: true,
   enableMetrics: true,
+  shutdownTimer: process.env.NODE_ENV === 'production' ? 20000 : 200,
 };
 
 export class InceptumApp extends BaseApp {
