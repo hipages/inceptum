@@ -83,7 +83,7 @@ export abstract class RabbitmqClient {
 
   private async createConnection() {
     const newConnection = await this.connectFunction(this.clientConfig);
-    newConnection.on('close', () => { this.handleErrorOrClose('Connection Closed'); });
+    newConnection.on('close', (err?) => { this.handleErrorOrClose('Connection Closed', err); });
     newConnection.on('error', (err) => { this.handleErrorOrClose('Connection Error', err); });
     this.connection = newConnection;
     this.logger.info('Connection established');
@@ -97,11 +97,11 @@ export abstract class RabbitmqClient {
     this.logger.info('Channel opened');
   }
 
-  protected handleErrorOrClose(cause: string, err?) {
+  protected handleErrorOrClose(cause: string, err?: Error) {
     if (err) {
-      this.logger.error(err, `${cause}. Reconnecting`);
+      this.logger.error(err, this.debugMsg(`${cause}.`));
     } else {
-      this.logger.error(`${cause}. Reconnecting`);
+      this.logger.error(this.debugMsg(`${cause}.`));
     }
     this.closeAllAndScheduleReconnection();
   }
@@ -110,10 +110,7 @@ export abstract class RabbitmqClient {
     if (!this.reconnecting) {
       this.readyGate.channelNotReady();
       this.reconnecting = true;
-      this.logger.warn('Initialising reconnection...');
-
       if (this.channel) {
-        this.logger.debug('Closing channel');
         try {
           await this.closeChannel();
         } catch (e) {
@@ -122,14 +119,16 @@ export abstract class RabbitmqClient {
       }
 
       if (this.connection) {
-        this.logger.debug('Closing connection');
         try {
           await this.closeConnection();
         } catch (e) {
           // Do nothing... we tried to play nice
+          // this.logger.error(e);
         }
       }
       await this.attemptReconnection();
+    } else {
+      this.logger.warn(this.debugMsg('already reconnecting'));
     }
   }
 
@@ -137,30 +136,32 @@ export abstract class RabbitmqClient {
     // 1 second, 5 seconds, 25 seconds, 30 seconds, 30 seconds, ....
     const waitBase = Math.min(Math.pow(5, Math.max(0, tryNum - 1)), 30) * 1000;
     const waitMillis = waitBase + (Math.round(Math.random() * 800));
-    this.logger.warn(`Waiting for ${waitMillis} ms`);
+    this.logger.warn(this.debugMsg(`Waiting for attempt #${tryNum} - ${waitMillis} ms`));
     return PromiseUtil.sleepPromise<void>(waitMillis, null);
   }
 
   public async attemptReconnection() {
+    this.logger.warn(this.debugMsg(`reconnecting... max attempts ${this.clientConfig.maxConnectionAttempts}`));
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
-      this.logger.warn(`Waiting for attempt #${attempts}`);
       await this.backoffWait(attempts);
       try {
-        await this.connect();
+        this.logger.warn(this.debugMsg(`initialising attempt #${attempts}`));
+        await this.init();
+        this.logger.warn(this.debugMsg(`attempt #${attempts} is successful.`));
         return;
       } catch (e) {
-        this.logger.warn(e, `Failed reconnection attempt #${attempts}`);
+        this.logger.warn(e, this.debugMsg(`Failed reconnection attempt #${attempts}`));
       }
     }
 
-    this.logger.error(`Couldn't reconnect after ${this.clientConfig.maxConnectionAttempts} attempts`);
+    this.logger.error(this.debugMsg(`Couldn't reconnect after ${this.clientConfig.maxConnectionAttempts} attempts`));
 
     this.reconnecting = false;
     // tslint:disable-next-line
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
-      this.logger.error('Cowardly refusing to continue. Calling shutdown function');
+      this.logger.error(this.debugMsg('Cowardly refusing to continue. Calling shutdown function'));
       this.shutdownFunction();
     }
   }
@@ -174,7 +175,7 @@ export abstract class RabbitmqClient {
   private async closeChannel(): Promise<void> {
     if (this.channel) {
       this.channel.removeAllListeners();
-      this.channel.close();
+      await this.channel.close();
       this.channel = undefined;
     }
   }
@@ -182,8 +183,12 @@ export abstract class RabbitmqClient {
   private async closeConnection(): Promise<void> {
     if (this.connection) {
       this.connection.removeAllListeners();
-      this.connection.close();
+      await this.connection.close();
       this.connection = undefined;
     }
+  }
+
+  protected debugMsg(str) {
+    return `${this.name}: ${str}`;
   }
 }
