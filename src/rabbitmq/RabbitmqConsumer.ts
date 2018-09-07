@@ -3,7 +3,7 @@ import * as stringify from 'json-stringify-safe';
 import { Counter, Histogram } from 'prom-client';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { LogManager } from '../log/LogManager';
-import { RabbitmqClient } from './RabbitmqClient';
+import { RabbitmqClient, MessageHeader } from './RabbitmqClient';
 import { RabbitmqConsumerConfig, RabbitmqClientConfig } from './RabbitmqConfig';
 import { PublishOptions, ConsumeOptions, RepliesConsume } from './RabbitmqClient';
 import { RabbitmqConsumerHandler, Message } from './RabbitmqConsumerHandler';
@@ -111,8 +111,8 @@ export class RabbitmqConsumer extends RabbitmqClient {
       this.logger.error(e, 'failed to handle message');
       this.consumeFailures.inc();
       NewrelicUtil.noticeError(e, message);
-      if (message.properties.headers.retriesCount === undefined) {
-        message.properties.headers.retriesCount = 0;
+      if (message.properties.headers === undefined) {
+        message.properties.headers = this.defaultHeader();
       }
       const retriesCount = ++message.properties.headers.retriesCount;
       if (e instanceof RabbitmqConsumerHandlerUnrecoverableError || !this.allowRetry(retriesCount)) {

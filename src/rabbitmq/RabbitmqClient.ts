@@ -10,6 +10,10 @@ Please read "RabbitMQ Connection Lifecycle.md" for an overview of how
 connection and reconnection is managed for RabbitMQ
 */
 
+export interface MessageHeader {
+  retriesCount: 0,
+}
+
 export interface PublishOptions {
   expiration?: string | number,
   userId?: string,
@@ -22,7 +26,7 @@ export interface PublishOptions {
 
   contentType?: string,
   contentEncoding?: string,
-  headers?: any,
+  headers?: any | MessageHeader,
   priority?: number,
   correlationId?: string,
   replyTo?: string,
@@ -190,5 +194,11 @@ export abstract class RabbitmqClient {
 
   protected debugMsg(str) {
     return `${this.name}: ${str}`;
+  }
+
+  protected defaultHeader(): MessageHeader {
+    return {
+      retriesCount: 0,
+    };
   }
 }
