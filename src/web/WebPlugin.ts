@@ -50,27 +50,33 @@ export class RouteRegisterUtil {
  * @param next
  */
 export const clientErrorMiddleware = (err, req, res, next) => {
+  let more = [];
   if (err instanceof HttpError && err.statusCode && err.statusCode >= 400 && err.statusCode < 500 ) {
     res.status(err.getStatusCode()).send({message: err.message});
+  } else if (err.failedValidation) { // swagger-tools validation
+    more = err.results.errors;
+    res.status(400).send({message: err.message});
   } else {
     return next(err); // Give back to express to handle
   }
+  logger.error({err, more}); // log 4xx errors and swagger errors
 };
 
 export const errorMiddleware = (err, req, res, next) => {
-  logger.error(err);
   if (res.headersSent) {
     return next(err); // Give back to express to handle
   }
 
+  logger.error(err);
+  const data = {message: err.message};
   if (err instanceof HttpError && err.statusCode) {
     if (err.statusCode >= 500) {
       NewrelicUtil.noticeError(err);
     }
-    res.status(err.getStatusCode()).send({message: err.message});
+    res.status(err.getStatusCode()).send(data);
   } else {
     NewrelicUtil.noticeError(err);
-    res.status(500).end();
+    res.status(500).send(data);
   }
 };
 
