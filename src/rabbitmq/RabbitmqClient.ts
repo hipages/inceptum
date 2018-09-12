@@ -90,7 +90,7 @@ export abstract class RabbitmqClient {
     newConnection.on('close', (err?) => { this.handleErrorOrClose('Connection Closed', err); });
     newConnection.on('error', (err) => { this.handleErrorOrClose('Connection Error', err); });
     this.connection = newConnection;
-    this.logger.info('Connection established');
+    this.logger.warn(this.debugMsg('Connection established')); // To see this message in PROD, change to warn.
   }
 
   protected async createChannel(): Promise<void> {
@@ -98,7 +98,7 @@ export abstract class RabbitmqClient {
     newChannel.on('close', (err?) => { this.handleErrorOrClose('Channel closed unexpectedly', err); });
     newChannel.on('error', (err) => { this.handleErrorOrClose('Channel error', err); });
     this.channel = newChannel;
-    this.logger.info('Channel opened');
+    this.logger.warn(this.debugMsg('Channel opened')); // To see this message in PROD, change to warn.
   }
 
   protected handleErrorOrClose(cause: string, err?: Error) {
@@ -181,6 +181,7 @@ export abstract class RabbitmqClient {
       this.channel.removeAllListeners();
       await this.channel.close();
       this.channel = undefined;
+      this.logger.warn(this.debugMsg('Channel closed.'));
     }
   }
 
@@ -189,6 +190,7 @@ export abstract class RabbitmqClient {
       this.connection.removeAllListeners();
       await this.connection.close();
       this.connection = undefined;
+      this.logger.warn(this.debugMsg('Connection closed.'));
     }
   }
 
