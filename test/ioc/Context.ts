@@ -611,7 +611,7 @@ suite('ioc/Context', () => {
       mockFS.restore();
     });
 
-    test('recursively matches files, given a simple path', () => {
+    test.skip('recursively matches files, given a simple path', () => {
       const files = Context.findMatchingFiles('src/services', options);
       [
         'src/services/jobService.js',
@@ -620,7 +620,7 @@ suite('ioc/Context', () => {
         files.must.include(expectedFile);
       });
     });
-    test('ignores a directory decorated with negation', () => {
+    test.skip('ignores a directory decorated with negation', () => {
       const files = Context.findMatchingFiles(['src/controllers', '!src/controllers/__tests__'], options);
       [
         'src/controllers/jobController.js',
@@ -630,7 +630,7 @@ suite('ioc/Context', () => {
         files.must.include(expectedFile);
       });
     });
-    test('only matches files for glob pattern', () => {
+    test.skip('only matches files for glob pattern', () => {
       const files = Context.findMatchingFiles('src/modules/**/*Controller.js', options);
       [
         'src/modules/job/jobController.js',
@@ -640,7 +640,7 @@ suite('ioc/Context', () => {
         files.must.include(expectedFile);
       });
     });
-    test('recursively match glob pattern', () => {
+    test.skip('recursively match glob pattern', () => {
       const files = Context.findMatchingFiles(['src/**/*.js', '!src/**/*.test.js'], options);
       [
         'src/services/jobService.js',
