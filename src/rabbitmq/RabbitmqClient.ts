@@ -87,47 +87,74 @@ export abstract class RabbitmqClient {
 
   private async createConnection() {
     const newConnection = await this.connectFunction(this.clientConfig);
-    newConnection.on('close', (err?) => { this.handleErrorOrClose('Connection Closed', err); });
-    newConnection.on('error', (err) => { this.handleErrorOrClose('Connection Error', err); });
+    newConnection.on('close', (err?) => { this.handleConnectionClose(err); });
     this.connection = newConnection;
     this.logger.warn(this.debugMsg('Connection established')); // To see this message in PROD, change to warn.
   }
 
   protected async createChannel(): Promise<void> {
     const newChannel = await this.connection.createChannel();
-    newChannel.on('close', (err?) => { this.handleErrorOrClose('Channel closed unexpectedly', err); });
-    newChannel.on('error', (err) => { this.handleErrorOrClose('Channel error', err); });
+    newChannel.on('close', () => { this.handleChannelClose(); });
+    newChannel.on('error', (err) => { this.handleChannelError(err); });
     this.channel = newChannel;
     this.logger.warn(this.debugMsg('Channel opened')); // To see this message in PROD, change to warn.
   }
 
-  protected handleErrorOrClose(cause: string, err?: Error) {
+  /**
+   * Reconnect when errors occur.
+   * Errors do not exist if connection.close() is called
+   *    or a server initiated graceful close.
+   * Close events occur after a connection emit error events
+   *    so connection error events are handle in close event handler.
+   * @param err
+   */
+  protected handleConnectionClose(err: Error) {
     if (err) {
-      this.logger.error(err, this.debugMsg(`${cause}.`));
+      // A connection is closed with an error. Reconnect.
+      this.logger.error(err, this.debugMsg(`A connection is closed with an error.`));
+      this.closeAllAndScheduleReconnection();
     } else {
-      this.logger.error(this.debugMsg(`${cause}.`));
+      this.logger.warn(this.debugMsg(`A graceful CONNECTION close event is emitted.`));
     }
+  }
+
+  /**
+   * A channel error event is emitted if a server closes the channel for any reason.
+   * A channel will not emit 'error' if its connection closes with an error.
+   * @param err
+   */
+  protected handleChannelError(err: Error) {
+    // recreate connection and channel.
+    this.logger.error(err);
     this.closeAllAndScheduleReconnection();
+  }
+
+  /**
+   * Handle when a channel is closed gracefully.
+   */
+  protected handleChannelClose() {
+    this.logger.warn(this.debugMsg(`A graceful CHANNEL close event is emitted.`));
   }
 
   protected async closeAllAndScheduleReconnection() {
     if (!this.reconnecting) {
       this.readyGate.channelNotReady();
       this.reconnecting = true;
-      if (this.channel) {
+      if (this.connection) {
+        try {
+          // close connection will result in closing channel.
+          await this.closeConnection();
+        } catch (e) {
+          // Do nothing... we tried to play nice
+          // An error is more likely caused by closing a closed connection.
+        }
+      } else if (this.channel) {
+        // if connection does not exist, check channel and close it.
         try {
           await this.closeChannel();
         } catch (e) {
           // Do nothing... we tried to play nice
-        }
-      }
-
-      if (this.connection) {
-        try {
-          await this.closeConnection();
-        } catch (e) {
-          // Do nothing... we tried to play nice
-          // this.logger.error(e);
+          // An error is more likely caused by closing a closed channel.
         }
       }
       await this.attemptReconnection();
