@@ -88,6 +88,7 @@ export abstract class RabbitmqClient {
   private async createConnection() {
     const newConnection = await this.connectFunction(this.clientConfig);
     newConnection.on('close', (err?) => { this.handleConnectionClose(err); });
+    newConnection.on('error', (err?) => { this.handleConnectionError(err); });
     this.connection = newConnection;
     this.logger.warn(this.debugMsg('Connection established')); // To see this message in PROD, change to warn.
   }
@@ -104,18 +105,26 @@ export abstract class RabbitmqClient {
    * Reconnect when errors occur.
    * Errors do not exist if connection.close() is called
    *    or a server initiated graceful close.
-   * Close events occur after a connection emit error events
-   *    so connection error events are handle in close event handler.
+   * Graceful closed connection will be recovered.
    * @param err
    */
   protected handleConnectionClose(err: Error) {
     if (err) {
-      // A connection is closed with an error. Reconnect.
+      // A connection is closed with an error.
+      // Do not reconnect here because connectionErrorHandler handles the job.
       this.logger.error(err, this.debugMsg(`A connection is closed with an error.`));
-      this.closeAllAndScheduleReconnection();
     } else {
       this.logger.warn(this.debugMsg(`A graceful CONNECTION close event is emitted.`));
     }
+  }
+
+  /**
+   * Schedule reconnection in error handler because connection
+   * errors do not always trigger a 'close' event.
+   */
+  protected handleConnectionError(err: Error) {
+    this.logger.error(err, 'Connection error handler is triggered by this error.');
+    this.closeAllAndScheduleReconnection();
   }
 
   /**
