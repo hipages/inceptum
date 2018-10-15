@@ -54,7 +54,7 @@ export const clientErrorMiddleware = (err, req, res, next) => {
   if (err instanceof HttpError && err.statusCode && err.statusCode >= 400 && err.statusCode < 500 ) {
     res.status(err.getStatusCode()).send({message: err.message});
   } else if (err.failedValidation) { // swagger-tools validation
-    more = err.results.errors;
+    more = err.results && err.results.errors;
     res.status(400).send({message: err.message});
   } else {
     return next(err); // Give back to express to handle
