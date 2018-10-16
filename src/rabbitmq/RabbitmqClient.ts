@@ -125,7 +125,7 @@ export abstract class RabbitmqClient {
    * A channel will not emit 'error' if its connection closes with an error.
    */
   protected handleError(err: Error) {
-    this.logger.error(err, 'Handling connection or channel error. Will reconnect.');
+    this.logger.error(err, this.debugMsg(`Handling connection or channel error. Will reconnect.`));
     this.closeAllAndScheduleReconnection();
   }
 
