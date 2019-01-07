@@ -1,4 +1,4 @@
-import { Channel } from 'amqplib';
+import { Channel, Connection } from 'amqplib';
 import * as stringify from 'json-stringify-safe';
 import { Counter, Histogram } from 'prom-client';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
@@ -57,6 +57,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
   consumeDurationHistogram: Histogram.Internal;
   protected consumerConfig: RabbitmqConsumerConfig;
   protected messageHandler: RabbitmqConsumerHandler;
+  protected consumerTag: string;
 
   constructor(
     clientConfig: RabbitmqClientConfig,
@@ -75,9 +76,9 @@ export class RabbitmqConsumer extends RabbitmqClient {
 
   }
 
-  async init(): Promise<void> {
+  async init(addHandler = true): Promise<void> {
     try {
-      await super.init();
+      await super.init(addHandler);
       await this.subscribe(this.consumerConfig.appQueueName, this.consumerConfig);
     } catch (e) {
       const c = { ...this.consumerConfig };
@@ -92,14 +93,16 @@ export class RabbitmqConsumer extends RabbitmqClient {
    */
   async subscribe(queueName: string, consumerConfig: RabbitmqConsumerConfig): Promise<RepliesConsume> {
     if (consumerConfig.prefetch && consumerConfig.prefetch > 0) {
-      this.channel.prefetch(consumerConfig.prefetch);
+      await this.channel.prefetch(consumerConfig.prefetch);
     }
-    return this.channel.consume(
+    const rc: RepliesConsume = await this.channel.consume(
       queueName,
       (message: Message) => {
           this.handleMessage(message);
       },
       consumerConfig.options);
+    this.consumerTag = rc.consumerTag;
+    return Promise.resolve(rc);
   }
 
   async handleMessage(message: Message) {
@@ -111,6 +114,10 @@ export class RabbitmqConsumer extends RabbitmqClient {
       this.logger.error(e, 'failed to handle message');
       this.consumeFailures.inc();
       NewrelicUtil.noticeError(e, message);
+      if (!message) {
+        await this.cancelConsumerAndResubscribe();
+        return;
+      }
       if (message.properties.headers === undefined) {
         message.properties.headers = this.defaultHeader();
       }
@@ -192,4 +199,17 @@ export class RabbitmqConsumer extends RabbitmqClient {
       await super.close();
   }
 
+  protected async cancelConsumerAndResubscribe(): Promise<void> {
+    this.logger.error('Invalid message');
+    try {
+      await this.channel.cancel(this.consumerTag);
+    } catch (e) {
+      this.logger.error(e, 'failed to cancel consumer');
+    }
+    try {
+      await this.closeAllAndScheduleReconnection();
+    } catch (e) {
+      this.logger.error(e, 'failed to resubscribe');
+    }
+  }
 }

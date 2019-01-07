@@ -71,49 +71,63 @@ export abstract class RabbitmqClient {
     this.readyGate.channelNotReady();
   }
 
-  async init() {
-    await this.connect();
+  async init(addHandler = true) {
+    await this.connect(addHandler);
   }
 
   /**
    * Connect to RabbitMQ broker
    */
-  protected async connect(): Promise<void> {
-    await this.createConnection();
-    await this.createChannel();
-    this.reconnecting = false;
+  protected async connect(addHandler = true): Promise<void> {
+    await this.createConnection(addHandler);
+    await this.createChannel(addHandler);
+    this.stopReconnecting();
     this.readyGate.channelReady();
   }
 
-  private async createConnection() {
+  private async createConnection(addHandler: boolean): Promise<void> {
     const newConnection = await this.connectFunction(this.clientConfig);
-    newConnection.on('close', (err?) => { this.handleConnectionClose(err); });
-    newConnection.on('error', (err) => { this.handleError(err); });
     this.connection = newConnection;
-    this.logger.warn(this.debugMsg('Connection established')); // To see this message in PROD, change to warn.
+    if (addHandler) {
+      this.addConnectionHandlers();
+    }
+    this.logger.info(this.debugMsg('Connection established'));
   }
 
-  protected async createChannel(): Promise<void> {
+  protected addConnectionHandlers() {
+    this.connection.on('close', (err?) => { this.handleConnectionClose(err); });
+    this.connection.on('error', (err) => { this.handleError('connection', err); });
+  }
+
+  protected async createChannel(addHandler: boolean): Promise<void> {
     const newChannel = await this.connection.createChannel();
-    newChannel.on('close', (err?) => { this.handleChannelClose(err); });
-    newChannel.on('error', (err) => { this.handleError(err); });
     this.channel = newChannel;
-    this.logger.warn(this.debugMsg('Channel opened')); // To see this message in PROD, change to warn.
+    if (addHandler) {
+      this.addChannelHandlers();
+    }
+    this.logger.info(this.debugMsg('Channel opened'));
+  }
+
+  protected addChannelHandlers() {
+    this.channel.on('close', (err?) => { this.handleChannelClose(err); });
+    this.channel.on('error', (err) => { this.handleError('channel', err); });
   }
 
   /**
-   * Reconnect when errors occur.
-   * Errors do not exist if connection.close() is called
-   *    or a server initiated graceful close.
-   * Graceful closed connection will be recovered.
+   * 1. Reconnect when errors occur.
+   * 2. Errors do not exist if connection.close() is called
+   *  or a server initiated graceful close.
+   * 3. Graceful closed connection will be recovered.
+   * 4. Because close event with an error will be emitted after connection error event,
+   *  only handle connection close event.
    * @param err
    */
-  protected handleConnectionClose(err: Error) {
+  protected async handleConnectionClose(err: Error) {
     if (err) {
       // A connection is closed with an error.
       // eg. "CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'"
       this.logger.error(err, this.debugMsg(`Handling a connection close event with an error. Will reconnect.`));
-      this.closeAllAndScheduleReconnection();
+      await this.closeAllAndScheduleReconnection();
     } else {
       this.logger.warn(this.debugMsg(`A graceful CONNECTION close event is emitted.`));
     }
@@ -123,10 +137,17 @@ export abstract class RabbitmqClient {
    * Schedule reconnection in error handler because connection errors do not always trigger a 'close' event.
    * A channel error event is emitted if a server closes the channel for any reason.
    * A channel will not emit 'error' if its connection closes with an error.
+   *
+   * Channel Errors are triggered by one of the following:
+   *  1. failed to consume.
+   *
+   * Channel error event will trigger connection error event which will
+   * trigger connection close event. Do not handle connection error event because a close event with error will be emiited.
+   * Then the close event will be handled.
    */
-  protected handleError(err: Error) {
-    this.logger.error(err, this.debugMsg(`Handling connection or channel error. Will reconnect.`));
-    this.closeAllAndScheduleReconnection();
+  protected async handleError(tag: string, err: Error) {
+    this.logger.error(err, this.debugMsg(`Handling ${tag} error. Will reconnect.`));
+    await this.closeAllAndScheduleReconnection();
   }
 
   /**
@@ -140,57 +161,69 @@ export abstract class RabbitmqClient {
     }
   }
 
-  protected async closeAllAndScheduleReconnection() {
+  protected async closeAllAndScheduleReconnection(): Promise<boolean> {
     if (!this.reconnecting) {
+      this.logger.info(this.debugMsg('before channel not ready'));
+      this.startReconnecting();
       this.readyGate.channelNotReady();
-      this.reconnecting = true;
       if (this.channel) {
-        // if connection does not exist, check channel and close it.
         await this.closeChannel();
       }
-
+      this.logger.info(this.debugMsg('passed channel close'));
       if (this.connection) {
-        // close connection will result in closing channel.
+        this.logger.info(this.debugMsg('will close connection'));
         await this.closeConnection();
       }
-      await this.attemptReconnection();
+      this.logger.info(this.debugMsg('passed connection close'));
+      const result = await this.attemptReconnection();
+      /**
+       * Add handlers after connect, channel and subscribe successfully.
+       */
+      if (result) {
+        this.addConnectionHandlers();
+        this.addChannelHandlers();
+      }
+      return result;
     } else {
-      this.logger.warn(this.debugMsg('already reconnecting'));
+      this.logger.info(this.debugMsg('already reconnecting'));
+      return false;
     }
   }
 
-  backoffWait(tryNum: number): Promise<void> {
+  async backoffWait(tryNum: number): Promise<void> {
     // 1 second, 5 seconds, 25 seconds, 30 seconds, 30 seconds, ....
     const waitBase = Math.min(Math.pow(5, Math.max(0, tryNum - 1)), 30) * 1000;
     const waitMillis = waitBase + (Math.round(Math.random() * 800));
-    this.logger.warn(this.debugMsg(`Waiting for attempt #${tryNum} - ${waitMillis} ms`));
-    return PromiseUtil.sleepPromise<void>(waitMillis, null);
+    this.logger.info(this.debugMsg(`Waiting for attempt #${tryNum} - ${waitMillis} ms`));
+    await PromiseUtil.sleepPromise(waitMillis);
   }
 
-  public async attemptReconnection() {
-    this.logger.warn(this.debugMsg(`reconnecting... max attempts ${this.clientConfig.maxConnectionAttempts}`));
+  public async attemptReconnection(): Promise<boolean> {
+    this.logger.info(this.debugMsg(`reconnecting... max attempts ${this.clientConfig.maxConnectionAttempts}`));
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
       await this.backoffWait(attempts);
       try {
-        this.logger.warn(this.debugMsg(`initialising attempt #${attempts}`));
-        await this.init();
-        this.logger.warn(this.debugMsg(`attempt #${attempts} is successful.`));
-        return;
+        this.logger.info(this.debugMsg(`initialising attempt #${attempts}`));
+        await this.init(false);
+        this.logger.info(this.debugMsg(`reconnection attempt #${attempts} is successful.`));
+        return true;
       } catch (e) {
-        this.logger.warn(e, this.debugMsg(`Failed reconnection attempt #${attempts}`));
+        await this.closeConnection();
+        this.logger.warn(e, this.debugMsg(`Failed reconnection attempt #${attempts}. Retrying...`));
       }
     }
 
     this.logger.error(this.debugMsg(`Couldn't reconnect after ${this.clientConfig.maxConnectionAttempts} attempts`));
 
-    this.reconnecting = false;
+    this.stopReconnecting();
     // tslint:disable-next-line
     if (this.clientConfig.exitOnIrrecoverableReconnect !== false) {
       this.logger.error(this.debugMsg('Cowardly refusing to continue. Calling shutdown function'));
       this.shutdownFunction();
     }
+    return Promise.resolve(false);
   }
 
   async close(): Promise<void> {
@@ -203,14 +236,17 @@ export abstract class RabbitmqClient {
     if(this.channel) {
       try {
         this.channel.removeAllListeners();
+        // this.channel.removeListener('close', (err?) => { this.handleChannelClose(err); });
+        // this.channel.removeListener('error', (err) => { this.handleError('channel', err); });
+        this.logger.info(this.debugMsg('Will close channel.'));
         await this.channel.close();
       } catch (err) {
         // Do nothing... we tried to play nice
         // An error is more likely caused by closing a closed channel.
-        this.logger.warn(err, this.debugMsg('Error when closing channel.'));
+        this.logger.info(err, this.debugMsg('Error when closing channel.'));
       }
       this.channel = undefined;
-      this.logger.warn(this.debugMsg('Channel closed.'));
+      this.logger.info(this.debugMsg('Channel closed.'));
     }
   }
 
@@ -218,14 +254,17 @@ export abstract class RabbitmqClient {
     if(this.connection) {
       try {
         this.connection.removeAllListeners();
+        // this.connection.removeListener('close', (err?) => { this.handleConnectionClose(err); });
+        // this.connection.removeListener('error', (err) => { this.handleError('connection', err); });
+        this.logger.info(this.debugMsg('will call connection close'));
         await this.connection.close();
       } catch (err) {
         // Do nothing... we tried to play nice
         // An error is more likely caused by closing a closed connection.
-        this.logger.warn(err, this.debugMsg('Error when closing connection.'));
+        this.logger.info(err, this.debugMsg('Error when closing connection.'));
       }
       this.connection = undefined;
-      this.logger.warn(this.debugMsg('Connection closed.'));
+      this.logger.info(this.debugMsg('Connection closed.'));
     }
   }
 
@@ -237,5 +276,13 @@ export abstract class RabbitmqClient {
     return {
       retriesCount: 0,
     };
+  }
+
+  private stopReconnecting() {
+    this.reconnecting = false;
+  }
+
+  private startReconnecting() {
+    this.reconnecting = true;
   }
 }
