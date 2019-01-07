@@ -984,9 +984,9 @@ bunyan-redis@0.1.4:
     redis "^0.10.3"
     vasync "^1.4.3"
 
-bunyan-rotating-file-stream@1.6.2:
-  version "1.6.2"
-  resolved "https://registry.npmjs.org/bunyan-rotating-file-stream/-/bunyan-rotating-file-stream-1.6.2.tgz#b8b8e841ed3b3ac1515f4f9b0204b3bbdb2338fa"
+bunyan-rotating-file-stream@1.6.3:
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/bunyan-rotating-file-stream/-/bunyan-rotating-file-stream-1.6.3.tgz#6efb77e2b9752e72c2e2045bdd037dc867e55f91"
   dependencies:
     async "^1.5.2"
     lodash "^4.2.1"
