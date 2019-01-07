@@ -116,7 +116,7 @@
     "tslint-config-shopify": "^2.0.0",
     "typedoc": "^0.8.0",
     "typedoc-clarity-theme": "^1.1.0",
-    "typescript": "2.6.1"
+    "typescript": "2.9.2"
   },
   "nyc": {
     "include": [
