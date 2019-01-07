@@ -81,7 +81,7 @@
     "prom-client": "^10.2.2",
     "prometheus-extended-gauge": "^0.1.2",
     "prometheus-gc-stats": "^0.5.0",
-    "redis": "2.6.5",
+    "redis": "2.8.0",
     "reflect-metadata": "^0.1.10",
     "source-map-support": "^0.4.15",
     "sqs-consumer": "^3.7.0",
