@@ -48,6 +48,11 @@ export interface RepliesConsume {
   consumerTag: string,
 }
 
+export enum ErrorEmitter {
+  Connection = 'connection',
+  Channel = 'channel',
+}
+
 export abstract class RabbitmqClient {
   protected channel: Channel;
   protected connection: Connection;
@@ -96,7 +101,7 @@ export abstract class RabbitmqClient {
 
   protected addConnectionHandlers() {
     this.connection.on('close', (err?) => { this.handleConnectionClose(err); });
-    this.connection.on('error', (err) => { this.handleError('connection', err); });
+    this.connection.on('error', (err) => { this.handleError(ErrorEmitter.Connection, err); });
   }
 
   protected async createChannel(addHandler: boolean): Promise<void> {
@@ -110,7 +115,7 @@ export abstract class RabbitmqClient {
 
   protected addChannelHandlers() {
     this.channel.on('close', (err?) => { this.handleChannelClose(err); });
-    this.channel.on('error', (err) => { this.handleError('channel', err); });
+    this.channel.on('error', (err) => { this.handleError(ErrorEmitter.Channel, err); });
   }
 
   /**
@@ -122,7 +127,7 @@ export abstract class RabbitmqClient {
    *  only handle connection close event.
    * @param err
    */
-  protected async handleConnectionClose(err: Error) {
+  protected async handleConnectionClose(err?: Error) {
     if (err) {
       // A connection is closed with an error.
       // eg. "CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'"
@@ -145,8 +150,8 @@ export abstract class RabbitmqClient {
    * trigger connection close event. Do not handle connection error event because a close event with error will be emiited.
    * Then the close event will be handled.
    */
-  protected async handleError(tag: string, err: Error) {
-    this.logger.error(err, this.debugMsg(`Handling ${tag} error. Will reconnect.`));
+  protected async handleError(emitter: ErrorEmitter, err: Error) {
+    this.logger.error(err, this.debugMsg(`Handling ${emitter} error. Will reconnect.`));
     await this.closeAllAndScheduleReconnection();
   }
 
@@ -236,8 +241,6 @@ export abstract class RabbitmqClient {
     if(this.channel) {
       try {
         this.channel.removeAllListeners();
-        // this.channel.removeListener('close', (err?) => { this.handleChannelClose(err); });
-        // this.channel.removeListener('error', (err) => { this.handleError('channel', err); });
         this.logger.info(this.debugMsg('Will close channel.'));
         await this.channel.close();
       } catch (err) {
@@ -254,8 +257,6 @@ export abstract class RabbitmqClient {
     if(this.connection) {
       try {
         this.connection.removeAllListeners();
-        // this.connection.removeListener('close', (err?) => { this.handleConnectionClose(err); });
-        // this.connection.removeListener('error', (err) => { this.handleError('connection', err); });
         this.logger.info(this.debugMsg('will call connection close'));
         await this.connection.close();
       } catch (err) {
