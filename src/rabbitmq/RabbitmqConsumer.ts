@@ -102,7 +102,7 @@ export class RabbitmqConsumer extends RabbitmqClient {
       },
       consumerConfig.options);
     this.consumerTag = rc.consumerTag;
-    return Promise.resolve(rc);
+    return rc;
   }
 
   async handleMessage(message: Message) {

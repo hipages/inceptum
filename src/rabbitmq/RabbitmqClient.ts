@@ -223,7 +223,7 @@ export abstract class RabbitmqClient {
       this.logger.error(this.debugMsg('Cowardly refusing to continue. Calling shutdown function'));
       this.shutdownFunction();
     }
-    return Promise.resolve(false);
+    return false;
   }
 
   async close(): Promise<void> {
