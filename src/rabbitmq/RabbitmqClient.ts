@@ -48,7 +48,7 @@ export interface RepliesConsume {
   consumerTag: string,
 }
 
-export enum ErrorEmitter {
+export enum ClientPropertyTag {
   Connection = 'connection',
   Channel = 'channel',
 }
@@ -101,7 +101,7 @@ export abstract class RabbitmqClient {
 
   protected addConnectionHandlers() {
     this.connection.on('close', (err?) => { this.handleConnectionClose(err); });
-    this.connection.on('error', (err) => { this.handleError(ErrorEmitter.Connection, err); });
+    this.connection.on('error', (err) => { this.handleError(ClientPropertyTag.Connection, err); });
   }
 
   protected async createChannel(addHandler: boolean): Promise<void> {
@@ -115,7 +115,7 @@ export abstract class RabbitmqClient {
 
   protected addChannelHandlers() {
     this.channel.on('close', (err?) => { this.handleChannelClose(err); });
-    this.channel.on('error', (err) => { this.handleError(ErrorEmitter.Channel, err); });
+    this.channel.on('error', (err) => { this.handleError(ClientPropertyTag.Channel, err); });
   }
 
   /**
@@ -150,7 +150,7 @@ export abstract class RabbitmqClient {
    * trigger connection close event. Do not handle connection error event because a close event with error will be emiited.
    * Then the close event will be handled.
    */
-  protected async handleError(emitter: ErrorEmitter, err: Error) {
+  protected async handleError(emitter: ClientPropertyTag, err: Error) {
     this.logger.error(err, this.debugMsg(`Handling ${emitter} error. Will reconnect.`));
     await this.closeAllAndScheduleReconnection();
   }
