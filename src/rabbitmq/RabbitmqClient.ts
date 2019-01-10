@@ -190,7 +190,7 @@ export abstract class RabbitmqClient {
       }
       return result;
     } else {
-      this.logger.info(this.debugMsg('already reconnecting'));
+      this.logger.warn(this.debugMsg('already reconnecting'));
       return false;
     }
   }
@@ -199,12 +199,12 @@ export abstract class RabbitmqClient {
     // 1 second, 5 seconds, 25 seconds, 30 seconds, 30 seconds, ....
     const waitBase = Math.min(Math.pow(5, Math.max(0, tryNum - 1)), 30) * 1000;
     const waitMillis = waitBase + (Math.round(Math.random() * 800));
-    this.logger.info(this.debugMsg(`Waiting for attempt #${tryNum} - ${waitMillis} ms`));
+    this.logger.warn(this.debugMsg(`Waiting for attempt #${tryNum} - ${waitMillis} ms`));
     await PromiseUtil.sleepPromise(waitMillis);
   }
 
   public async attemptReconnection(): Promise<boolean> {
-    this.logger.info(this.debugMsg(`reconnecting... max attempts ${this.clientConfig.maxConnectionAttempts}`));
+    this.logger.warn(this.debugMsg(`reconnecting... max attempts ${this.clientConfig.maxConnectionAttempts}`));
     let attempts = 0;
     while (attempts < this.clientConfig.maxConnectionAttempts) {
       attempts++;
@@ -212,7 +212,7 @@ export abstract class RabbitmqClient {
       try {
         this.logger.info(this.debugMsg(`initialising attempt #${attempts}`));
         await this.init(false);
-        this.logger.info(this.debugMsg(`reconnection attempt #${attempts} is successful.`));
+        this.logger.warn(this.debugMsg(`reconnection attempt #${attempts} is successful.`));
         return true;
       } catch (e) {
         await this.closeConnection();

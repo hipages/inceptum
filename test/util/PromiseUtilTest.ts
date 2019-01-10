@@ -10,6 +10,11 @@ class PromiseUtilTest {
 
   @test
   async testSleepPromise() {
-    await PromiseUtil.sleepPromise(1000);
+    const start = new Date().getTime();
+    const timeoutValue = 1000;
+    await PromiseUtil.sleepPromise(timeoutValue);
+    const end = new Date().getTime();
+    const elapsed = end - start;
+    elapsed.must.be.gt(timeoutValue);
   }
 }

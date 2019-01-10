@@ -142,7 +142,12 @@ export class RabbitmqConsumer extends RabbitmqClient {
           // put message back to rabbitmq
           this.logger.error(error, 'failed to send message to delayed queue');
           NewrelicUtil.noticeError(error, message);
-          this.channel.nack(message);
+          try {
+            this.channel.nack(message);
+          } catch (e) {
+            this.logger.error(error, 'failed to nack message');
+            NewrelicUtil.noticeError(error, message);
+          }
         }
       }
     } finally {

@@ -24,8 +24,9 @@ export abstract class PromiseUtil {
     }
     return p.then(() => result);
   }
-  static sleepPromise<T>(ms, v?: T): Promise<T> {
-    return new Promise<T>((resolve) => setTimeout(resolve(v), ms));
+  static async sleepPromise<T>(ms, v?: T): Promise<T> {
+    await new Promise<T>((resolve) => setTimeout(resolve, ms));
+    return v;
   }
 }
 
