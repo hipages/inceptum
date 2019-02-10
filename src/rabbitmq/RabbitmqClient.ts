@@ -10,6 +10,11 @@ Please read "RabbitMQ Connection Lifecycle.md" for an overview of how
 connection and reconnection is managed for RabbitMQ
 */
 
+export enum ShutdownMessage {
+  ECONNRESET = 'read ECONNRESET',
+  HEARTBEATTIMEOUT = 'Heartbeat timeout',
+}
+
 export interface MessageHeader {
   retriesCount: 0,
 }
@@ -151,6 +156,12 @@ export abstract class RabbitmqClient {
    * Then the close event will be handled.
    */
   protected async handleError(emitter: ClientPropertyTag, err: Error) {
+    if (Object.values(ShutdownMessage).includes(err.message)) {
+      this.logger.error(err, this.debugMsg(`Handling ${emitter} error. Shutting down the app to restart.`));
+      this.shutdownFunction();
+      return;
+    }
+
     this.logger.error(err, this.debugMsg(`Handling ${emitter} error. Will reconnect.`));
     await this.closeAllAndScheduleReconnection();
   }

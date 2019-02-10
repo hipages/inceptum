@@ -18,6 +18,7 @@ export interface RabbitmqClientConfig {
   exitOnIrrecoverableReconnect?: boolean,
   healthCheckEnabled?: boolean,
   heartbeat?: number,
+  keepAlive?: boolean,
 }
 
 export const DEFAULT_MAX_CONNECTION_ATTEMPTS = 3;
