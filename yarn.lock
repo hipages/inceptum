@@ -215,9 +215,10 @@
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.6.tgz#b8622d50557dd155e9f2f634b7d68fd38de5e94b"
   integrity sha512-1axi39YdtBI7z957vdqXI4Ac25e7YihYQtJa+Clnxg1zTJEaIRbndt71O3sP4GAMgiAm0pY26/b9BrY4MR/PMw==
 
-"@types/mysql@0.0.33":
-  version "0.0.33"
-  resolved "https://registry.npmjs.org/@types/mysql/-/mysql-0.0.33.tgz#32d84cdb05faab34d653bd8663dd332f9f8b5095"
+"@types/mysql@0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@types/mysql/-/mysql-0.0.34.tgz#edebdd2f75cb9c1420e4b66e066c0c5c5e46dd7b"
+  integrity sha512-IocdMpYtCBSLJqSg0BGgZTbYf3K9iAq81a1sNw6FlgVYh3/2cOXR3LpuQS6o5avWAmNTJqC6u5gS+IRrY56+9Q==
   dependencies:
     "@types/node" "*"
 
