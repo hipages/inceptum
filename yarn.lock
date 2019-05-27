@@ -239,10 +239,12 @@
   dependencies:
     moment ">=2.14.0"
 
-"@types/pg@6.1.45":
-  version "6.1.45"
-  resolved "https://registry.npmjs.org/@types/pg/-/pg-6.1.45.tgz#bfca89900b4abb506e233575a49d41e3d1c83029"
+"@types/pg@6.1.47":
+  version "6.1.47"
+  resolved "https://registry.yarnpkg.com/@types/pg/-/pg-6.1.47.tgz#af44309e26042e5d92c3961ad8a0988b9d4c0d60"
+  integrity sha512-DXmirhCcsHJmbLKVdnkppBBfGlpHTDzv+CXcgJPLJS8ZsLYstPmsKC8yjoweELDkPO7a/HQCaotl2lBnNuRo8w==
   dependencies:
+    "@types/events" "*"
     "@types/node" "*"
     "@types/pg-types" "*"
 
