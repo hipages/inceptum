@@ -137,6 +137,8 @@ export default class SwaggerRouterMiddleware {
     paramFunctions.push((req) => req);
     paramFunctions.push((req, res) => res);
     return (req, res) => {
+      controller.req = req;
+      controller.res = res;
       const args = paramFunctions.map((f) => f(req, res));
       return controller[functionName](...args);
     };
