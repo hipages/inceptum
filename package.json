@@ -85,7 +85,7 @@
     "source-map-support": "^0.4.15",
     "sqs-consumer": "^3.7.0",
     "striptags": "^2.1.1",
-    "swagger-tools": "0.10.1",
+    "swagger-tools": "0.10.4",
     "url": "^0.11.0",
     "xmlbuilder": "^10.0.0"
   },
