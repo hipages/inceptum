@@ -74,7 +74,7 @@
     "lodash": "^4.17.4",
     "module-alias": "2.0.0",
     "moment": "^2.15.1",
-    "mysql": "^2.11.1",
+    "mysql": "^2.17.1",
     "node-dogstatsd": "0.0.6",
     "pg": "^7.0.2",
     "prom-client": "^10.2.2",
