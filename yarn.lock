@@ -5021,9 +5021,10 @@ nice-try@^1.0.4:
   version "1.0.4"
   resolved "https://registry.npmjs.org/nice-try/-/nice-try-1.0.4.tgz#d93962f6c52f2c1558c0fbda6d512819f1efe1c4"
 
-node-dogstatsd@0.0.6:
-  version "0.0.6"
-  resolved "https://registry.npmjs.org/node-dogstatsd/-/node-dogstatsd-0.0.6.tgz#d697e4d1903a7ff0c16479cd5d1cde043737e047"
+node-dogstatsd@0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/node-dogstatsd/-/node-dogstatsd-0.0.7.tgz#544d274c91a413426a2f3c40ff7b8e8813cfd930"
+  integrity sha1-VE0nTJGkE0JqLzxA/3uOiBPP2TA=
 
 node-emoji@^1.4.1:
   version "1.8.1"
