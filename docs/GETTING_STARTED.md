@@ -184,7 +184,7 @@ mysql: # Telling inceptum to add a new MysqlPlugin() to our app
         user: root
         password:
         database: testDb
-        charset: utf8
+        charset: utf8mb4
 ```
 
 You'll notice that we've added a `master` conifg. We can also add a `slave` config that Inceptum will use if we want a read only
@@ -204,7 +204,7 @@ mysql:
         user: root
         password:
         database: testDb
-        charset: utf8
+        charset: utf8mb4
     slave:
       max: 10
       min: 1
@@ -214,7 +214,7 @@ mysql:
         user: root
         password:
         database: testDb
-        charset: utf8
+        charset: utf8mb4
 ```
 Feel free to edit the mysql config use a valid username/password so it can connect on your local.
 In this example both connections are pointing to the same place, but in production we can change this to point to a read only replica or user.

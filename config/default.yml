@@ -51,7 +51,7 @@ mysql:
         user: root
         password: 
         database: testDb
-        charset: utf8
+        charset: utf8mb4
     slave:
       max: 10
       min: 1
@@ -67,7 +67,7 @@ mysql:
         user: root
         password: 
         database: testDb
-        charset: utf8
+        charset: utf8mb4
 
 postgres:
   PostgresClient:
