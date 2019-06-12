@@ -131,7 +131,10 @@ export default class SwaggerRouterMiddleware {
       if (param === 'null') {
         paramFunctions.push(() => null);
       } else {
-        paramFunctions.push((req) => req.swagger.params[param].value);
+        paramFunctions.push((req) => {
+          const v = req.swagger.params[param].value;
+          NewrelicUtil.addCustomAttribute(param, v);
+        });
       }
     });
     paramFunctions.push((req) => req);
