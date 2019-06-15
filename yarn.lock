@@ -91,10 +91,6 @@
     "@types/events" "*"
     "@types/node" "*"
 
-"@types/arrify@^1.0.1":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@types/arrify/-/arrify-1.0.2.tgz#4a6856b9bfd4713c781df95349c6b15db60d4de1"
-
 "@types/bluebird@*":
   version "3.5.20"
   resolved "https://registry.npmjs.org/@types/bluebird/-/bluebird-3.5.20.tgz#f6363172add6f4eabb8cada53ca9af2781e8d6a1"
@@ -117,10 +113,6 @@
   resolved "https://registry.npmjs.org/@types/connect/-/connect-3.4.32.tgz#aa0e9616b9435ccad02bc52b5b454ffc2c70ba28"
   dependencies:
     "@types/node" "*"
-
-"@types/diff@^3.2.1":
-  version "3.2.2"
-  resolved "https://registry.npmjs.org/@types/diff/-/diff-3.2.2.tgz#4d6f45537322a7a420d353a0939513c7e96d14a6"
 
 "@types/elasticsearch@^5.0.16":
   version "5.0.22"
@@ -200,16 +192,6 @@
   version "2.0.29"
   resolved "https://registry.npmjs.org/@types/minimatch/-/minimatch-2.0.29.tgz#5002e14f75e2d71e564281df0431c8c1b4a2a36a"
 
-"@types/minimist@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/@types/minimist/-/minimist-1.2.0.tgz#69a23a3ad29caf0097f06eda59b361ee2f0639f6"
-
-"@types/mkdirp@^0.5.0":
-  version "0.5.2"
-  resolved "https://registry.npmjs.org/@types/mkdirp/-/mkdirp-0.5.2.tgz#503aacfe5cc2703d5484326b1b27efa67a339c1f"
-  dependencies:
-    "@types/node" "*"
-
 "@types/mocha@^5.2.6":
   version "5.2.6"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-5.2.6.tgz#b8622d50557dd155e9f2f634b7d68fd38de5e94b"
@@ -228,10 +210,6 @@
 "@types/node@7.0.23":
   version "7.0.23"
   resolved "https://registry.npmjs.org/@types/node/-/node-7.0.23.tgz#ededfd92e61046c32fcad56ea7e1101733fad4a4"
-
-"@types/node@^8.0.27":
-  version "8.9.5"
-  resolved "https://registry.npmjs.org/@types/node/-/node-8.9.5.tgz#162b864bc70be077e6db212b322754917929e976"
 
 "@types/pg-types@*":
   version "1.11.4"
@@ -266,29 +244,11 @@
   dependencies:
     "@types/node" "*"
 
-"@types/source-map-support@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/@types/source-map-support/-/source-map-support-0.4.0.tgz#a62a1866614af68c888173c001481f242aaf148b"
-  dependencies:
-    "@types/node" "*"
-
-"@types/strip-bom@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@types/strip-bom/-/strip-bom-3.0.0.tgz#14a8ec3956c2e81edb7520790aecf21c290aebd2"
-
-"@types/strip-json-comments@0.0.30":
-  version "0.0.30"
-  resolved "https://registry.npmjs.org/@types/strip-json-comments/-/strip-json-comments-0.0.30.tgz#9aa30c04db212a9a0649d6ae6fd50accc40748a1"
-
 "@types/swagger-tools@^0.10.6":
   version "0.10.6"
   resolved "https://registry.npmjs.org/@types/swagger-tools/-/swagger-tools-0.10.6.tgz#2168a28bb0e1d7d90ab73f126ea3fd2233038411"
   dependencies:
     "@types/connect" "*"
-
-"@types/v8flags@types/npm-v8flags#de224ae1cd5fd7dbb4e7158a6cc7a29e5315930d":
-  version "2.0.0"
-  resolved "https://codeload.github.com/types/npm-v8flags/tar.gz/de224ae1cd5fd7dbb4e7158a6cc7a29e5315930d"
 
 "@types/xml2js@^0.4.2":
   version "0.4.2"
@@ -299,10 +259,6 @@
 "@types/xmlbuilder@^0.0.32":
   version "0.0.32"
   resolved "https://registry.npmjs.org/@types/xmlbuilder/-/xmlbuilder-0.0.32.tgz#f3107c16a05311ed117af1051c061cfbd8178309"
-
-"@types/yn@types/npm-yn#ca75f6c82940fae6a06fb41d2d37a6aa9b4ea8e9":
-  version "2.0.0"
-  resolved "https://codeload.github.com/types/npm-yn/tar.gz/ca75f6c82940fae6a06fb41d2d37a6aa9b4ea8e9"
 
 JSONStream@^1.0.4, JSONStream@~1.3.1:
   version "1.3.2"
@@ -485,6 +441,11 @@ are-we-there-yet@~1.1.2:
     delegates "^1.0.0"
     readable-stream "^2.0.6"
 
+arg@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/arg/-/arg-4.1.0.tgz#583c518199419e0037abb74062c37f8519e575f0"
+  integrity sha512-ZWc51jO3qegGkVh8Hwpv636EkbesNV5ZNQPCtRa+0qytRYPEs9IYT9qITY9buezqUH5uqyzlWLcufrzU2rffdg==
+
 argparse@^1.0.7:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"
@@ -559,7 +520,7 @@ array-unique@^0.3.2:
   version "0.3.2"
   resolved "https://registry.npmjs.org/array-unique/-/array-unique-0.3.2.tgz#a894b75d4bc4f6cd679ef3244a9fd8f46ae2d428"
 
-arrify@^1.0.0, arrify@^1.0.1:
+arrify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
 
@@ -1865,9 +1826,14 @@ diff@1.4.0:
   version "1.4.0"
   resolved "https://registry.npmjs.org/diff/-/diff-1.4.0.tgz#7f28d2eb9ee7b15a97efd89ce63dcfdaa3ccbabf"
 
-diff@^3.1.0, diff@^3.2.0:
+diff@^3.2.0:
   version "3.5.0"
   resolved "https://registry.npmjs.org/diff/-/diff-3.5.0.tgz#800c0dd1e0a8bfbc95835c202ad220fe317e5a12"
+
+diff@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.1.tgz#0c667cb467ebbb5cea7f14f135cc2dba7780a8ff"
+  integrity sha512-s2+XdvhPCOF01LRQBC8hf4vhbVmI2CGS5aZnxLJlT5FtdhPCDFq80q++zK2KlrVorVDdL5BOGZ/VfLrVtYNF+Q==
 
 dir-glob@^2.0.0:
   version "2.0.0"
@@ -3194,12 +3160,6 @@ hoek@2.x.x:
 hoek@4.x.x:
   version "4.2.1"
   resolved "https://registry.npmjs.org/hoek/-/hoek-4.2.1.tgz#9634502aa12c445dd5a7c5734b572bb8738aacbb"
-
-homedir-polyfill@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/homedir-polyfill/-/homedir-polyfill-1.0.1.tgz#4c2bbc8a758998feebf5ed68580f76d46768b4bc"
-  dependencies:
-    parse-passwd "^1.0.0"
 
 hook-std@^0.4.0:
   version "0.4.0"
@@ -5998,10 +5958,6 @@ parse-json@^4.0.0:
     error-ex "^1.3.1"
     json-parse-better-errors "^1.0.1"
 
-parse-passwd@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/parse-passwd/-/parse-passwd-1.0.0.tgz#6d5b934a456993b23d37f40a382d6f1666a8e5c6"
-
 parse-url@^1.3.0:
   version "1.3.11"
   resolved "https://registry.npmjs.org/parse-url/-/parse-url-1.3.11.tgz#57c15428ab8a892b1f43869645c711d0e144b554"
@@ -7290,10 +7246,12 @@ source-map-support@^0.4.15:
   dependencies:
     source-map "^0.5.6"
 
-source-map-support@^0.5.0:
-  version "0.5.4"
-  resolved "https://registry.npmjs.org/source-map-support/-/source-map-support-0.5.4.tgz#54456efa89caa9270af7cd624cc2f123e51fbae8"
+source-map-support@^0.5.6:
+  version "0.5.12"
+  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.12.tgz#b4f3b10d51857a5af0138d3ce8003b201613d599"
+  integrity sha512-4h2Pbvyy15EE02G+JOZpUCmqWJuqrs+sEkzewTm++BPi7Hvn/HwcqLAcNxYAyI0x13CpPPn+kMjl+hplXMHITQ==
   dependencies:
+    buffer-from "^1.0.0"
     source-map "^0.6.0"
 
 source-map-url@^0.4.0:
@@ -7565,7 +7523,7 @@ strip-indent@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/strip-indent/-/strip-indent-2.0.0.tgz#5ef8db295d01e6ed6cbf7aab96998d7822527b68"
 
-strip-json-comments@^2.0.0, strip-json-comments@~2.0.1:
+strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
@@ -7854,37 +7812,16 @@ ts-mockito@^2.2.7:
   dependencies:
     lodash "^4.17.5"
 
-ts-node@4.0.1:
-  version "4.0.1"
-  resolved "https://registry.npmjs.org/ts-node/-/ts-node-4.0.1.tgz#4d368088b50c382d78285c029784ea0f32a4eb5c"
+ts-node@8.3.0:
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.3.0.tgz#e4059618411371924a1fb5f3b125915f324efb57"
+  integrity sha512-dyNS/RqyVTDcmNM4NIBAeDMpsAdaQ+ojdf0GOLqE6nwJOgzEkdRNzJywhDfwnuvB10oa6NLVG1rUJQCpRN7qoQ==
   dependencies:
-    "@types/arrify" "^1.0.1"
-    "@types/diff" "^3.2.1"
-    "@types/minimist" "^1.2.0"
-    "@types/mkdirp" "^0.5.0"
-    "@types/node" "^8.0.27"
-    "@types/source-map-support" "^0.4.0"
-    "@types/v8flags" types/npm-v8flags#de224ae1cd5fd7dbb4e7158a6cc7a29e5315930d
-    "@types/yn" types/npm-yn#ca75f6c82940fae6a06fb41d2d37a6aa9b4ea8e9
-    arrify "^1.0.0"
-    chalk "^2.3.0"
-    diff "^3.1.0"
+    arg "^4.1.0"
+    diff "^4.0.1"
     make-error "^1.1.1"
-    minimist "^1.2.0"
-    mkdirp "^0.5.1"
-    source-map-support "^0.5.0"
-    tsconfig "^7.0.0"
-    v8flags "^3.0.0"
-    yn "^2.0.0"
-
-tsconfig@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/tsconfig/-/tsconfig-7.0.0.tgz#84538875a4dc216e5c4a5432b3a4dec3d54e91b7"
-  dependencies:
-    "@types/strip-bom" "^3.0.0"
-    "@types/strip-json-comments" "0.0.30"
-    strip-bom "^3.0.0"
-    strip-json-comments "^2.0.0"
+    source-map-support "^0.5.6"
+    yn "^3.0.0"
 
 tslib@^1.8.0, tslib@^1.8.1:
   version "1.9.0"
@@ -8161,12 +8098,6 @@ uuid@3.1.0, uuid@~3.1.0:
 uuid@^3.0.0, uuid@^3.1.0:
   version "3.2.1"
   resolved "https://registry.npmjs.org/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
-
-v8flags@^3.0.0:
-  version "3.0.2"
-  resolved "https://registry.npmjs.org/v8flags/-/v8flags-3.0.2.tgz#ad6a78a20a6b23d03a8debc11211e3cc23149477"
-  dependencies:
-    homedir-polyfill "^1.0.1"
 
 valid-url@~1.0.9:
   version "1.0.9"
@@ -8517,9 +8448,10 @@ yargs@~3.10.0:
     decamelize "^1.0.0"
     window-size "0.1.0"
 
-yn@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/yn/-/yn-2.0.0.tgz#e5adabc8acf408f6385fc76495684c88e6af689a"
+yn@^3.0.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/yn/-/yn-3.1.0.tgz#fcbe2db63610361afcc5eb9e0ac91e976d046114"
+  integrity sha512-kKfnnYkbTfrAdd0xICNFw7Atm8nKpLcLv9AZGEt+kczL/WQVai4e2V6ZN8U/O+iI6WrNuJjNNOyu4zfhl9D3Hg==
 
 z-schema@^3.15.4:
   version "3.19.1"
