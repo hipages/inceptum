@@ -109,7 +109,7 @@
     "must": "^0.13.4",
     "nyc": "^11.1.0",
     "semantic-release": "^15.1.7",
-    "sinon": "1.17.7",
+    "sinon": "7.5.0",
     "ts-mockito": "^2.2.7",
     "ts-node": "4.0.1",
     "tslint": "^5.8.0",
