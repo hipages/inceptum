@@ -1,6 +1,7 @@
 import { Summary, Gauge, Counter, register, Histogram } from 'prom-client';
 import { ExtendedGauge, ExtendedGaugeInternal } from 'prometheus-extended-gauge';
 import { createPool, Pool, Factory, Options } from 'generic-pool';
+import { ExtendedError } from '../util/ErrorUtil';
 
 /**
  * Sensible defaults for the connection pool options
@@ -19,7 +20,9 @@ export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
 /**
  * Base interface for the configuration information needed to create a new connection
  */
-export interface ConnectionConfig { }
+export interface ConnectionConfig {
+  user: string,
+ }
 
 /**
  * Class for the config of a Pool.
@@ -204,11 +207,12 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
       return connection;
     } catch (e) {
       this.acquireErrorsCounter.inc();
-      throw e;
+      throw new ExtendedError(`Could not aquire connection from pool ${this.name}-${this.readonly ? 'write' : 'read'} using user ${this.options.connectionConfig.user}`, e);
     } finally {
       timer();
     }
   }
+
   private getGenericPoolOptions(): Options {
     return {
       acquireTimeoutMillis: this.options.acquireTimeoutMillis,

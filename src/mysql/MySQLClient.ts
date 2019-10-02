@@ -83,6 +83,9 @@ export class MySQLTransaction extends DBTransaction<mysql.IConnection> {
           LOGGER.error(err, {
             sql,
             connectionId: this.connection.threadId,
+            host: this.connection.config.host,
+            readonly: this.isReadonly(),
+            user: this.connection.config.user,
           });
           this.connection[MARKED_FOR_DELETION] = true;
           return reject(err);
@@ -116,6 +119,8 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     connection.on('error', (error) => {
       LOGGER.error(error, 'Connection Error', {
         connectionId: connection.threadId,
+        host: this.connConfig.host,
+        user: this.connConfig.user,
       });
       connection[MARKED_FOR_DELETION] = true;
     });
