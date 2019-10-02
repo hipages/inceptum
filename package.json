@@ -60,7 +60,7 @@
     "elasticsearch": "^13.3.1",
     "express": "^4.16.3",
     "express-jwt": "^3.4.0",
-    "express-prom-bundle": "^3.3.0",
+    "express-prom-bundle": "^5.0.0",
     "express-xml-bodyparser": "^0.3.0",
     "express-yields": "^1.0.0",
     "generic-pool": "^3.4.2",

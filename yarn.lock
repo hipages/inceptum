@@ -2245,13 +2245,13 @@ express-jwt@^3.4.0:
     jsonwebtoken "^5.0.0"
     lodash.set "^4.0.0"
 
-express-prom-bundle@^3.3.0:
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/express-prom-bundle/-/express-prom-bundle-3.3.0.tgz#98da56b94289a2773208fb0d8dda37adbc27206e"
+express-prom-bundle@^5.0.0:
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/express-prom-bundle/-/express-prom-bundle-5.1.5.tgz#f298615879299a58cf8ec1350186f4de91d91fa4"
+  integrity sha512-tUaQUBu0r9zGYcVDpKBI2AeWimuuodaC5BSBkzLPQxRTxaKQShQNnONQSYwjLxbHfPwlCKVZlzfbB9Recnj0Vg==
   dependencies:
     on-finished "^2.3.0"
-    prom-client "~10.2.2"
-    url-value-parser "^1.0.0"
+    url-value-parser "^2.0.0"
 
 express-unless@^0.3.0:
   version "0.3.1"
@@ -6206,7 +6206,7 @@ progress@^2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/progress/-/progress-2.0.0.tgz#8a1be366bf8fc23db2bd23f10c6fe920b4389d1f"
 
-prom-client@^10.2.2, prom-client@~10.2.2:
+prom-client@^10.2.2:
   version "10.2.3"
   resolved "https://registry.npmjs.org/prom-client/-/prom-client-10.2.3.tgz#a51bf21c239c954a6c5be4b1361fdd380218bb41"
   dependencies:
@@ -8102,9 +8102,10 @@ url-template@^2.0.8:
   version "2.0.8"
   resolved "https://registry.npmjs.org/url-template/-/url-template-2.0.8.tgz#fc565a3cccbff7730c775f5641f9555791439f21"
 
-url-value-parser@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/url-value-parser/-/url-value-parser-1.0.0.tgz#f909af662f47ad16e4f6a508ea579a695305f0d3"
+url-value-parser@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/url-value-parser/-/url-value-parser-2.0.1.tgz#c8179a095ab9ec1f5aa17ca36af5af396b4e95ed"
+  integrity sha512-bexECeREBIueboLGM3Y1WaAzQkIn+Tca/Xjmjmfd0S/hFHSCEoFkNh0/D0l9G4K74MkEP/lLFRlYnxX3d68Qgw==
 
 url@0.10.3:
   version "0.10.3"
