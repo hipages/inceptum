@@ -83,7 +83,7 @@
     "redis": "2.6.5",
     "reflect-metadata": "^0.1.10",
     "source-map-support": "^0.4.15",
-    "sqs-consumer": "^3.7.0",
+    "sqs-consumer": "^5.0.0",
     "striptags": "^2.1.1",
     "swagger-tools": "0.10.1",
     "url": "^0.11.0",
