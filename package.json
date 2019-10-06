@@ -87,7 +87,7 @@
     "striptags": "^2.1.1",
     "swagger-tools": "0.10.1",
     "url": "^0.11.0",
-    "xmlbuilder": "^10.0.0"
+    "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
     "@types/amqplib": "^0.5.5",
