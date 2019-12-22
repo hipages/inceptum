@@ -1313,9 +1313,10 @@ clone@^1.0.2:
   version "1.0.4"
   resolved "https://registry.npmjs.org/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
 
-clone@~2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/clone/-/clone-2.0.0.tgz#df65d3ca142e4a4a47db33da3468d088a16fc76e"
+clone@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
+  integrity sha1-G39Ln1kfHo+DZwQBYANFoCiHQ18=
 
 cmd-shim@~2.0.2:
   version "2.0.2"
@@ -3904,17 +3905,17 @@ json-schema-defaults@0.1.1:
   version "0.1.1"
   resolved "https://registry.npmjs.org/json-schema-defaults/-/json-schema-defaults-0.1.1.tgz#1c6c6103c4349b71b6f4aa382c3dd9aa1c8bada3"
 
-json-schema-deref-sync@^0.3.1:
-  version "0.3.4"
-  resolved "https://registry.npmjs.org/json-schema-deref-sync/-/json-schema-deref-sync-0.3.4.tgz#87d146d99cdff35d8458c91918ee0bf5ef76f214"
+json-schema-deref-sync@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/json-schema-deref-sync/-/json-schema-deref-sync-0.13.0.tgz#cb08b4ff435a48b5a149652d7750fdd071009823"
+  integrity sha512-YBOEogm5w9Op337yb6pAT6ZXDqlxAsQCanM3grid8lMWNxRJO/zWEJi3ZzqDL8boWfwhTFym5EFrNgWwpqcBRg==
   dependencies:
-    clone "~2.0.0"
+    clone "^2.1.2"
     dag-map "~1.0.0"
     is-valid-path "^0.1.1"
-    lodash "^4.7.0"
+    lodash "^4.17.13"
     md5 "~2.2.0"
-    memory-cache "~0.1.5"
-    mpath "~0.2.1"
+    memory-cache "~0.2.0"
     traverse "~0.6.6"
     valid-url "~1.0.9"
 
@@ -4489,9 +4490,14 @@ lodash@^3.10.1:
   version "3.10.1"
   resolved "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.0.0, lodash@^4.1.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.1, lodash@^4.7.0:
+lodash@^4.0.0, lodash@^4.1.0, lodash@^4.11.1, lodash@^4.13.1, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.17.5, lodash@^4.2.1:
   version "4.17.5"
   resolved "https://registry.npmjs.org/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
+
+lodash@^4.17.13:
+  version "4.17.15"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
+  integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
 
 log-driver@^1.x:
   version "1.2.7"
@@ -4652,9 +4658,10 @@ memoizee@~0.3.8:
     next-tick "~0.2.2"
     timers-ext "0.1"
 
-memory-cache@~0.1.5:
-  version "0.1.6"
-  resolved "https://registry.npmjs.org/memory-cache/-/memory-cache-0.1.6.tgz#2ed9933ed7a8c718249be7366f7ca8749acf8a24"
+memory-cache@~0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/memory-cache/-/memory-cache-0.2.0.tgz#7890b01d52c00c8ebc9d533e1f8eb17e3034871a"
+  integrity sha1-eJCwHVLADI68nVM+H46xfjA0hxo=
 
 meow@^4.0.0:
   version "4.0.0"
@@ -4906,10 +4913,6 @@ move-concurrently@^1.0.1, move-concurrently@~1.0.1:
     mkdirp "^0.5.1"
     rimraf "^2.5.4"
     run-queue "^1.0.3"
-
-mpath@~0.2.1:
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/mpath/-/mpath-0.2.1.tgz#3a4e829359801de96309c27a6b2e102e89f9e96e"
 
 ms@0.7.1:
   version "0.7.1"
