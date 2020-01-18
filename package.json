@@ -65,7 +65,7 @@
     "express-yields": "^1.0.0",
     "generic-pool": "^3.4.2",
     "gh-pages": "^1.0.0",
-    "globby": "^8.0.1",
+    "globby": "^11.0.0",
     "js-yaml": "^3.9.1",
     "json-schema-deref-sync": "^0.3.1",
     "json-stringify-safe": "5.0.1",
