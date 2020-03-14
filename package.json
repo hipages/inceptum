@@ -97,7 +97,7 @@
     "@types/source-map-support": "^0.2.28",
     "@types/xmlbuilder": "^0.0.32",
     "co-mocha": "^1.1.2",
-    "codecov": "^2.2.0",
+    "codecov": "^3.0.0",
     "doubleagent": "^1.1.0",
     "gitbook": "^3.2.3",
     "gitbook-cli": "^2.3.2",
