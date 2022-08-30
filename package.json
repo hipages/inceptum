@@ -70,7 +70,6 @@
     "json-schema-deref-sync": "^0.3.1",
     "json-stringify-safe": "5.0.1",
     "jsonwebtoken": "^8.1.1",
-    "locutus": "^2.0.5",
     "lodash": "^4.17.4",
     "module-alias": "2.0.0",
     "moment": "^2.15.1",
