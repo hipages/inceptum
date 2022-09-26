@@ -15,6 +15,6 @@ class PromiseUtilTest {
     await PromiseUtil.sleepPromise(timeoutValue);
     const end = new Date().getTime();
     const elapsed = end - start;
-    elapsed.must.be.gt(timeoutValue);
+    elapsed.must.be.gte(timeoutValue);
   }
 }
