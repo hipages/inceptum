@@ -6,7 +6,6 @@ import * as bunyan from 'bunyan';
 import PrettyStream = require('bunyan-prettystream');
 import * as path from 'path';
 import RotatingFileStream = require('bunyan-rotating-file-stream');
-import RedisTransport = require('bunyan-redis');
 import * as os from 'os';
 import * as fs from 'fs';
 import * as stream from 'stream';
@@ -235,15 +234,6 @@ export class LogManagerInternal {
     return false;
   }
 
-  private static getRedisStream(redisConfig: RedisConfig): RedisTransport {
-    return new RedisTransport({
-      container: redisConfig.key || 'phplog',
-      host: process.env.REDIS_HOST || redisConfig.host || '127.0.0.1',
-      port: process.env.REDIS_PORT || redisConfig.port || 6379,
-      db: 0,
-    });
-  }
-
   private static resolvePath(thePath: string): string {
     const basePath = process.env.LOG_DIR || (config.has('Logger.dir') && config.get('Logger.dir')) || os.tmpdir();
     const finalPath = path.resolve(basePath, thePath);
@@ -351,12 +341,6 @@ export class LogManagerInternal {
           closeOnExit: true,
           level,
         };
-      case 'redis':
-        return {
-          type: 'raw',
-          level,
-          stream: this.getUnderlyingStream(streamName),
-        };
       default:
         throw new Error('Unknown log stream type');
     }
@@ -397,18 +381,6 @@ export class LogManagerInternal {
             this.streamCache.set(streamName, levelStringifyTransform);
           }
           break;
-        case 'redis':
-          {
-            const levelStringifyTransform = new CloseableLevelStringifyTransform();
-            const redisStream = LogManagerInternal.getRedisStream(streamConfig);
-            redisStream['end'] = () => null;
-            levelStringifyTransform.pipe(redisStream);
-            levelStringifyTransform.on('end', () => {
-              redisStream._client.quit();
-            });
-            this.streamCache.set(streamName, levelStringifyTransform);
-          }
-          break;
         default:
           throw new Error('Unknown log stream type');
       }
@@ -417,11 +389,6 @@ export class LogManagerInternal {
   }
 }
 
-interface RedisConfig {
-  key: string,
-  host: string,
-  port: number,
-}
 export const LogManager = new LogManagerInternal();
 
 const baseLogger = LogManager.getLogger('ROOT');

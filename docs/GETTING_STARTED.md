@@ -52,8 +52,6 @@ logging:
   streams:
     console:
       type: console
-    myredis:
-      type: redis
     mainLogFile:
       type: file
       path: main.log
