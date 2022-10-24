@@ -12,6 +12,7 @@ const rabbitClientConfig: RabbitmqClientConfig = {
   hostname: 'localhost',
   port: 5672,
   username: 'hip',
+  // deepcode ignore NoHardcodedPasswords/test: is not a real password
   password: 'hipages',
   maxConnectionAttempts: 3,
   protocol: 'amqp',

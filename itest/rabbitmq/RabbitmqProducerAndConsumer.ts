@@ -17,6 +17,7 @@ const clientConfig: RabbitmqClientConfig = {
     hostname: 'localhost',
     port: 5672,
     username: 'hip',
+    // deepcode ignore NoHardcodedPasswords/test: Is not a real password
     password: 'hipages',
     mgtHttpPort: 15672,
     mgtHttpHost: 'localhost',
