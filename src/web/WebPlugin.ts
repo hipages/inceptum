@@ -97,6 +97,7 @@ export default class WebPlugin implements Plugin {
 
   willStart(app: BaseApp, pluginContext: PluginContext) {
     const express: e.Express = e();
+    express.disable('x-powered-by');
     express.set('trust proxy', true); // stop redirecting to http internally https://expressjs.com/en/guide/behind-proxies.html
     pluginContext.set(WebPlugin.CONTEXT_APP_KEY, express);
     const context = app.getContext();
