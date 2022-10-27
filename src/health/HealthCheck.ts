@@ -97,7 +97,7 @@ export abstract class HealthCheck {
   isStarted(): boolean {
     return this.started;
   }
-  abstract async doCheck(): Promise<HealthCheckResult>;
+  abstract doCheck(): Promise<HealthCheckResult>;
   getLastResult(): HealthCheckResult {
     const threshold = (new Date().getTime()) - this.getSleepMillis() * this.staleNumFails;
     if (this.lastResult.timestamp < threshold) {

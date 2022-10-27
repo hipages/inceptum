@@ -134,7 +134,7 @@ class MySQLConnectionFactory implements Factory<mysql.IConnection> {
     }));
   }
 
-  destroy(connection: mysql.IConnection): Promise<undefined> {
+  destroy(connection: mysql.IConnection): Promise<void> {
     LOGGER.trace(`Destroying connection for pool ${this.name}`);
     return new Promise((resolve, reject) => {
       connection.end((err) => {

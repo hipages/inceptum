@@ -13,7 +13,7 @@ import { OSMetrics, OSMetricsService, CPUOSMetricNames, LoadOSMetricNames } from
 const Logger = LogManager.getLogger(__filename);
 
 export default class MetricsPlugin implements Plugin {
-  statsTimer: number;
+  statsTimer: any;
   loadStats: prometheus.Gauge;
   cpuStats: prometheus.Counter;
   lastMetrics: OSMetrics;

@@ -123,7 +123,7 @@ class PostgresConnectionFactory implements Factory<Client> {
     }));
     return undefined;
   }
-  validate(connection: Client): PromiseLike<boolean> {
+  validate(connection: Client): Promise<boolean> {
     LOGGER.trace(`Validating connection for pool ${this.name}`);
     return new Promise<boolean>((resolve, reject) => {
       connection.query('SELECT 1', (err, results) => {

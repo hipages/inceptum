@@ -22,7 +22,7 @@ export const DEFAULT_CONNECTION_POOL_OPTIONS: PoolConfig<any> = {
  */
 export interface ConnectionConfig {
   user: string,
- }
+}
 
 /**
  * Class for the config of a Pool.
@@ -45,10 +45,10 @@ export interface PoolConfig<C extends ConnectionConfig> {
 export abstract class ConnectionPool<T> {
   abstract getName(): string;
   abstract isReadonly(): boolean;
-  async abstract getConnection(): Promise<T>;
-  async abstract release(connection: T);
-  async abstract start();
-  async abstract stop();
+  abstract getConnection(): Promise<T>;
+  abstract release(connection: T);
+  abstract start(): Promise<void>;
+  abstract stop(): Promise<void>;
 }
 
 const connectErrorsCounter = new Counter({
@@ -132,7 +132,7 @@ export class InstrumentedFactory<T> implements Factory<T> {
       timer();
     }
   }
-  async destroy(client: T): Promise<undefined> {
+  async destroy(client: T): Promise<void> {
     try {
       return await this.factory.destroy(client);
     } finally {
@@ -213,7 +213,7 @@ export class InstrumentedConnectionPool<C, CC extends ConnectionConfig> extends 
     }
   }
 
-  private getGenericPoolOptions(): Options {
+  private getGenericPoolOptions(): Options & { numTestsPerRun: number } {
     return {
       acquireTimeoutMillis: this.options.acquireTimeoutMillis,
       autostart: false,

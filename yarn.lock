@@ -452,10 +452,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.4.tgz#7017a52e18dfaad32f55eebd539993014441949c"
   integrity sha512-BxcJpBu8D3kv/GZkx/gSMz6VnTJREBj/4lbzYOQueUOELkt8WrO6zAcSPmp9uRPEW/d+lUO8QK0W2xnS1hEU0A==
 
-"@types/node@7.0.23":
-  version "7.0.23"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.23.tgz#ededfd92e61046c32fcad56ea7e1101733fad4a4"
-  integrity sha512-F+qaJi0iw9Yk7Ugml+HtTi2r399gPEFfKh2lwr86/a/5LVHODiAllBlNCNrgo5sT9WRHl74ryEbXVeNUN3ToCQ==
+"@types/node@^10.0.0":
+  version "10.17.60"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.60.tgz#35f3d6213daed95da7f0f73e75bcc6980e90597b"
+  integrity sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==
 
 "@types/node@^8.0.27":
   version "8.10.66"
@@ -5062,10 +5062,10 @@ typescript@2.4.1:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.4.1.tgz#c3ccb16ddaa0b2314de031e7e6fee89e5ba346bc"
   integrity sha512-3O/A1TbKiXlfWsBv+X9QpzylORsBSXZuIG8GMzYvPTFCrkc65iXKd4gAkVN/jmLgSkmdTDMRY5XyNu+DxZD7mQ==
 
-typescript@2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.6.1.tgz#ef39cdea27abac0b500242d6726ab90e0c846631"
-  integrity sha512-tS2ybGoZKXHJqL+skWRSR0twQf3HmVGaMY8tNfOdi+tvlmPo+JN/ZYAdZuIBzGfPXxcAFhdp4fQM6LxqqU9cig==
+typescript@^4.8.4:
+  version "4.8.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz#c464abca159669597be5f96b8943500b238e60e6"
+  integrity sha512-QCh+85mCy+h0IGff8r5XWzOVSbBO+KfeYrMQh7NJ58QujwcE22u+NUSmUxqF+un70P9GXKxa2HCNiTTMJknyjQ==
 
 uglify-js@^3.1.4:
   version "3.17.4"
