@@ -152,11 +152,11 @@ export abstract class Lifecycle extends EventEmitter {
     return this.name;
   }
 
-  onState(state: LifecycleState, callback: Function) {
+  onState(state: LifecycleState, callback: any) {
     this.on(state.getName(), callback);
   }
 
-  onStateOnce(state: LifecycleState, callback: Function) {
+  onStateOnce(state: LifecycleState, callback: any) {
     this.once(state.getName(), callback);
   }
 

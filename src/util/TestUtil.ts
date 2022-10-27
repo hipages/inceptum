@@ -46,7 +46,7 @@ export class MyProxyHandler<T extends Object> implements ProxyHandler<T> {
       // console.log('Got expect', expect);
       return expect.resp;
     }
-    throw new Error(`Unexpected mock call of method ${p} with args: ${args}`);
+    throw new Error(`Unexpected mock call of method ${String(p)} with args: ${args}`);
   }
 }
 

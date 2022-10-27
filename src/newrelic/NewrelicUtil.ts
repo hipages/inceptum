@@ -15,7 +15,7 @@ export abstract class NewRelic {
   abstract noticeError(error: Error | Object, customParams?: object);
   abstract shutdown(opts: object, cb: (e) => void);
   abstract setTransactionName(name: string);
-  abstract async startBackgroundTransaction(name: string, group?: string, handle?: () => any);
+  abstract startBackgroundTransaction(name: string, group?: string, handle?: () => any): Promise<void>;
   abstract getTransaction();
   abstract setIgnoreTransaction(ignored: Boolean);
   abstract addCustomAttributes(attributes: {});

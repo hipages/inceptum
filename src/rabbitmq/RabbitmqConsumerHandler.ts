@@ -15,5 +15,5 @@ export abstract class RabbitmqConsumerHandler {
    * @param message
    * @throws RabbitmqConsumerHandlerError
    */
-  async abstract handle(message: Message): Promise<void>;
+  abstract handle(message: Message): Promise<void>;
 }

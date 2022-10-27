@@ -215,11 +215,11 @@ export class LogManagerInternal {
   private static getEffectiveLevel(loggerName: string, streamName: string, configuredLevel: string): bunyan.LogLevel {
     let overrideEnv = `LOG_${loggerName}_${streamName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
-      return process.env[overrideEnv];
+      return process.env[overrideEnv] as bunyan.LogLevel;
     }
     overrideEnv = `LOG_${loggerName}`.replace('/[^a-zA-z0-9_]+/', '_').replace('/[_]{2,}', '_').toUpperCase();
     if (process.env[overrideEnv]) {
-      return process.env[overrideEnv];
+      return process.env[overrideEnv] as bunyan.LogLevel;
     }
     return configuredLevel as bunyan.LogLevel;
   }
@@ -370,15 +370,7 @@ export class LogManagerInternal {
           break;
         case 'file':
           {
-            const levelStringifyTransform = new LevelStringifyTransform();
-            levelStringifyTransform.pipe(new StringifyTransform()).pipe(
-              new RotatingFileStream({
-                path: LogManagerInternal.resolvePath(streamConfig.path),
-                period: streamConfig.period || '1d',
-                count: streamConfig.count || 14,
-              }),
-            );
-            this.streamCache.set(streamName, levelStringifyTransform);
+
           }
           break;
         default:
@@ -398,7 +390,7 @@ process.on('unhandledRejection', (reason, promise) => {
   }
   // eslint-disable-next-line no-underscore-dangle
   baseLogger.fatal(reason,
-    `Unhandled promise: ${reason} ${promise && promise._trace && promise._trace.stack ? promise._trace.stack : ''}`,
+    `Unhandled promise: ${reason}`,
   );
 });
 

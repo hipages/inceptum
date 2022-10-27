@@ -155,7 +155,7 @@ export abstract class RabbitmqClient {
    * trigger connection close event. Do not handle connection error event because a close event with error will be emiited.
    * Then the close event will be handled.
    */
-  protected async handleError(emitter: ClientPropertyTag, err: Error) {
+  protected async handleError(emitter: ClientPropertyTag, err: any) {
     if (Object.values(ShutdownMessage).includes(err.message)) {
       this.logger.error(err, this.debugMsg(`Handling ${emitter} error. Shutting down the app to restart.`));
       this.shutdownFunction();
