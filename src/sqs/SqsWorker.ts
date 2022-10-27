@@ -31,7 +31,7 @@ export abstract class SqsHandler {
    * @param message
    * @param done
    */
-  abstract handle(message: Object, done: (err?: Error) => void): Promise<void>
+  abstract handle(message: Object, done: (err?: Error) => void): Promise<void>;
 }
 
 export class SqsWorker {
