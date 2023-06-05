@@ -65,7 +65,7 @@ export class ExtendedError extends Error {
     }
     return this.structuredStackTrace;
   }
-  cause(): Error {
+  cause = () => {
     return this.causingError;
   }
 }
