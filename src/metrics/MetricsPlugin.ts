@@ -1,7 +1,6 @@
 // tslint:disable:prefer-function-over-method
 import * as e from 'express';
 import * as prometheus from 'prom-client';
-import * as gcStats from 'prometheus-gc-stats';
 import { NewrelicUtil } from '../newrelic/NewrelicUtil';
 import { PreinstantiatedSingletonDefinition } from '../ioc/objectdefinition/PreinstantiatedSingletonDefinition';
 import BaseApp, { Plugin, PluginContext } from '../app/BaseApp';
@@ -29,8 +28,6 @@ export default class MetricsPlugin implements Plugin {
   didStart(app: BaseApp, pluginContext: PluginContext) {
     this.prometheusTimer = prometheus.collectDefaultMetrics();
     prometheus.register.setDefaultLabels({ app: app.getConfig('app.name', 'not_set') });
-    const startGcStats = gcStats();
-    startGcStats();
     this.registerOSMetrics(app);
 
     const context = app.getContext();
